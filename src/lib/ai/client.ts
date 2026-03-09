@@ -18,7 +18,7 @@ export const PROVIDER_MODELS: Record<AIProvider, { default: string; fast: string
     fast: "claude-haiku-4-5-20251001",
   },
   gemini: {
-    default: "gemini-1.5-flash",
-    fast: "gemini-1.5-flash-8b",
+    default: "gemini-2.0-flash-lite",
+    fast: "gemini-2.0-flash-lite",
   },
 };
