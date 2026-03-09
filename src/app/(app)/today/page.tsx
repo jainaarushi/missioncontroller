@@ -125,6 +125,7 @@ export default function TodayPage() {
   async function handleRunTask(taskId: string) {
     const res = await fetch(`/api/tasks/${taskId}/run`, { method: "POST" });
     if (res.status === 401) {
+      alert("Sign up for free to run AI agents!\nRedirecting to sign up...");
       window.location.href = "/login";
       return;
     }

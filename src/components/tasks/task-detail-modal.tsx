@@ -21,6 +21,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const { agents } = useAgents();
   const [hoveredAgent, setHoveredAgent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loginPrompt, setLoginPrompt] = useState(false);
 
   const task = fullTask || initialTask;
 
@@ -43,8 +44,13 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
   async function handleRun() {
     setLoading(true);
-    // Don't close — keep modal open to show progress
-    await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+    const res = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+    if (res.status === 401) {
+      setLoading(false);
+      setLoginPrompt(true);
+      setTimeout(() => { window.location.href = "/login"; }, 2000);
+      return;
+    }
     mutateTask();
     onUpdate();
     setLoading(false);
@@ -57,11 +63,10 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ agent_id: agentId }),
     });
-    await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+    // Don't auto-run — just assign, let user click Run
     mutateTask();
     onUpdate();
     setLoading(false);
-    // Don't close — show progress
   }
 
   async function handleApprove() {
@@ -274,6 +279,40 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
         }}
       >
         {agent && <div style={{ height: 5, background: agent.gradient, borderRadius: "20px 20px 0 0" }} />}
+
+        {/* Login prompt overlay */}
+        {loginPrompt && (
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 10,
+            backgroundColor: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(4px)",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            borderRadius: 20,
+            animation: "fadeIn 0.2s ease",
+          }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>🔐</div>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: P.text, marginBottom: 6 }}>
+              Sign up to run agents
+            </h3>
+            <p style={{ fontSize: 14, color: P.textSec, marginBottom: 16 }}>
+              Create a free account to start using AI agents
+            </p>
+            <a
+              href="/login"
+              style={{
+                padding: "10px 24px", borderRadius: 10,
+                backgroundColor: P.indigo, color: "#fff",
+                fontSize: 14, fontWeight: 600, textDecoration: "none",
+                transition: "all 0.2s",
+              }}
+            >
+              Sign Up Free
+            </a>
+            <p style={{ fontSize: 12, color: P.textTer, marginTop: 10 }}>
+              Redirecting in a moment...
+            </p>
+          </div>
+        )}
 
         <div style={{ padding: "26px 30px 30px" }}>
           {/* Header */}
