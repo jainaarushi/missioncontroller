@@ -60,7 +60,8 @@ export default function SettingsPage() {
         else setAnthropicInfo(info);
         setApiKey("");
         setShowKey(false);
-        setMessage({ type: "success", text: `${activeProvider === "gemini" ? "Gemini" : "Anthropic"} key saved and encrypted` });
+        const providerNames: Record<string, string> = { openai: "OpenAI", gemini: "Gemini", anthropic: "Anthropic" };
+        setMessage({ type: "success", text: `${providerNames[activeProvider]} key saved and encrypted` });
       } else {
         setMessage({ type: "error", text: data.error || "Failed to save key" });
       }

@@ -50,8 +50,8 @@ export default function AnalyticsPage() {
     <>
       <div style={{ marginBottom: 28, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
         <h1 style={{
-          fontSize: 32, fontWeight: 800, color: P.text, margin: "0 0 6px",
-          letterSpacing: "-0.04em",
+          fontSize: 28, fontWeight: 800, color: P.text, margin: "0 0 6px",
+          letterSpacing: "-0.03em",
         }}>
           Analytics
         </h1>

@@ -17,14 +17,16 @@ export default function CompletedPage() {
   return (
     <>
       <h1 style={{
-        fontSize: 32, fontWeight: 800, color: P.text, margin: "0 0 6px",
-        letterSpacing: "-0.04em", animation: "slideUp 0.5s ease",
+        fontSize: 28, fontWeight: 800, color: P.text, margin: "0 0 6px",
+        letterSpacing: "-0.03em", animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
       }}>
         Completed
       </h1>
-      <p style={{ fontSize: 15, color: P.textSec, marginBottom: 28 }}>
-        {doneTasks.length} tasks done · ${totalCost.toFixed(2)} total
-      </p>
+      {doneTasks.length > 0 && (
+        <p style={{ fontSize: 14, color: P.textSec, marginBottom: 24 }}>
+          {doneTasks.length} task{doneTasks.length !== 1 ? "s" : ""} done{totalCost > 0 && ` · $${totalCost < 0.01 ? totalCost.toFixed(4) : totalCost.toFixed(2)} total`}
+        </p>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {doneTasks.map((task, i) => (
@@ -38,8 +40,19 @@ export default function CompletedPage() {
       </div>
 
       {doneTasks.length === 0 && (
-        <div style={{ textAlign: "center", padding: "60px 0", color: P.textTer, fontSize: 14 }}>
-          No completed tasks yet. Approve agent output to see tasks here.
+        <div style={{
+          textAlign: "center", padding: "48px 20px",
+          borderRadius: 16, border: `1.5px dashed ${P.border}`,
+          marginTop: 8,
+          animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both",
+        }}>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>✅</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: P.text, marginBottom: 4 }}>
+            No completed tasks yet
+          </div>
+          <div style={{ fontSize: 13, color: P.textTer, lineHeight: 1.5 }}>
+            When you approve an agent's output, it'll appear here
+          </div>
         </div>
       )}
 

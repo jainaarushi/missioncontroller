@@ -58,8 +58,8 @@ export default function AgentsPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
             <h1 style={{
-              fontSize: 34, fontWeight: 800, color: P.text, margin: "0 0 8px",
-              letterSpacing: "-0.04em",
+              fontSize: 28, fontWeight: 800, color: P.text, margin: "0 0 8px",
+              letterSpacing: "-0.03em",
             }}>
               Explore agents
             </h1>
