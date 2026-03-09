@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { isAIEnabled } from "@/lib/ai/client";
 
 export async function GET() {
   const supabaseEnabled =
@@ -7,8 +6,8 @@ export async function GET() {
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
   return NextResponse.json({
-    mode: supabaseEnabled && isAIEnabled() ? "live" : "demo",
+    mode: supabaseEnabled ? "live" : "demo",
     supabase: supabaseEnabled,
-    ai: isAIEnabled(),
+    ai: "user-provided",
   });
 }

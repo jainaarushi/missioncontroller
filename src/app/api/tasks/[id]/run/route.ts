@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask, mockSteps } from "@/lib/mock-data";
-import { anthropic, isAIEnabled } from "@/lib/ai/client";
+import { getAuthUser } from "@/lib/auth";
+import { createUserAnthropic } from "@/lib/ai/client";
+import { getUserAnthropicKey } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
 import type { TaskStep } from "@/lib/types/task";
 
@@ -33,9 +35,16 @@ export async function POST(
   ];
   mockSteps.set(id, steps);
 
-  // Use real AI if available, otherwise simulate
-  if (isAIEnabled() && anthropic) {
-    executeWithAI(id, task.title, task.description, agent.name, agent.system_prompt, agent.model, steps);
+  // Check if the user has their own Anthropic API key
+  const user = await getAuthUser();
+  let userApiKey: string | null = null;
+  if (user) {
+    userApiKey = await getUserAnthropicKey(user.id);
+  }
+
+  if (userApiKey) {
+    const anthropic = createUserAnthropic(userApiKey);
+    executeWithAI(id, task.title, task.description, agent.name, agent.system_prompt, agent.model, steps, anthropic);
   } else {
     simulateAgentWork(id, agent.name, steps);
   }
@@ -43,7 +52,7 @@ export async function POST(
   return NextResponse.json({ status: "started" });
 }
 
-// ── Real AI Execution ───────────────────────────────────────
+// ── Real AI Execution (using user's own key) ────────────────
 
 async function executeWithAI(
   taskId: string,
@@ -52,10 +61,9 @@ async function executeWithAI(
   agentName: string,
   systemPrompt: string,
   model: string,
-  steps: TaskStep[]
+  steps: TaskStep[],
+  anthropic: ReturnType<typeof createUserAnthropic>
 ) {
-  if (!anthropic) return;
-
   const startTime = Date.now();
 
   try {
@@ -79,7 +87,7 @@ async function executeWithAI(
       ? `Task: ${title}\n\nDetails: ${description}`
       : `Task: ${title}`;
 
-    // Call Claude API using the Vercel AI SDK
+    // Call Claude API using the user's own key
     const { generateText } = await import("ai");
     const result = await generateText({
       model: anthropic(model),
@@ -118,7 +126,6 @@ async function executeWithAI(
   } catch (error) {
     console.error("AI execution failed:", error);
 
-    // Mark as failed
     steps.forEach((s) => {
       if (s.status === "working" || s.status === "pending") {
         s.status = "failed";
@@ -129,12 +136,12 @@ async function executeWithAI(
       status: "failed",
       progress: 0,
       current_step: `Failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      output: `## Error\n\n${agentName} encountered an error while processing this task.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key configuration and try again.`,
+      output: `## Error\n\n${agentName} encountered an error while processing this task.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key in Settings and try again.`,
     });
   }
 }
 
-// ── Mock Simulation (Demo Mode) ─────────────────────────────
+// ── Mock Simulation (when no API key) ───────────────────────
 
 async function simulateAgentWork(taskId: string, agentName: string, steps: TaskStep[]) {
   const task = getTask(taskId);
@@ -169,59 +176,30 @@ async function simulateAgentWork(taskId: string, agentName: string, steps: TaskS
   steps[3].completed_at = new Date().toISOString();
   steps[3].tokens_used = 389;
 
-  const output = generateDemoOutput(task.title, agentName);
-  const totalTokensIn = 890;
-  const totalTokensOut = 2980;
-  const cost = (totalTokensIn * 3.0 + totalTokensOut * 15.0) / 1_000_000;
+  const output = `# ${task.title}
+
+## Demo Mode
+
+This is a simulated response. To get real AI-powered results:
+
+1. Go to **Settings**
+2. Add your **Anthropic API key**
+3. Run this task again
+
+${agentName} will use Claude to generate real, high-quality output for your task.
+
+> Get your API key at [console.anthropic.com](https://console.anthropic.com)`;
 
   updateTask(taskId, {
     status: "review",
     progress: 100,
     output,
-    cost_usd: cost,
-    tokens_in: totalTokensIn,
-    tokens_out: totalTokensOut,
+    cost_usd: 0,
+    tokens_in: 0,
+    tokens_out: 0,
     duration_seconds: 6,
-    current_step: "Complete — ready for your review",
+    current_step: "Complete — add API key in Settings for real AI output",
   });
-}
-
-function generateDemoOutput(title: string, agentName: string): string {
-  return `# ${title}
-
-## Summary
-${agentName} has completed the analysis of this task. Here are the key findings and deliverables.
-
-## Key Findings
-
-1. **Primary Insight** — The task has been thoroughly analyzed and the results show promising outcomes that align with the project goals.
-
-2. **Supporting Data** — Based on the research conducted:
-   - Point A demonstrates strong performance metrics
-   - Point B highlights areas for improvement
-   - Point C suggests a clear path forward
-
-3. **Comparative Analysis**
-
-| Aspect | Current | Proposed | Impact |
-|--------|---------|----------|--------|
-| Efficiency | 65% | 88% | +23% |
-| Coverage | 72% | 95% | +23% |
-| Quality | 80% | 92% | +12% |
-
-## Recommendations
-
-- **Short-term**: Focus on the highest-impact items identified above
-- **Medium-term**: Build on the foundation with iterative improvements
-- **Long-term**: Scale the approach across the organization
-
-## Next Steps
-
-1. Review these findings and provide feedback
-2. Prioritize the recommended actions
-3. Set up follow-up tasks for implementation
-
-> *This analysis was generated by ${agentName} in demo mode. Add an Anthropic API key to enable real AI execution.*`;
 }
 
 function delay(ms: number): Promise<void> {
