@@ -29,10 +29,11 @@ export function SidebarCosts({ tasks }: SidebarCostsProps) {
   return (
     <div style={{ overflowY: "auto", flex: 1 }}>
       <div style={{
-        fontSize: 11, fontWeight: 700, color: P.textGhost,
-        padding: "0 12px 10px", letterSpacing: "0.05em",
+        fontSize: 11, fontWeight: 600, color: P.textTer,
+        padding: "0 12px 10px", letterSpacing: "0.04em",
+        textTransform: "uppercase" as const,
       }}>
-        COST TRACKER
+        Cost Tracker
       </div>
 
       {/* Main cost display */}

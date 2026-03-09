@@ -3,28 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { P } from "@/lib/palette";
+import { CalendarDays, Bot, BarChart3, CheckCircle2, Settings } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface SidebarNavProps {
   reviewCount: number;
   doneTasks?: number;
 }
 
-const NAV_ITEMS = [
-  { href: "/today", icon: "☀️", label: "Today" },
-  { href: "/agents", icon: "🤖", label: "Agents" },
-  { href: "/analytics", icon: "📈", label: "Analytics" },
-  { href: "/completed", icon: "✅", label: "Completed" },
-  { href: "/settings", icon: "⚙️", label: "Settings" },
+const NAV_ITEMS: { href: string; icon: LucideIcon; label: string }[] = [
+  { href: "/today", icon: CalendarDays, label: "Today" },
+  { href: "/agents", icon: Bot, label: "Agents" },
+  { href: "/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/completed", icon: CheckCircle2, label: "Completed" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function SidebarNav({ reviewCount }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav>
+    <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         const showBadge = item.href === "/today" && reviewCount > 0;
+        const Icon = item.icon;
 
         return (
           <Link
@@ -33,25 +36,26 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 9,
+              gap: 10,
               padding: "8px 12px",
-              borderRadius: 10,
+              borderRadius: 8,
               cursor: "pointer",
               transition: "all 0.15s",
               textDecoration: "none",
               backgroundColor: isActive ? P.sidebarActive : "transparent",
-              fontWeight: isActive ? 700 : 500,
+              fontWeight: isActive ? 600 : 500,
               color: isActive ? P.text : P.textSec,
-              fontSize: 14,
+              fontSize: 13.5,
+              letterSpacing: "-0.01em",
             }}
             onMouseEnter={(e) => {
-              if (!isActive) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.025)";
+              if (!isActive) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.03)";
             }}
             onMouseLeave={(e) => {
               if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
             }}
           >
-            <span style={{ fontSize: 15 }}>{item.icon}</span>
+            <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} color={isActive ? P.text : P.textTer} />
             <span style={{ flex: 1 }}>{item.label}</span>
             {showBadge && (
               <span style={{

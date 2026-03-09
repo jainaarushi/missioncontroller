@@ -215,30 +215,26 @@ export default function TodayPage() {
             {agents.map((agent, i) => {
               const thumb = AGENT_THUMBNAILS[agent.slug];
               const busy = workingTasks.some((t) => t.agent_id === agent.id);
+              // Stagger: column-first order for 2-row grid
+              const col = Math.floor(i / 2);
+              const row = i % 2;
+              const delay = col * 0.06 + row * 0.03;
               return (
                 <div
                   key={agent.id}
+                  className="agent-card"
                   onClick={() => setShowCreateModal(true)}
                   style={{
                     borderRadius: 14, cursor: "pointer",
                     overflow: "hidden",
                     scrollSnapAlign: "start",
-                    animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.03}s both`,
-                    transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+                    animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
                     backgroundColor: P.card,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-3px)";
-                    e.currentTarget.style.boxShadow = "0 12px 28px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)";
-                  }}
                 >
-                  {/* Thumbnail */}
-                  <div style={{
+                  {/* Thumbnail with zoom-in entrance */}
+                  <div className="agent-thumb" style={{
                     width: "100%", height: 90, position: "relative",
                     overflow: "hidden",
                   }}>
@@ -249,6 +245,7 @@ export default function TodayPage() {
                         style={{
                           width: "100%", height: "100%",
                           objectFit: "cover",
+                          animation: `thumbZoom 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
                         }}
                       />
                     ) : (
@@ -265,8 +262,9 @@ export default function TodayPage() {
                     {busy && (
                       <div style={{
                         position: "absolute", top: 6, right: 6, zIndex: 3,
-                        display: "flex", gap: 2, backgroundColor: "rgba(255,255,255,0.85)",
+                        display: "flex", gap: 2, backgroundColor: "rgba(255,255,255,0.9)",
                         borderRadius: 8, padding: "3px 6px",
+                        backdropFilter: "blur(4px)",
                       }}>
                         {[0, 1, 2].map((d) => (
                           <span key={d} style={{
@@ -281,9 +279,10 @@ export default function TodayPage() {
 
                   {/* Label */}
                   <div style={{ padding: "8px 10px 10px" }}>
-                    <div style={{
+                    <div className="agent-label" style={{
                       fontSize: 12.5, fontWeight: 700, color: P.text,
                       marginBottom: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      transition: "color 0.2s",
                     }}>
                       {agent.name}
                     </div>
@@ -313,23 +312,29 @@ export default function TodayPage() {
                 }}
                 style={{
                   position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                  width: 40, height: 40, borderRadius: "50%",
+                  width: 42, height: 42, borderRadius: "50%",
                   backgroundColor: "#fff",
                   boxShadow: "0 2px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", transition: "all 0.2s",
+                  cursor: "pointer",
                   zIndex: 5,
+                  animation: "scrollPulse 2.5s ease-in-out infinite",
+                  transition: "background-color 0.2s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)";
-                  e.currentTarget.style.transform = "translateY(-50%) scale(1.08)";
+                  e.currentTarget.style.animationPlayState = "paused";
+                  e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.14)";
+                  e.currentTarget.style.backgroundColor = "#F5F5F3";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)";
-                  e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+                  e.currentTarget.style.animationPlayState = "running";
+                  e.currentTarget.style.transform = "";
+                  e.currentTarget.style.boxShadow = "";
+                  e.currentTarget.style.backgroundColor = "#fff";
                 }}
               >
-                <ChevronRight size={20} color={P.textSec} />
+                <ChevronRight size={20} color={P.textSec} strokeWidth={2.5} />
               </button>
             </>
           )}
@@ -373,9 +378,12 @@ export default function TodayPage() {
         marginBottom: 16,
       }}>
         <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
-          {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span>{" · "}</>}
-          {workingTasks.length > 0 && <>{workingTasks.length} working{" · "}</>}
-          {todoTasks.length} to do{" · "}${totalCost.toFixed(2)} spent
+          {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
+          {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
+          {workingTasks.length > 0 && <>{workingTasks.length} working</>}
+          {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
+          {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
+          {tasks.length === 0 && "No tasks yet"}
         </p>
         <button
           onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}

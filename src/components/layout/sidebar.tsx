@@ -33,10 +33,10 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 22px" }}>
         <div style={{
           width: 30, height: 30, borderRadius: 9,
-          background: "linear-gradient(135deg, #1a1a1a, #333)",
+          background: "linear-gradient(135deg, #4F46E5, #6366F1)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 15, fontWeight: 900, color: "#fff",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          boxShadow: "0 2px 10px rgba(99,102,241,0.3)",
         }}>
           C
         </div>
@@ -62,7 +62,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
       <SidebarCosts tasks={tasks} />
 
       {/* Footer */}
-      <SidebarFooter stats={stats} />
+      <SidebarFooter />
     </div>
   );
 }
