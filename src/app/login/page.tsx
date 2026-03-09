@@ -139,27 +139,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" style={{ borderColor: "rgba(0, 0, 0, 0.08)" }} />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-2 text-ink-tertiary" style={{ background: "rgba(255, 255, 255, 0.7)" }}>or</span>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            style={{
-              background: "rgba(255, 255, 255, 0.5)",
-              borderColor: "rgba(0, 0, 0, 0.08)",
-            }}
-            onClick={handleGoogleLogin}
-          >
-            Continue with Google
-          </Button>
-
           <p className="text-center text-sm text-ink-secondary mt-4">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
