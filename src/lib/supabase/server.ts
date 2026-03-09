@@ -1,7 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+const hasConfig =
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
+
 export async function createClient() {
+  if (!hasConfig) return null;
+
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -18,11 +24,14 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing sessions.
+            // Called from Server Component — safe to ignore
           }
         },
       },
     }
   );
+}
+
+export function isSupabaseEnabled(): boolean {
+  return hasConfig;
 }

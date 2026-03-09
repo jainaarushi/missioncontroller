@@ -17,6 +17,11 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabase) {
+      // Demo mode — skip auth
+      window.location.href = "/today";
+      return;
+    }
     setLoading(true);
     setError(null);
     setMessage(null);
@@ -50,6 +55,10 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
+    if (!supabase) {
+      window.location.href = "/today";
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/agents", icon: "🤖", label: "Agents" },
   { href: "/analytics", icon: "📈", label: "Analytics" },
   { href: "/completed", icon: "✅", label: "Completed" },
+  { href: "/settings", icon: "⚙️", label: "Settings" },
 ];
 
 export function SidebarNav({ reviewCount }: SidebarNavProps) {

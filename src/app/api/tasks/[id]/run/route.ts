@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask, mockSteps } from "@/lib/mock-data";
+import { anthropic, isAIEnabled } from "@/lib/ai/client";
+import { calculateCost } from "@/lib/ai/cost";
 import type { TaskStep } from "@/lib/types/task";
 
-// Demo mode: simulate agent execution with a mock streaming response
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,17 +33,113 @@ export async function POST(
   ];
   mockSteps.set(id, steps);
 
-  // Simulate async work — after a delay, complete the task
-  simulateAgentWork(id, agent.name, steps);
+  // Use real AI if available, otherwise simulate
+  if (isAIEnabled() && anthropic) {
+    executeWithAI(id, task.title, task.description, agent.name, agent.system_prompt, agent.model, steps);
+  } else {
+    simulateAgentWork(id, agent.name, steps);
+  }
 
   return NextResponse.json({ status: "started" });
 }
+
+// ── Real AI Execution ───────────────────────────────────────
+
+async function executeWithAI(
+  taskId: string,
+  title: string,
+  description: string | null,
+  agentName: string,
+  systemPrompt: string,
+  model: string,
+  steps: TaskStep[]
+) {
+  if (!anthropic) return;
+
+  const startTime = Date.now();
+
+  try {
+    // Step 1: Analyzing
+    steps[0].status = "done";
+    steps[0].completed_at = new Date().toISOString();
+    steps[0].tokens_used = 0;
+    steps[1].status = "working";
+    steps[1].started_at = new Date().toISOString();
+    updateTask(taskId, { progress: 20, current_step: "Gathering relevant information" });
+
+    // Step 2: Mark as processing
+    steps[1].status = "done";
+    steps[1].completed_at = new Date().toISOString();
+    steps[2].status = "working";
+    steps[2].started_at = new Date().toISOString();
+    updateTask(taskId, { progress: 40, current_step: `${agentName} is generating output` });
+
+    // Build the prompt
+    const userMessage = description
+      ? `Task: ${title}\n\nDetails: ${description}`
+      : `Task: ${title}`;
+
+    // Call Claude API using the Vercel AI SDK
+    const { generateText } = await import("ai");
+    const result = await generateText({
+      model: anthropic(model),
+      system: systemPrompt,
+      prompt: userMessage,
+    });
+
+    // Step 3: Done processing
+    const usage = result.usage as { totalTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+    steps[2].status = "done";
+    steps[2].completed_at = new Date().toISOString();
+    steps[2].tokens_used = (usage?.totalTokens || 0);
+    steps[3].status = "working";
+    steps[3].started_at = new Date().toISOString();
+    updateTask(taskId, { progress: 85, current_step: "Finalizing results" });
+
+    // Step 4: Finalize
+    steps[3].status = "done";
+    steps[3].completed_at = new Date().toISOString();
+
+    const tokensIn = usage?.promptTokens || 0;
+    const tokensOut = usage?.completionTokens || 0;
+    const cost = calculateCost(tokensIn, tokensOut, model);
+    const duration = Math.round((Date.now() - startTime) / 1000);
+
+    updateTask(taskId, {
+      status: "review",
+      progress: 100,
+      output: result.text,
+      cost_usd: cost,
+      tokens_in: tokensIn,
+      tokens_out: tokensOut,
+      duration_seconds: duration,
+      current_step: "Complete — ready for your review",
+    });
+  } catch (error) {
+    console.error("AI execution failed:", error);
+
+    // Mark as failed
+    steps.forEach((s) => {
+      if (s.status === "working" || s.status === "pending") {
+        s.status = "failed";
+      }
+    });
+
+    updateTask(taskId, {
+      status: "failed",
+      progress: 0,
+      current_step: `Failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      output: `## Error\n\n${agentName} encountered an error while processing this task.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key configuration and try again.`,
+    });
+  }
+}
+
+// ── Mock Simulation (Demo Mode) ─────────────────────────────
 
 async function simulateAgentWork(taskId: string, agentName: string, steps: TaskStep[]) {
   const task = getTask(taskId);
   if (!task) return;
 
-  // Step 1: Analyzing (1s)
   await delay(1000);
   steps[0].status = "done";
   steps[0].completed_at = new Date().toISOString();
@@ -51,7 +148,6 @@ async function simulateAgentWork(taskId: string, agentName: string, steps: TaskS
   steps[1].started_at = new Date().toISOString();
   updateTask(taskId, { progress: 25, current_step: "Gathering relevant information" });
 
-  // Step 2: Gathering (1.5s)
   await delay(1500);
   steps[1].status = "done";
   steps[1].completed_at = new Date().toISOString();
@@ -60,7 +156,6 @@ async function simulateAgentWork(taskId: string, agentName: string, steps: TaskS
   steps[2].started_at = new Date().toISOString();
   updateTask(taskId, { progress: 50, current_step: "Processing and generating output" });
 
-  // Step 3: Processing (2s)
   await delay(2000);
   steps[2].status = "done";
   steps[2].completed_at = new Date().toISOString();
@@ -69,13 +164,11 @@ async function simulateAgentWork(taskId: string, agentName: string, steps: TaskS
   steps[3].started_at = new Date().toISOString();
   updateTask(taskId, { progress: 80, current_step: "Finalizing results" });
 
-  // Step 4: Finalizing (1s)
   await delay(1000);
   steps[3].status = "done";
   steps[3].completed_at = new Date().toISOString();
   steps[3].tokens_used = 389;
 
-  // Generate demo output based on task title
   const output = generateDemoOutput(task.title, agentName);
   const totalTokensIn = 890;
   const totalTokensOut = 2980;
@@ -128,7 +221,7 @@ ${agentName} has completed the analysis of this task. Here are the key findings 
 2. Prioritize the recommended actions
 3. Set up follow-up tasks for implementation
 
-> *This analysis was generated by ${agentName}. Review the output and approve or request revisions.*`;
+> *This analysis was generated by ${agentName} in demo mode. Add an Anthropic API key to enable real AI execution.*`;
 }
 
 function delay(ms: number): Promise<void> {

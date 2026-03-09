@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cadre
+
+A daily workspace where humans and AI agents collaborate on tasks. Built with Next.js, Supabase, and the Anthropic SDK.
+
+## Features
+
+- **12 AI Agents** — Scout, Quill, Metric, Atlas, Voyager, Pulse, Sleuth, Caster, Architect, Catalyst, Vitalis, Strategist
+- **Smart Agent Suggestions** — as you type a task, Cadre recommends the best agents based on keywords
+- **Multi-Agent Pipelines** — select multiple agents and drag-and-drop to reorder their execution sequence
+- **Task Priority System** — Urgent, High, Normal, Low with color-coded badges
+- **Command Palette (⌘K)** — search tasks, agents, and navigate instantly
+- **Analytics Dashboard** — status distribution, agent performance, priority breakdown, token usage
+- **Bulk Operations** — select multiple tasks to delete, change priority, or move sections
+- **Canva-Inspired Design** — soft pastel agent cards, spring animations, drag-and-drop everywhere
+- **Custom Agent Creation** — build your own agents with custom icons, colors, models, and system prompts
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Frontend | React 19, Tailwind CSS 4, shadcn/ui |
+| Backend | Supabase (Postgres + RLS + Realtime) |
+| AI | Anthropic SDK (Claude Sonnet 4 / Haiku 4.5) |
+| Data Fetching | SWR |
+| Validation | Zod |
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/jainaarushi/missioncontroller.git
+cd missioncontroller
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in your API keys:
+
+- **Supabase**: Create a project at [supabase.com](https://supabase.com), then go to Settings > API
+- **Anthropic**: Get an API key at [console.anthropic.com](https://console.anthropic.com)
+
+> **Demo mode**: The app works without API keys using in-memory mock data. Add real keys to enable persistent storage and real AI execution.
+
+### 4. Set up the database (optional)
+
+If using Supabase, run the schema in the SQL Editor:
+
+```bash
+# Copy contents of supabase-schema.sql into Supabase SQL Editor and run
+```
+
+### 5. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── (app)/              # Main app pages (today, agents, analytics, completed, settings)
+│   ├── api/                # API routes (tasks, agents, stats)
+│   └── login/              # Auth page
+├── components/
+│   ├── agents/             # Agent cards, creation modal, avatar
+│   ├── layout/             # Sidebar, navigation, footer
+│   ├── shared/             # Command palette, confetti, progress arc
+│   ├── tasks/              # Task cards, sections, bulk actions, create modal
+│   └── ui/                 # shadcn components
+├── lib/
+│   ├── ai/                 # Anthropic client, cost calculator
+│   ├── hooks/              # SWR data hooks
+│   ├── supabase/           # Client, server, admin SDK setup
+│   ├── types/              # TypeScript interfaces
+│   ├── utils/              # Constants, agent suggestion engine
+│   └── validators/         # Zod schemas
+└── seed/                   # 12 preset agent definitions
+```
 
-## Learn More
+## Keyboard Shortcuts
 
-To learn more about Next.js, take a look at the following resources:
+| Shortcut | Action |
+|----------|--------|
+| ⌘N | Create a new task |
+| ⌘K | Open command palette |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Modes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Mode | When | What works |
+|------|------|-----------|
+| **Demo** | No API keys | Mock data, simulated agent execution, all UI features |
+| **Live** | Real API keys | Persistent database, real Claude AI execution, auth |
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
