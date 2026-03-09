@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
+import { suggestAgents } from "@/lib/utils/agent-suggest";
 import { P } from "@/lib/palette";
 import type { Agent } from "@/lib/types/agent";
 
 interface CreateTaskModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (title: string, agentId?: string) => void;
+  onSubmit: (title: string, agentIds?: string[]) => void;
   agents: Agent[];
 }
 
@@ -112,11 +113,20 @@ const TASK_TEMPLATES: Record<string, { title: string; icon: string; color: strin
 export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskModalProps) {
   const [value, setValue] = useState("");
   const [activeCategory, setActiveCategory] = useState("for-you");
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Smart agent suggestions based on what the user types
+  const suggestions = useMemo(() => suggestAgents(value, agents), [value, agents]);
 
   useEffect(() => {
     if (open && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 100);
+    }
+    if (!open) {
+      setSelectedAgentIds([]);
+      setValue("");
+      setActiveCategory("for-you");
     }
   }, [open]);
 
@@ -131,13 +141,24 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
 
   if (!open) return null;
 
+  function toggleAgent(agentId: string) {
+    setSelectedAgentIds((prev) =>
+      prev.includes(agentId)
+        ? prev.filter((id) => id !== agentId)
+        : [...prev, agentId]
+    );
+  }
+
   function handleSubmit(title?: string) {
     const text = (title || value).trim();
     if (!text) return;
-    onSubmit(text);
+    onSubmit(text, selectedAgentIds.length > 0 ? selectedAgentIds : undefined);
     setValue("");
+    setSelectedAgentIds([]);
     onClose();
   }
+
+  const selectedAgents = selectedAgentIds.map((id) => agents.find((a) => a.id === id)).filter(Boolean) as Agent[];
 
   // Filter agents by category
   const categoryAgentSlugs = CATEGORY_AGENTS[activeCategory] || [];
@@ -281,6 +302,135 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
             )}
           </div>
 
+          {/* Smart agent suggestions — appears as user types */}
+          {suggestions.length > 0 && (
+            <div style={{
+              marginBottom: 20,
+              animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
+            }}>
+              <div style={{
+                fontSize: 13, fontWeight: 700, color: P.indigo,
+                marginBottom: 10, display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <span style={{ fontSize: 14 }}>✨</span>
+                Suggested agents for this task
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {suggestions.map(({ agent, reason }, i) => {
+                  const isSelected = selectedAgentIds.includes(agent.id);
+                  const orderNum = isSelected ? selectedAgentIds.indexOf(agent.id) + 1 : null;
+                  return (
+                    <div
+                      key={agent.id}
+                      onClick={() => toggleAgent(agent.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "12px 14px", borderRadius: 14, cursor: "pointer",
+                        backgroundColor: isSelected ? agent.color + "0a" : P.sidebar,
+                        border: `2px solid ${isSelected ? agent.color + "40" : "transparent"}`,
+                        transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
+                        animation: `fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) ${i * 0.05}s both`,
+                        transform: isSelected ? "scale(1.01)" : "scale(1)",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = agent.color + "08";
+                          e.currentTarget.style.borderColor = agent.color + "20";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = P.sidebar;
+                          e.currentTarget.style.borderColor = "transparent";
+                        }
+                      }}
+                    >
+                      {/* Selection order badge */}
+                      <div style={{
+                        width: 24, height: 24, borderRadius: 8, flexShrink: 0,
+                        border: `2px solid ${isSelected ? agent.color : P.textGhost}`,
+                        backgroundColor: isSelected ? agent.color : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "all 0.2s",
+                        fontSize: 11, fontWeight: 800, color: isSelected ? "#fff" : "transparent",
+                      }}>
+                        {orderNum || ""}
+                      </div>
+                      <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={36} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{agent.name}</div>
+                        <div style={{ fontSize: 12, color: P.textTer, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {reason}
+                        </div>
+                      </div>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 7,
+                        color: isSelected ? agent.color : P.textTer,
+                        backgroundColor: isSelected ? agent.color + "15" : P.border + "80",
+                        transition: "all 0.2s",
+                      }}>
+                        {isSelected ? "Added" : "+ Add"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Agent pipeline visualization — shows selected agent flow */}
+          {selectedAgents.length > 0 && (
+            <div style={{
+              marginBottom: 20, padding: "14px 16px", borderRadius: 14,
+              backgroundColor: P.sidebar, border: `1.5px solid ${P.border}`,
+              animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
+            }}>
+              <div style={{
+                fontSize: 11, fontWeight: 700, color: P.textTer,
+                letterSpacing: "0.05em", marginBottom: 10,
+              }}>
+                AGENT PIPELINE
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
+                {selectedAgents.map((agent, i) => (
+                  <div key={agent.id} style={{ display: "flex", alignItems: "center" }}>
+                    <div
+                      onClick={() => toggleAgent(agent.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "6px 12px 6px 6px", borderRadius: 20,
+                        backgroundColor: agent.color + "12",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        animation: `popIn 0.3s cubic-bezier(0.22,1,0.36,1) ${i * 0.08}s both`,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = agent.color + "20"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = agent.color + "12"; }}
+                    >
+                      <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={26} />
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: agent.color }}>{agent.name}</span>
+                      <span style={{
+                        fontSize: 10, color: agent.color, opacity: 0.6, cursor: "pointer",
+                        marginLeft: 2,
+                      }}>✕</span>
+                    </div>
+                    {i < selectedAgents.length - 1 && (
+                      <div style={{
+                        margin: "0 8px", color: P.textGhost, fontSize: 14, fontWeight: 600,
+                      }}>→</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: P.textTer, marginTop: 8 }}>
+                {selectedAgents.length === 1
+                  ? `${selectedAgents[0].name} will handle this task`
+                  : `${selectedAgents.map((a) => a.name).join(" → ")} will work sequentially`
+                }
+              </div>
+            </div>
+          )}
+
           {/* Quick actions — agent cards */}
           {filteredAgents.length > 0 && (
             <>
@@ -294,13 +444,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
                 {filteredAgents.map((agent, i) => (
                   <div
                     key={agent.id}
-                    onClick={() => {
-                      if (value.trim()) {
-                        onSubmit(value.trim(), agent.id);
-                        setValue("");
-                        onClose();
-                      }
-                    }}
+                    onClick={() => toggleAgent(agent.id)}
                     style={{
                       display: "flex", flexDirection: "column", alignItems: "center",
                       gap: 8, cursor: "pointer", width: 80,

@@ -111,7 +111,7 @@ export default function TodayPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  async function handleCreateTask(title: string, agentId?: string) {
+  async function handleCreateTask(title: string, agentIds?: string[]) {
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
       user_id: "",
@@ -144,13 +144,14 @@ export default function TodayPage() {
       body: JSON.stringify({ title, section: "today" }),
     });
 
-    // If an agent was selected, assign and run it
-    if (agentId && res.ok) {
+    // If agents were selected, assign the first one and run it
+    // (multi-agent pipeline: subsequent agents run after the first completes)
+    if (agentIds && agentIds.length > 0 && res.ok) {
       const task = await res.json();
       await fetch(`/api/tasks/${task.id}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agent_id: agentId }),
+        body: JSON.stringify({ agent_id: agentIds[0] }),
       });
       await fetch(`/api/tasks/${task.id}/run`, { method: "POST" });
     }
