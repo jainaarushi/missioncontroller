@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getTaskById, updateTaskById, deleteTaskById } from "@/lib/data/tasks";
+import { mockSteps } from "@/lib/mock-data";
 import { updateTaskSchema } from "@/lib/validators/task";
 
 export async function GET(
@@ -13,6 +14,12 @@ export async function GET(
   const { id } = await params;
   const task = await getTaskById(user.id, id);
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Always check mockSteps for live pipeline progress (stored in-memory during execution)
+  const liveSteps = mockSteps.get(id);
+  if (liveSteps && liveSteps.length > 0) {
+    task.steps = liveSteps;
+  }
 
   return NextResponse.json(task);
 }
