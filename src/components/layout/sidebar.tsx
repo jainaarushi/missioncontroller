@@ -1,24 +1,22 @@
 "use client";
 
 import { SidebarNav } from "./sidebar-nav";
-import { SidebarAgents } from "./sidebar-agents";
+import { SidebarCosts } from "./sidebar-costs";
 import { SidebarFooter } from "./sidebar-footer";
 import { P } from "@/lib/palette";
-import type { Agent } from "@/lib/types/agent";
 import type { TaskWithAgent } from "@/lib/types/task";
 
 interface SidebarProps {
-  agents: Agent[];
   stats: {
     working: number;
     review: number;
     spent: number;
   };
   reviewCount: number;
-  workingTasks: TaskWithAgent[];
+  tasks: TaskWithAgent[];
 }
 
-export function Sidebar({ agents, stats, reviewCount, workingTasks }: SidebarProps) {
+export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
   return (
     <div style={{
       width: 244,
@@ -60,13 +58,10 @@ export function Sidebar({ agents, stats, reviewCount, workingTasks }: SidebarPro
       {/* Separator */}
       <div style={{ height: 1, backgroundColor: P.border, margin: "16px 8px" }} />
 
-      {/* Agents */}
-      <SidebarAgents agents={agents} workingTasks={workingTasks} />
+      {/* Cost Tracker */}
+      <SidebarCosts tasks={tasks} />
 
-      {/* Spacer */}
-      <div style={{ flex: 1 }} />
-
-      {/* Footer stats */}
+      {/* Footer */}
       <SidebarFooter stats={stats} />
     </div>
   );

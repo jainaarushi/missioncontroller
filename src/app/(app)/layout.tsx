@@ -39,10 +39,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
         ::selection{background:#6366F120}
       `}</style>
       <Sidebar
-        agents={agents}
         stats={stats}
         reviewCount={reviewCount}
-        workingTasks={workingTasks}
+        tasks={tasks}
       />
       <div style={{ flex: 1, display: "flex", justifyContent: "center", overflow: "auto" }}>
         <div style={{ width: "100%", maxWidth: 1100, padding: "40px 40px" }}>
