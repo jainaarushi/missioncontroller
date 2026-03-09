@@ -69,7 +69,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "linear-gradient(145deg, #fffbf0 0%, #fff2c9 40%, #ffe9a8 100%)",
+      }}
+    >
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-ink mb-2">
@@ -80,7 +85,15 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-card">
+        <div
+          className="rounded-xl p-6"
+          style={{
+            background: "rgba(255, 255, 255, 0.7)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 20px rgba(0, 0, 0, 0.03)",
+            border: "1px solid rgba(255, 255, 255, 0.6)",
+          }}
+        >
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Input
@@ -89,7 +102,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-cream/50"
+                className="bg-white/60"
               />
             </div>
             <div>
@@ -100,7 +113,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="bg-cream/50"
+                className="bg-white/60"
               />
             </div>
 
@@ -113,7 +126,10 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-terra hover:bg-terra-dark text-white"
+              className="w-full text-white"
+              style={{
+                background: "linear-gradient(135deg, #d4a020, #c48d15)",
+              }}
               disabled={loading}
             >
               {loading
@@ -126,16 +142,20 @@ export default function LoginPage() {
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
+              <div className="w-full border-t" style={{ borderColor: "rgba(0, 0, 0, 0.08)" }} />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-2 text-ink-tertiary">or</span>
+              <span className="px-2 text-ink-tertiary" style={{ background: "rgba(255, 255, 255, 0.7)" }}>or</span>
             </div>
           </div>
 
           <Button
             variant="outline"
             className="w-full"
+            style={{
+              background: "rgba(255, 255, 255, 0.5)",
+              borderColor: "rgba(0, 0, 0, 0.08)",
+            }}
             onClick={handleGoogleLogin}
           >
             Continue with Google
@@ -150,7 +170,8 @@ export default function LoginPage() {
                 setError(null);
                 setMessage(null);
               }}
-              className="text-terra hover:text-terra-dark font-medium"
+              className="font-medium"
+              style={{ color: "#b8860b" }}
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>
