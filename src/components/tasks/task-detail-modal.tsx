@@ -5,6 +5,7 @@ import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { useTask } from "@/lib/hooks/use-task";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { P } from "@/lib/palette";
+import { getPipeline } from "@/lib/ai/pipelines";
 import type { TaskWithAgent } from "@/lib/types/task";
 
 interface TaskDetailModalProps {
@@ -386,81 +387,90 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
             </div>
           )}
 
-          {/* Pipeline progress — visible during working state */}
-          {fullTask?.steps && fullTask.steps.length > 0 && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: P.textSec, marginBottom: 12 }}>
-                {isWorking ? "Working..." : "Activity"}
-              </div>
+          {/* Pipeline steps — derived client-side from agent slug + progress */}
+          {(isWorking || isReview || isFailed) && agent && (() => {
+            // Get pipeline steps for this agent from the definition
+            const agentSlug = task.agent_id
+              ? agents.find((a) => a.id === task.agent_id)?.slug
+              : undefined;
+            const pipelineSteps = getPipeline(agentSlug || "");
+            const progress = task.progress || 0;
+            const totalSteps = pipelineSteps.length;
 
-              {/* Progress bar */}
-              {isWorking && (
-                <div style={{
-                  height: 4, backgroundColor: P.border, borderRadius: 2,
-                  marginBottom: 16, overflow: "hidden",
-                }}>
-                  <div style={{
-                    height: "100%", width: `${task.progress}%`,
-                    background: agent?.gradient || P.coralGrad,
-                    borderRadius: 2,
-                    transition: "width 0.8s cubic-bezier(0.22,1,0.36,1)",
-                  }} />
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: P.textSec, marginBottom: 12 }}>
+                  {isWorking ? "Working..." : "Activity"}
                 </div>
-              )}
 
-              {fullTask.steps.map((step, i) => {
-                const isCurrent = step.status === "working";
-                const stepDone = step.status === "done";
-                const isPending = step.status === "pending";
-
-                return (
-                  <div key={step.id} style={{
-                    display: "flex", gap: 0,
-                    animation: isCurrent ? "fadeUp 0.3s ease" : "none",
+                {/* Progress bar */}
+                {isWorking && (
+                  <div style={{
+                    height: 4, backgroundColor: P.border, borderRadius: 2,
+                    marginBottom: 16, overflow: "hidden",
                   }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 28, flexShrink: 0 }}>
-                      <div style={{
-                        width: 14, height: 14, borderRadius: "50%", flexShrink: 0, marginTop: 3,
-                        background: stepDone ? P.emeraldGrad : isCurrent && agent ? agent.gradient : P.border,
-                        boxShadow: isCurrent && agent ? `0 0 12px ${agent.color}50` : "none",
-                        animation: isCurrent ? "pulseGlow 2s ease-in-out infinite" : "none",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        transition: "all 0.3s",
-                      }}>
-                        {stepDone && <span style={{ color: "#fff", fontSize: 8, fontWeight: 900 }}>✓</span>}
-                      </div>
-                      {i < fullTask.steps.length - 1 && (
-                        <div style={{
-                          width: 2, flexGrow: 1, minHeight: 20, borderRadius: 1,
-                          backgroundColor: stepDone ? P.emerald + "30" : P.border,
-                          transition: "background-color 0.3s",
-                        }} />
-                      )}
-                    </div>
                     <div style={{
-                      fontSize: 13, paddingBottom: 14, paddingLeft: 10, lineHeight: 1.5,
-                      color: stepDone ? P.text : isCurrent && agent ? agent.color : isPending ? P.textGhost : P.textTer,
-                      fontWeight: isCurrent ? 650 : stepDone ? 500 : 400,
-                      transition: "all 0.3s",
-                    }}>
-                      {step.description}
-                      {isCurrent && (
-                        <span style={{ display: "inline-flex", gap: 3, marginLeft: 8, verticalAlign: "middle" }}>
-                          {[0, 1, 2].map((d) => (
-                            <span key={d} style={{
-                              width: 4, height: 4, borderRadius: "50%",
-                              backgroundColor: agent?.color || P.indigo,
-                              animation: `bounce 1.2s ease-in-out ${d * 0.15}s infinite`,
-                            }} />
-                          ))}
-                        </span>
-                      )}
-                    </div>
+                      height: "100%", width: `${progress}%`,
+                      background: agent.gradient,
+                      borderRadius: 2,
+                      transition: "width 1s cubic-bezier(0.22,1,0.36,1)",
+                    }} />
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+
+                {pipelineSteps.map((pStep, i) => {
+                  // Derive step state from progress percentage
+                  const stepProgress = ((i + 1) / totalSteps) * 100;
+                  const isDone = isReview || isFailed || progress >= stepProgress;
+                  const isCurrent = isWorking && !isDone && progress >= ((i) / totalSteps) * 100;
+                  const isPending = !isDone && !isCurrent;
+
+                  return (
+                    <div key={i} style={{ display: "flex", gap: 0 }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 28, flexShrink: 0 }}>
+                        <div style={{
+                          width: 14, height: 14, borderRadius: "50%", flexShrink: 0, marginTop: 3,
+                          background: isDone ? P.emeraldGrad : isCurrent ? agent.gradient : P.border,
+                          boxShadow: isCurrent ? `0 0 12px ${agent.color}50` : "none",
+                          animation: isCurrent ? "pulseGlow 2s ease-in-out infinite" : "none",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          transition: "all 0.5s",
+                        }}>
+                          {isDone && <span style={{ color: "#fff", fontSize: 8, fontWeight: 900 }}>✓</span>}
+                        </div>
+                        {i < totalSteps - 1 && (
+                          <div style={{
+                            width: 2, flexGrow: 1, minHeight: 20, borderRadius: 1,
+                            backgroundColor: isDone ? P.emerald + "30" : P.border,
+                            transition: "background-color 0.5s",
+                          }} />
+                        )}
+                      </div>
+                      <div style={{
+                        fontSize: 13, paddingBottom: 14, paddingLeft: 10, lineHeight: 1.5,
+                        color: isDone ? P.text : isCurrent ? agent.color : isPending ? P.textGhost : P.textTer,
+                        fontWeight: isCurrent ? 650 : isDone ? 500 : 400,
+                        transition: "all 0.5s",
+                      }}>
+                        {pStep.description}
+                        {isCurrent && (
+                          <span style={{ display: "inline-flex", gap: 3, marginLeft: 8, verticalAlign: "middle" }}>
+                            {[0, 1, 2].map((d) => (
+                              <span key={d} style={{
+                                width: 4, height: 4, borderRadius: "50%",
+                                backgroundColor: agent.color,
+                                animation: `bounce 1.2s ease-in-out ${d * 0.15}s infinite`,
+                              }} />
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Output — rendered as formatted markdown */}
           {task.output && (
