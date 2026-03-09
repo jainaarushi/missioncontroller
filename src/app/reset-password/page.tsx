@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,27 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [ready, setReady] = useState(false);
 
   const supabase = createClient();
+
+  // Listen for the PASSWORD_RECOVERY event from the URL token
+  useEffect(() => {
+    if (!supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setReady(true);
+      }
+    });
+
+    // Also check if already in a valid session (user clicked link and session exists)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,6 +81,10 @@ export default function ResetPasswordPage() {
             <div className="text-center py-4">
               <p className="text-emerald-600 font-medium mb-2">Password updated successfully!</p>
               <p className="text-sm text-ink-secondary">Redirecting to your workspace...</p>
+            </div>
+          ) : !ready ? (
+            <div className="text-center py-4">
+              <p className="text-sm text-ink-secondary">Verifying reset link...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
