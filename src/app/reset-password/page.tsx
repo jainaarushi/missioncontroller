@@ -71,10 +71,9 @@ export default function ResetPasswordPage() {
         <div
           className="rounded-xl p-6"
           style={{
-            background: "rgba(255, 255, 255, 0.7)",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 20px rgba(0, 0, 0, 0.03)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
+            background: "#fff",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.04)",
+            border: "1px solid #EBEBEB",
           }}
         >
           {success ? (
@@ -108,7 +107,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="w-full text-white"
                 style={{
-                  background: "linear-gradient(135deg, #d4a020, #c48d15)",
+                  background: "linear-gradient(135deg, #4F46E5, #6366F1)",
                 }}
                 disabled={loading}
               >

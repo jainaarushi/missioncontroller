@@ -184,15 +184,24 @@ export default function TodayPage() {
 
       {/* Section header — Your AI agents */}
       <div style={{
-        marginBottom: 16, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
-        display: "flex", alignItems: "baseline", gap: 10,
+        marginBottom: 14, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
       }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.03em" }}>
-          Your AI agents
-        </h2>
-        <span style={{ fontSize: 13, color: P.textTer, fontWeight: 500 }}>
-          {agents.length} available
-        </span>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.03em" }}>
+            Your AI agents
+          </h2>
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: P.indigo,
+            backgroundColor: P.indigoLight, padding: "2px 8px", borderRadius: 6,
+          }}>
+            {agents.length}
+          </span>
+        </div>
+        {tasks.length === 0 && (
+          <p style={{ fontSize: 13, color: P.textTer, margin: "4px 0 0", lineHeight: 1.4 }}>
+            Pick an agent to create a task, or scroll to explore
+          </p>
+        )}
       </div>
 
       {/* AI Agents — 2-row Canva-style grid with horizontal scroll */}
@@ -380,34 +389,49 @@ export default function TodayPage() {
         }}>⌘N</kbd>
       </div>
 
-      {/* Tasks header — status + select */}
-      <div style={{
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        marginBottom: 16,
-      }}>
-        <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
-          {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
-          {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
-          {workingTasks.length > 0 && <>{workingTasks.length} working</>}
-          {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
-          {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
-          {tasks.length === 0 && "No tasks yet"}
-        </p>
-        <button
-          onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
-          style={{
-            padding: "6px 14px", borderRadius: 8,
-            border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
-            backgroundColor: bulkMode ? P.indigoLight : P.card,
-            color: bulkMode ? P.indigo : P.textSec,
-            fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-            fontFamily: "inherit", transition: "all 0.15s",
-            boxShadow: bulkMode ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
-          }}
-        >
-          {bulkMode ? "Cancel" : "Select"}
-        </button>
-      </div>
+      {/* Tasks header — status + select (only show when tasks exist) */}
+      {tasks.length > 0 ? (
+        <div style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          marginBottom: 16,
+        }}>
+          <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
+            {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
+            {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
+            {workingTasks.length > 0 && <>{workingTasks.length} working</>}
+            {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
+            {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
+          </p>
+          <button
+            onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
+            style={{
+              padding: "6px 14px", borderRadius: 8,
+              border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
+              backgroundColor: bulkMode ? P.indigoLight : P.card,
+              color: bulkMode ? P.indigo : P.textSec,
+              fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+              fontFamily: "inherit", transition: "all 0.15s",
+              boxShadow: bulkMode ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
+            }}
+          >
+            {bulkMode ? "Cancel" : "Select"}
+          </button>
+        </div>
+      ) : (
+        <div style={{
+          textAlign: "center", padding: "32px 20px", marginBottom: 16,
+          borderRadius: 16, border: `1.5px dashed ${P.border}`,
+          animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.2s both",
+        }}>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>🚀</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: P.text, marginBottom: 4 }}>
+            No tasks yet
+          </div>
+          <div style={{ fontSize: 13, color: P.textSec, lineHeight: 1.5 }}>
+            Click an agent above or create a task to get started
+          </div>
+        </div>
+      )}
 
       {/* Review section */}
       <TaskSection
