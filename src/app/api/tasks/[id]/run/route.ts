@@ -1,56 +1,103 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTask, getAgent, updateTask, mockSteps } from "@/lib/mock-data";
+import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
 import { getAuthUser } from "@/lib/auth";
 import { createUserAnthropic } from "@/lib/ai/client";
 import { getUserAnthropicKey } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
+import { isSupabaseEnabled } from "@/lib/supabase/server";
+import { getTaskById, updateTaskById } from "@/lib/data/tasks";
+import { getAgentById } from "@/lib/data/agents";
 import type { TaskStep } from "@/lib/types/task";
+
+// Update task — works in both demo and live mode
+async function persistTaskUpdate(userId: string, taskId: string, data: Record<string, unknown>) {
+  if (isSupabaseEnabled()) {
+    await updateTaskById(userId, taskId, data);
+  } else {
+    updateMockTask(taskId, data);
+  }
+}
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const task = getTask(id);
-  if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const agent = getAgent(task.agent_id);
-  if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+  // Get task and agent from the right source
+  let taskTitle: string;
+  let taskDescription: string | null;
+  let agentId: string | null;
+  let agentName: string;
+  let agentSlug: string;
+  let agentSystemPrompt: string;
+  let agentModel: string;
+
+  if (isSupabaseEnabled()) {
+    const task = await getTaskById(user.id, id);
+    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
+
+    const agent = await getAgentById(user.id, task.agent_id);
+    if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+
+    taskTitle = task.title;
+    taskDescription = task.description;
+    agentId = task.agent_id;
+    agentName = agent.name;
+    agentSlug = agent.slug;
+    agentSystemPrompt = agent.system_prompt;
+    agentModel = agent.model;
+  } else {
+    const task = getTask(id);
+    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
+
+    const agent = getAgent(task.agent_id);
+    if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+
+    taskTitle = task.title;
+    taskDescription = task.description;
+    agentId = task.agent_id;
+    agentName = agent.name;
+    agentSlug = agent.slug;
+    agentSystemPrompt = agent.system_prompt;
+    agentModel = agent.model;
+  }
 
   const steps: TaskStep[] = [
-    { id: `s-${id}-1`, task_id: id, step_number: 1, description: `${agent.name} is analyzing the task`, status: "working", started_at: new Date().toISOString(), completed_at: null, tokens_used: 0 },
+    { id: `s-${id}-1`, task_id: id, step_number: 1, description: `${agentName} is analyzing the task`, status: "working", started_at: new Date().toISOString(), completed_at: null, tokens_used: 0 },
     { id: `s-${id}-2`, task_id: id, step_number: 2, description: "Generating output", status: "pending", started_at: null, completed_at: null, tokens_used: 0 },
     { id: `s-${id}-3`, task_id: id, step_number: 3, description: "Finalizing results", status: "pending", started_at: null, completed_at: null, tokens_used: 0 },
   ];
   mockSteps.set(id, steps);
 
-  updateTask(id, {
+  await persistTaskUpdate(user.id, id, {
     status: "working",
     progress: 5,
     started_at: new Date().toISOString(),
-    current_step: `${agent.name} is analyzing the task`,
+    current_step: `${agentName} is analyzing the task`,
   });
 
-  // Check if user has their own API key
-  const user = await getAuthUser();
+  // Check for user's API key
   let userApiKey: string | null = null;
-  if (user) {
-    userApiKey = await getUserAnthropicKey(user.id);
-  }
+  userApiKey = await getUserAnthropicKey(user.id);
 
   if (userApiKey) {
-    runAgent(id, task.title, task.description, agent.name, agent.system_prompt, agent.model, steps, userApiKey);
+    runAgent(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, agentModel, steps, userApiKey);
   } else {
-    simulateAgent(id, agent.name, steps);
+    simulateAgent(user.id, id, agentName, steps);
   }
 
   return NextResponse.json({ status: "started" });
 }
 
-// ── Real Execution: system prompt + task → Claude → output ──
+// ── Real Execution ──────────────────────────────────────────
 
 async function runAgent(
+  userId: string,
   taskId: string,
   title: string,
   description: string | null,
@@ -65,12 +112,11 @@ async function runAgent(
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   try {
-    // Step 1 done
     steps[0].status = "done";
     steps[0].completed_at = new Date().toISOString();
     steps[1].status = "working";
     steps[1].started_at = new Date().toISOString();
-    updateTask(taskId, { progress: 30, current_step: `${agentName} is generating output` });
+    await persistTaskUpdate(userId, taskId, { progress: 30, current_step: `${agentName} is generating output` });
 
     const userMessage = description
       ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
@@ -83,14 +129,12 @@ async function runAgent(
       prompt: userMessage,
     });
 
-    // Step 2 done
     steps[1].status = "done";
     steps[1].completed_at = new Date().toISOString();
     steps[2].status = "working";
     steps[2].started_at = new Date().toISOString();
-    updateTask(taskId, { progress: 85, current_step: "Finalizing results" });
+    await persistTaskUpdate(userId, taskId, { progress: 85, current_step: "Finalizing results" });
 
-    // Step 3 done
     steps[2].status = "done";
     steps[2].completed_at = new Date().toISOString();
 
@@ -100,7 +144,7 @@ async function runAgent(
     const cost = calculateCost(tokensIn, tokensOut, model);
     const duration = Math.round((Date.now() - startTime) / 1000);
 
-    updateTask(taskId, {
+    await persistTaskUpdate(userId, taskId, {
       status: "review",
       progress: 100,
       output: result.text,
@@ -112,12 +156,11 @@ async function runAgent(
     });
   } catch (error) {
     console.error("Agent execution failed:", error);
-
     steps.forEach((s) => {
       if (s.status === "working" || s.status === "pending") s.status = "failed";
     });
 
-    updateTask(taskId, {
+    await persistTaskUpdate(userId, taskId, {
       status: "failed",
       progress: 0,
       current_step: `Failed: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -128,32 +171,29 @@ async function runAgent(
 
 // ── Demo Mode ───────────────────────────────────────────────
 
-async function simulateAgent(taskId: string, agentName: string, steps: TaskStep[]) {
-  const task = getTask(taskId);
-  if (!task) return;
-
+async function simulateAgent(userId: string, taskId: string, agentName: string, steps: TaskStep[]) {
   await delay(1000);
   steps[0].status = "done";
   steps[0].completed_at = new Date().toISOString();
   steps[1].status = "working";
   steps[1].started_at = new Date().toISOString();
-  updateTask(taskId, { progress: 40, current_step: "Generating output" });
+  await persistTaskUpdate(userId, taskId, { progress: 40, current_step: "Generating output" });
 
   await delay(2000);
   steps[1].status = "done";
   steps[1].completed_at = new Date().toISOString();
   steps[2].status = "working";
   steps[2].started_at = new Date().toISOString();
-  updateTask(taskId, { progress: 80, current_step: "Finalizing results" });
+  await persistTaskUpdate(userId, taskId, { progress: 80, current_step: "Finalizing results" });
 
   await delay(1000);
   steps[2].status = "done";
   steps[2].completed_at = new Date().toISOString();
 
-  updateTask(taskId, {
+  await persistTaskUpdate(userId, taskId, {
     status: "review",
     progress: 100,
-    output: `# ${task.title}\n\n## Demo Mode\n\nThis is a simulated response. To get real AI-powered results:\n\n1. Go to **Settings**\n2. Add your **Anthropic API key**\n3. Run this task again\n\n${agentName} will use Claude to generate real output.\n\n> Get your API key at [console.anthropic.com](https://console.anthropic.com)`,
+    output: `# Demo Mode\n\nThis is a simulated response. To get real AI-powered results:\n\n1. Go to **Settings**\n2. Add your **Anthropic API key**\n3. Run this task again\n\n${agentName} will use Claude to generate real output.\n\n> Get your API key at [console.anthropic.com](https://console.anthropic.com)`,
     cost_usd: 0,
     tokens_in: 0,
     tokens_out: 0,
