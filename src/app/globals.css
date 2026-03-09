@@ -48,8 +48,8 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Cadre custom colors */
-  --color-cream: #FFFDF7;
-  --color-cream-dark: #FFF7E2;
+  --color-cream: #FAFAF8;
+  --color-cream-dark: #F0EFEC;
   --color-terra: #d35230;
   --color-terra-light: #e07050;
   --color-terra-dark: #b5401f;
@@ -62,7 +62,7 @@
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.14), 0 8px 24px rgba(0, 0, 0, 0.06);
   --shadow-input: 0 1px 2px rgba(0, 0, 0, 0.04) inset;
-  --shadow-input-focus: 0 0 0 3px rgba(211, 82, 48, 0.08);
+  --shadow-input-focus: 0 0 0 3px rgba(99, 102, 241, 0.1);
 
   /* Cadre animations */
   --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -73,38 +73,38 @@
 }
 
 :root {
-  --background: #FFFDF7;
-  --foreground: #1a1a1a;
+  --background: #FAFAF8;
+  --foreground: #111111;
   --card: #ffffff;
-  --card-foreground: #1a1a1a;
+  --card-foreground: #111111;
   --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #d35230;
+  --popover-foreground: #111111;
+  --primary: #111111;
   --primary-foreground: #ffffff;
-  --secondary: #FFF7E2;
-  --secondary-foreground: #1a1a1a;
-  --muted: #FFF5DC;
+  --secondary: #F5F5F3;
+  --secondary-foreground: #111111;
+  --muted: #F5F5F3;
   --muted-foreground: rgba(0, 0, 0, 0.45);
-  --accent: #FFF9EC;
-  --accent-foreground: #1a1a1a;
+  --accent: #F0EFEC;
+  --accent-foreground: #111111;
   --destructive: #dc2626;
-  --border: rgba(0, 0, 0, 0.06);
-  --input: rgba(0, 0, 0, 0.06);
-  --ring: #d35230;
-  --chart-1: #1e6bb8;
-  --chart-2: #a8456b;
-  --chart-3: #2a7d4f;
-  --chart-4: #b8861e;
-  --chart-5: #d35230;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.08);
+  --ring: #111111;
+  --chart-1: #6366F1;
+  --chart-2: #EC4899;
+  --chart-3: #10B981;
+  --chart-4: #F59E0B;
+  --chart-5: #F97066;
   --radius: 0.75rem;
-  --sidebar: #FFF9EC;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #d35230;
+  --sidebar: #F7F7F5;
+  --sidebar-foreground: #111111;
+  --sidebar-primary: #111111;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #FFF2D6;
-  --sidebar-accent-foreground: #1a1a1a;
-  --sidebar-border: #F0EDE0;
-  --sidebar-ring: #d35230;
+  --sidebar-accent: #F0EFEC;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: #EBEBEB;
+  --sidebar-ring: #111111;
 }
 
 @keyframes fade-up {
@@ -181,8 +181,8 @@
   }
 
   ::selection {
-    background-color: rgba(211, 82, 48, 0.15);
-    color: #1a1a1a;
+    background-color: rgba(99, 102, 241, 0.15);
+    color: #111111;
   }
 }
 

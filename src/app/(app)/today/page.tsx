@@ -28,13 +28,6 @@ const AGENT_THUMBNAILS: Record<string, string> = {
   strategist: "/agents/consultant.jpg",
 };
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning \u2600\uFE0F";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening \uD83C\uDF19";
-}
-
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
   const { agents } = useAgents();
@@ -181,43 +174,21 @@ export default function TodayPage() {
     <>
       <Confetti show={showConfetti} />
 
-      {/* Greeting + Select */}
+      {/* Section header — Your AI agents */}
       <div style={{
-        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-        marginBottom: 20, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
+        marginBottom: 16, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
+        display: "flex", alignItems: "baseline", gap: 10,
       }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.04em" }}>
-            {getGreeting()}
-          </h1>
-          <p style={{ fontSize: 14, color: P.textSec, marginTop: 4 }}>
-            {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 700 }}>{reviewTasks.length} ready for review</span>{" · "}</>}
-            {workingTasks.length > 0 && <>{workingTasks.length} agent{workingTasks.length !== 1 ? "s" : ""} working{" · "}</>}
-            ${totalCost.toFixed(2)} spent
-          </p>
-        </div>
-        <button
-          onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
-          style={{
-            padding: "7px 14px", borderRadius: 9,
-            border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
-            backgroundColor: bulkMode ? P.indigoLight : P.card,
-            color: bulkMode ? P.indigo : P.textSec,
-            fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-            fontFamily: "inherit", transition: "all 0.15s",
-          }}
-        >
-          {bulkMode ? "Cancel" : "Select"}
-        </button>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.03em" }}>
+          Your AI agents
+        </h2>
+        <span style={{ fontSize: 13, color: P.textTer, fontWeight: 500 }}>
+          {agents.length} available
+        </span>
       </div>
 
-      {/* AI Agents — Canva-style thumbnail cards with scroll */}
+      {/* AI Agents — 2-row Canva-style grid with horizontal scroll */}
       <div style={{ marginBottom: 28, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: P.text, marginBottom: 12 }}>
-          Your AI agents
-        </div>
-
-        {/* Scroll container */}
         <div style={{ position: "relative" }}>
           <div
             ref={scrollRef}
@@ -227,9 +198,17 @@ export default function TodayPage() {
               if (el) setShowScrollBtn(el.scrollLeft < el.scrollWidth - el.clientWidth - 20);
             }}
             style={{
-              display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8,
-              scrollSnapType: "x mandatory", scrollBehavior: "smooth",
-              msOverflowStyle: "none", scrollbarWidth: "none",
+              display: "grid",
+              gridTemplateRows: "1fr 1fr",
+              gridAutoFlow: "column",
+              gridAutoColumns: "170px",
+              gap: 12,
+              overflowX: "auto",
+              paddingBottom: 8,
+              scrollSnapType: "x mandatory",
+              scrollBehavior: "smooth",
+              msOverflowStyle: "none",
+              scrollbarWidth: "none",
             }}
           >
             <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
@@ -241,30 +220,26 @@ export default function TodayPage() {
                   key={agent.id}
                   onClick={() => setShowCreateModal(true)}
                   style={{
-                    flexShrink: 0, width: 170,
-                    borderRadius: 16, cursor: "pointer",
+                    borderRadius: 14, cursor: "pointer",
                     overflow: "hidden",
                     scrollSnapAlign: "start",
-                    animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
-                    transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                    animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.03}s both`,
+                    transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
                     backgroundColor: P.card,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                    border: `1px solid ${P.border}`,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";
-                    e.currentTarget.style.boxShadow = `0 12px 32px rgba(0,0,0,0.08)`;
-                    e.currentTarget.style.borderColor = P.borderHover;
+                    e.currentTarget.style.transform = "translateY(-3px)";
+                    e.currentTarget.style.boxShadow = "0 12px 28px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0) scale(1)";
-                    e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
-                    e.currentTarget.style.borderColor = P.border;
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)";
                   }}
                 >
                   {/* Thumbnail */}
                   <div style={{
-                    width: "100%", height: 100, position: "relative",
+                    width: "100%", height: 90, position: "relative",
                     overflow: "hidden",
                   }}>
                     {thumb ? (
@@ -281,7 +256,7 @@ export default function TodayPage() {
                         width: "100%", height: "100%",
                         background: agent.gradient,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 32,
+                        fontSize: 28,
                       }}>
                         {agent.icon}
                       </div>
@@ -289,9 +264,9 @@ export default function TodayPage() {
                     {/* Busy indicator */}
                     {busy && (
                       <div style={{
-                        position: "absolute", top: 8, right: 8, zIndex: 3,
-                        display: "flex", gap: 2, backgroundColor: "rgba(255,255,255,0.8)",
-                        borderRadius: 10, padding: "3px 6px",
+                        position: "absolute", top: 6, right: 6, zIndex: 3,
+                        display: "flex", gap: 2, backgroundColor: "rgba(255,255,255,0.85)",
+                        borderRadius: 8, padding: "3px 6px",
                       }}>
                         {[0, 1, 2].map((d) => (
                           <span key={d} style={{
@@ -305,15 +280,16 @@ export default function TodayPage() {
                   </div>
 
                   {/* Label */}
-                  <div style={{ padding: "10px 12px 12px" }}>
+                  <div style={{ padding: "8px 10px 10px" }}>
                     <div style={{
-                      fontSize: 13, fontWeight: 700, color: P.text,
-                      marginBottom: 2,
+                      fontSize: 12.5, fontWeight: 700, color: P.text,
+                      marginBottom: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
                       {agent.name}
                     </div>
                     <div style={{
-                      fontSize: 11, color: P.textSec, fontWeight: 500,
+                      fontSize: 10.5, color: P.textSec, fontWeight: 500,
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
                       {agent.description}
                     </div>
@@ -329,29 +305,28 @@ export default function TodayPage() {
               <div style={{
                 position: "absolute", right: 0, top: 0, bottom: 8,
                 width: 80, pointerEvents: "none",
-                background: "linear-gradient(to right, transparent, #FFF5DC)",
-                borderRadius: "0 16px 16px 0",
+                background: "linear-gradient(to right, transparent, #FAFAF8)",
               }} />
               <button
                 onClick={() => {
-                  scrollRef.current?.scrollBy({ left: 360, behavior: "smooth" });
+                  scrollRef.current?.scrollBy({ left: 380, behavior: "smooth" });
                 }}
                 style={{
-                  position: "absolute", right: 8, top: "50%", transform: "translateY(-60%)",
+                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
                   width: 40, height: 40, borderRadius: "50%",
-                  backgroundColor: "#fff", border: "1px solid " + P.border,
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  backgroundColor: "#fff",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: "pointer", transition: "all 0.2s",
                   zIndex: 5,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.12)";
-                  e.currentTarget.style.transform = "translateY(-60%) scale(1.08)";
+                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)";
+                  e.currentTarget.style.transform = "translateY(-50%) scale(1.08)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)";
-                  e.currentTarget.style.transform = "translateY(-60%) scale(1)";
+                  e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)";
+                  e.currentTarget.style.transform = "translateY(-50%) scale(1)";
                 }}
               >
                 <ChevronRight size={20} color={P.textSec} />
@@ -361,35 +336,61 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* Create task */}
+      {/* Create task — prominent CTA */}
       <div
         onClick={() => setShowCreateModal(true)}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "#E8D990";
-          e.currentTarget.style.color = P.textSec;
-          e.currentTarget.style.backgroundColor = "#FFF9EC";
+          e.currentTarget.style.backgroundColor = "#E8E8E5";
+          e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.06)";
+          e.currentTarget.style.transform = "translateY(-1px)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = P.border;
-          e.currentTarget.style.color = P.textGhost;
-          e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.5)";
+          e.currentTarget.style.backgroundColor = "#F0EFEC";
+          e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
+          e.currentTarget.style.transform = "translateY(0)";
         }}
         style={{
-          marginBottom: 24, padding: "14px 18px", borderRadius: 14,
-          border: `2px dashed ${P.border}`,
-          backgroundColor: "rgba(255,255,255,0.5)",
-          fontSize: 14.5, color: P.textGhost,
+          marginBottom: 28, padding: "14px 20px", borderRadius: 12,
+          backgroundColor: "#F0EFEC",
+          fontSize: 14, color: P.text,
           cursor: "pointer", transition: "all 0.2s",
-          fontWeight: 500, display: "flex", alignItems: "center", justifyContent: "space-between",
+          fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
         }}
       >
-        <span>+ Create a new task...</span>
+        <span style={{ color: P.textSec }}>+ Create a new task</span>
         <kbd style={{
-          fontSize: 10, padding: "2px 6px", borderRadius: 5,
-          border: `1px solid ${P.border}`, backgroundColor: P.sidebar,
+          fontSize: 10, padding: "2px 7px", borderRadius: 5,
+          backgroundColor: "rgba(0,0,0,0.06)",
           color: P.textTer,
           fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
         }}>⌘N</kbd>
+      </div>
+
+      {/* Tasks header — status + select */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        marginBottom: 16,
+      }}>
+        <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
+          {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span>{" · "}</>}
+          {workingTasks.length > 0 && <>{workingTasks.length} working{" · "}</>}
+          {todoTasks.length} to do{" · "}${totalCost.toFixed(2)} spent
+        </p>
+        <button
+          onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
+          style={{
+            padding: "6px 14px", borderRadius: 8,
+            border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
+            backgroundColor: bulkMode ? P.indigoLight : P.card,
+            color: bulkMode ? P.indigo : P.textSec,
+            fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+            fontFamily: "inherit", transition: "all 0.15s",
+            boxShadow: bulkMode ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
+          }}
+        >
+          {bulkMode ? "Cancel" : "Select"}
+        </button>
       </div>
 
       {/* Review section */}

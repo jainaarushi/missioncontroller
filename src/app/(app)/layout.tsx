@@ -17,7 +17,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const workingTasks = tasks.filter((t) => t.status === "working");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "linear-gradient(160deg, #FFFDF7 0%, #FFF9EC 35%, #FFF5DC 70%, #FFF2C9 100%)" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FAFAF8" }}>
       <style>{`
         @keyframes slideUp { from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes fadeIn { from{opacity:0}to{opacity:1} }

@@ -20,7 +20,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
   return (
     <div style={{
       width: 244,
-      background: "linear-gradient(180deg, #FFFBF0 0%, #FFF7E2 100%)",
+      backgroundColor: P.sidebar,
       borderRight: `1px solid ${P.border}`,
       padding: "18px 12px",
       display: "flex",
@@ -33,10 +33,10 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 22px" }}>
         <div style={{
           width: 30, height: 30, borderRadius: 9,
-          background: P.coralGrad,
+          background: "linear-gradient(135deg, #1a1a1a, #333)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 15, fontWeight: 900, color: "#fff",
-          boxShadow: "0 3px 10px rgba(249,112,102,0.3)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         }}>
           C
         </div>
