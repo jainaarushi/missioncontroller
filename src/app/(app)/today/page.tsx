@@ -297,18 +297,19 @@ export default function TodayPage() {
       <div
         onClick={() => setShowCreateModal(true)}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = P.indigo + "40";
+          e.currentTarget.style.borderColor = "#E8D990";
           e.currentTarget.style.color = P.textSec;
-          e.currentTarget.style.backgroundColor = P.indigoSoft;
+          e.currentTarget.style.backgroundColor = "#FFF9EC";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = P.border;
           e.currentTarget.style.color = P.textGhost;
-          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.5)";
         }}
         style={{
           marginBottom: 24, padding: "14px 18px", borderRadius: 14,
           border: `2px dashed ${P.border}`,
+          backgroundColor: "rgba(255,255,255,0.5)",
           fontSize: 14.5, color: P.textGhost,
           cursor: "pointer", transition: "all 0.2s",
           fontWeight: 500, display: "flex", alignItems: "center", justifyContent: "space-between",

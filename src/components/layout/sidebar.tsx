@@ -20,7 +20,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
   return (
     <div style={{
       width: 244,
-      backgroundColor: P.sidebar,
+      background: "linear-gradient(180deg, #FFFBF0 0%, #FFF7E2 100%)",
       borderRight: `1px solid ${P.border}`,
       padding: "18px 12px",
       display: "flex",

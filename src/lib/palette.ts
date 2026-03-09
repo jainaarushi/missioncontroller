@@ -1,9 +1,9 @@
 // Shared design palette — v2
 export const P = {
-  bg: "#FDFCFA",
+  bg: "#FFFDF7",
   card: "#FFFFFF",
-  sidebar: "#F8F7F5",
-  sidebarActive: "#EFEEE9",
+  sidebar: "#FFF9EC",
+  sidebarActive: "#FFF2D6",
   indigo: "#6366F1",
   indigoSoft: "#6366F108",
   indigoMid: "#6366F115",
@@ -20,8 +20,8 @@ export const P = {
   textSec: "#71717A",
   textTer: "#A1A1AA",
   textGhost: "#D4D4D8",
-  border: "#F0F0EC",
-  borderHover: "#E4E4E0",
+  border: "#F0EDE0",
+  borderHover: "#E8E2D0",
   shadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
   shadowHover: "0 8px 25px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04)",
   shadowFloat: "0 20px 60px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
