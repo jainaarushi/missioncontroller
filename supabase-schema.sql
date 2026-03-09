@@ -1,4 +1,4 @@
--- Latch Database Schema
+-- Cadre Database Schema
 -- Run this in Supabase SQL Editor
 
 -- Users table (extends auth.users)

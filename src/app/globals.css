@@ -47,7 +47,7 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Latch custom colors */
+  /* Cadre custom colors */
   --color-cream: #f8f7f4;
   --color-cream-dark: #f0efeb;
   --color-terra: #d35230;
@@ -57,14 +57,14 @@
   --color-ink-secondary: rgba(0, 0, 0, 0.5);
   --color-ink-tertiary: rgba(0, 0, 0, 0.3);
 
-  /* Latch shadows */
+  /* Cadre shadows */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02);
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.14), 0 8px 24px rgba(0, 0, 0, 0.06);
   --shadow-input: 0 1px 2px rgba(0, 0, 0, 0.04) inset;
   --shadow-input-focus: 0 0 0 3px rgba(211, 82, 48, 0.08);
 
-  /* Latch animations */
+  /* Cadre animations */
   --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-scale-in: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;

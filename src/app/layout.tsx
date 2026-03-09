@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Latch — Your daily workspace with AI teammates",
+  title: "Cadre — Your daily workspace with AI teammates",
   description:
     "A daily workspace where humans and AI agents collaborate on tasks together.",
 };

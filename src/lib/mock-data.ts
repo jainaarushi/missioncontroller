@@ -190,7 +190,7 @@ mockSteps.set(t1.id, [
   { id: "s4", task_id: t1.id, step_number: 4, description: "Compiled comparison matrix", status: "done", started_at: t1.created_at, completed_at: t1.created_at, tokens_used: 588 },
 ]);
 
-createMockTask("Draft a cold outreach email to VPs of Engineering about Latch");
+createMockTask("Draft a cold outreach email to VPs of Engineering about Cadre");
 const t2 = mockTasks[0];
 t2.agent_id = AGENT_IDS[1];
 t2.agent = getAgentSummary(AGENT_IDS[1]);

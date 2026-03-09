@@ -40,10 +40,10 @@ export function Sidebar({ agents, stats, reviewCount, workingTasks }: SidebarPro
           fontSize: 15, fontWeight: 900, color: "#fff",
           boxShadow: "0 3px 10px rgba(249,112,102,0.3)",
         }}>
-          L
+          C
         </div>
         <span style={{ fontSize: 18, fontWeight: 800, color: P.text, letterSpacing: "-0.03em" }}>
-          Latch
+          Cadre
         </span>
         <span style={{
           fontSize: 10, fontWeight: 700, color: P.indigo,
