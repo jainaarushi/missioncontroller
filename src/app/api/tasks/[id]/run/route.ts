@@ -4,12 +4,12 @@ import { getAuthUser } from "@/lib/auth";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
+import { getPipeline } from "@/lib/ai/pipelines";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { getTaskById, updateTaskById } from "@/lib/data/tasks";
 import { getAgentById } from "@/lib/data/agents";
 import type { TaskStep } from "@/lib/types/task";
 
-// Update task — works in both demo and live mode
 async function persistTaskUpdate(userId: string, taskId: string, data: Record<string, unknown>) {
   if (isSupabaseEnabled()) {
     await updateTaskById(userId, taskId, data);
@@ -26,140 +26,167 @@ export async function POST(
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Get task and agent from the right source
+  // Get task and agent
   let taskTitle: string;
   let taskDescription: string | null;
-  let agentId: string | null;
   let agentName: string;
   let agentSlug: string;
   let agentSystemPrompt: string;
-  let agentModel: string;
 
   if (isSupabaseEnabled()) {
     const task = await getTaskById(user.id, id);
     if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
     if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
-
     const agent = await getAgentById(user.id, task.agent_id);
     if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
-
     taskTitle = task.title;
     taskDescription = task.description;
-    agentId = task.agent_id;
     agentName = agent.name;
     agentSlug = agent.slug;
     agentSystemPrompt = agent.system_prompt;
-    agentModel = agent.model;
   } else {
     const task = getTask(id);
     if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
     if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
-
     const agent = getAgent(task.agent_id);
     if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
-
     taskTitle = task.title;
     taskDescription = task.description;
-    agentId = task.agent_id;
     agentName = agent.name;
     agentSlug = agent.slug;
     agentSystemPrompt = agent.system_prompt;
-    agentModel = agent.model;
   }
 
-  const steps: TaskStep[] = [
-    { id: `s-${id}-1`, task_id: id, step_number: 1, description: `${agentName} is analyzing the task`, status: "working", started_at: new Date().toISOString(), completed_at: null, tokens_used: 0 },
-    { id: `s-${id}-2`, task_id: id, step_number: 2, description: "Generating output", status: "pending", started_at: null, completed_at: null, tokens_used: 0 },
-    { id: `s-${id}-3`, task_id: id, step_number: 3, description: "Finalizing results", status: "pending", started_at: null, completed_at: null, tokens_used: 0 },
-  ];
+  // Get the pipeline for this agent
+  const pipeline = getPipeline(agentSlug);
+
+  // Create steps from pipeline
+  const steps: TaskStep[] = pipeline.map((step, i) => ({
+    id: `s-${id}-${i + 1}`,
+    task_id: id,
+    step_number: i + 1,
+    description: step.description,
+    status: i === 0 ? "working" as const : "pending" as const,
+    started_at: i === 0 ? new Date().toISOString() : null,
+    completed_at: null,
+    tokens_used: 0,
+  }));
   mockSteps.set(id, steps);
 
   await persistTaskUpdate(user.id, id, {
     status: "working",
     progress: 5,
     started_at: new Date().toISOString(),
-    current_step: `${agentName} is analyzing the task`,
+    current_step: pipeline[0].description,
   });
 
-  // Check for user's AI config (Anthropic or Gemini)
+  // Get AI config
   const aiConfig = await getUserAIConfig(user.id);
 
   if (aiConfig) {
-    runAgent(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, steps, aiConfig.provider, aiConfig.apiKey);
+    runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey);
   } else {
-    simulateAgent(user.id, id, agentName, steps);
+    runDemoPipeline(user.id, id, agentName, pipeline, steps);
   }
 
   return NextResponse.json({ status: "started" });
 }
 
-// ── Real Execution ──────────────────────────────────────────
+// ── Pipeline Execution (real API call at the core step) ─────
 
-async function runAgent(
+async function runPipeline(
   userId: string,
   taskId: string,
   title: string,
   description: string | null,
   agentName: string,
   systemPrompt: string,
+  pipeline: { description: string; duration: number; isCore?: boolean }[],
   steps: TaskStep[],
   provider: "openai" | "gemini" | "anthropic",
   apiKey: string,
 ) {
   const startTime = Date.now();
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-
-  // Create the right AI model based on provider
   const modelId = PROVIDER_MODELS[provider].default;
-  const aiModel = provider === "anthropic"
-    ? createUserAnthropic(apiKey)(modelId)
-    : provider === "openai"
-    ? createUserOpenAI(apiKey)(modelId)
-    : createUserGemini(apiKey)(modelId);
 
   try {
-    steps[0].status = "done";
-    steps[0].completed_at = new Date().toISOString();
-    steps[1].status = "working";
-    steps[1].started_at = new Date().toISOString();
-    await persistTaskUpdate(userId, taskId, { progress: 30, current_step: `${agentName} is generating output` });
+    for (let i = 0; i < pipeline.length; i++) {
+      const step = pipeline[i];
+      const progress = Math.round(((i + 0.5) / pipeline.length) * 100);
 
-    const userMessage = description
-      ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
-      : `Task: ${title}\n\nToday's date: ${today}`;
+      // Mark current step as working
+      steps[i].status = "working";
+      steps[i].started_at = new Date().toISOString();
+      await persistTaskUpdate(userId, taskId, {
+        progress: Math.min(progress, 95),
+        current_step: step.description,
+      });
 
-    const { generateText } = await import("ai");
-    const result = await generateText({
-      model: aiModel,
-      system: systemPrompt,
-      prompt: userMessage,
-    });
+      if (step.isCore) {
+        // This is where the real API call happens
+        const aiModel = provider === "openai"
+          ? createUserOpenAI(apiKey)(modelId)
+          : provider === "gemini"
+          ? createUserGemini(apiKey)(modelId)
+          : createUserAnthropic(apiKey)(modelId);
 
-    steps[1].status = "done";
-    steps[1].completed_at = new Date().toISOString();
-    steps[2].status = "working";
-    steps[2].started_at = new Date().toISOString();
-    await persistTaskUpdate(userId, taskId, { progress: 85, current_step: "Finalizing results" });
+        const userMessage = description
+          ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
+          : `Task: ${title}\n\nToday's date: ${today}`;
 
-    steps[2].status = "done";
-    steps[2].completed_at = new Date().toISOString();
+        const { generateText } = await import("ai");
+        const result = await generateText({
+          model: aiModel,
+          system: systemPrompt,
+          prompt: userMessage,
+        });
 
-    const usage = result.usage as { promptTokens?: number; completionTokens?: number } | undefined;
-    const tokensIn = usage?.promptTokens || 0;
-    const tokensOut = usage?.completionTokens || 0;
-    const cost = provider === "gemini" ? 0 : calculateCost(tokensIn, tokensOut, modelId);
-    const duration = Math.round((Date.now() - startTime) / 1000);
+        // Store result for final update
+        const usage = result.usage as { promptTokens?: number; completionTokens?: number } | undefined;
+        const tokensIn = usage?.promptTokens || 0;
+        const tokensOut = usage?.completionTokens || 0;
+        const cost = provider === "gemini" ? 0 : calculateCost(tokensIn, tokensOut, modelId);
 
-    await persistTaskUpdate(userId, taskId, {
-      status: "review",
-      progress: 100,
-      output: result.text,
-      cost_usd: cost,
-      tokens_in: tokensIn,
-      tokens_out: tokensOut,
-      duration_seconds: duration,
-      current_step: "Complete — ready for your review",
-    });
+        // Mark core step done
+        steps[i].status = "done";
+        steps[i].completed_at = new Date().toISOString();
+        steps[i].tokens_used = tokensIn + tokensOut;
+
+        // Continue with remaining visual steps, then finish
+        for (let j = i + 1; j < pipeline.length; j++) {
+          steps[j].status = "working";
+          steps[j].started_at = new Date().toISOString();
+          const laterProgress = Math.round(((j + 0.5) / pipeline.length) * 100);
+          await persistTaskUpdate(userId, taskId, {
+            progress: Math.min(laterProgress, 95),
+            current_step: pipeline[j].description,
+          });
+          await delay(pipeline[j].duration);
+          steps[j].status = "done";
+          steps[j].completed_at = new Date().toISOString();
+        }
+
+        // All done
+        const duration = Math.round((Date.now() - startTime) / 1000);
+        await persistTaskUpdate(userId, taskId, {
+          status: "review",
+          progress: 100,
+          output: result.text,
+          cost_usd: cost,
+          tokens_in: tokensIn,
+          tokens_out: tokensOut,
+          duration_seconds: duration,
+          current_step: "Complete — ready for your review",
+        });
+        return;
+      } else {
+        // Visual step — just wait the duration
+        await delay(step.duration);
+        steps[i].status = "done";
+        steps[i].completed_at = new Date().toISOString();
+      }
+    }
   } catch (error) {
     console.error("Agent execution failed:", error);
     steps.forEach((s) => {
@@ -175,35 +202,41 @@ async function runAgent(
   }
 }
 
-// ── Demo Mode ───────────────────────────────────────────────
+// ── Demo Pipeline (no API key) ──────────────────────────────
 
-async function simulateAgent(userId: string, taskId: string, agentName: string, steps: TaskStep[]) {
-  await delay(1000);
-  steps[0].status = "done";
-  steps[0].completed_at = new Date().toISOString();
-  steps[1].status = "working";
-  steps[1].started_at = new Date().toISOString();
-  await persistTaskUpdate(userId, taskId, { progress: 40, current_step: "Generating output" });
+async function runDemoPipeline(
+  userId: string,
+  taskId: string,
+  agentName: string,
+  pipeline: { description: string; duration: number; isCore?: boolean }[],
+  steps: TaskStep[],
+) {
+  for (let i = 0; i < pipeline.length; i++) {
+    const step = pipeline[i];
+    const progress = Math.round(((i + 0.5) / pipeline.length) * 100);
 
-  await delay(2000);
-  steps[1].status = "done";
-  steps[1].completed_at = new Date().toISOString();
-  steps[2].status = "working";
-  steps[2].started_at = new Date().toISOString();
-  await persistTaskUpdate(userId, taskId, { progress: 80, current_step: "Finalizing results" });
+    steps[i].status = "working";
+    steps[i].started_at = new Date().toISOString();
+    await persistTaskUpdate(userId, taskId, {
+      progress: Math.min(progress, 95),
+      current_step: step.description,
+    });
 
-  await delay(1000);
-  steps[2].status = "done";
-  steps[2].completed_at = new Date().toISOString();
+    // In demo mode, core step also just waits
+    await delay(step.isCore ? 2000 : step.duration);
+
+    steps[i].status = "done";
+    steps[i].completed_at = new Date().toISOString();
+  }
 
   await persistTaskUpdate(userId, taskId, {
     status: "review",
     progress: 100,
-    output: `# Demo Mode\n\nThis is a simulated response. To get real AI-powered results:\n\n1. Go to **Settings**\n2. Add your **Anthropic API key**\n3. Run this task again\n\n${agentName} will use Claude to generate real output.\n\n> Get your API key at [console.anthropic.com](https://console.anthropic.com)`,
+    output: `# Demo Mode\n\nThis is a simulated response. To get real AI-powered results:\n\n1. Go to **Settings**\n2. Add your API key (OpenAI, Gemini, or Anthropic)\n3. Run this task again\n\n${agentName} will generate real output for your task.\n\n> Get a free key at [platform.openai.com](https://platform.openai.com/api-keys)`,
     cost_usd: 0,
     tokens_in: 0,
     tokens_out: 0,
-    duration_seconds: 4,
+    duration_seconds: Math.round(pipeline.reduce((s, p) => s + (p.isCore ? 2000 : p.duration), 0) / 1000),
     current_step: "Complete — add API key in Settings for real output",
   });
 }
