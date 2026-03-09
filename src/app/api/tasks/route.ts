@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { listTasks, createTask } from "@/lib/data/tasks";
 import { createTaskSchema } from "@/lib/validators/task";
-import { mockTasks } from "@/lib/mock-data";
+import { mockTasks, createMockTask } from "@/lib/mock-data";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -25,12 +25,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (user.isDemo) return NextResponse.json({ error: "Sign up to create tasks", login: true }, { status: 401 });
-
   const body = await request.json();
   const parsed = createTaskSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  // Demo users — create in mock data
+  if (user.isDemo) {
+    createMockTask(parsed.data.title);
+    const created = mockTasks[0]; // createMockTask prepends to array
+    return NextResponse.json(created, { status: 201 });
   }
 
   const task = await createTask(user.id, parsed.data);

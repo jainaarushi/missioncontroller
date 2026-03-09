@@ -6,7 +6,7 @@ import { encryptApiKey, decryptApiKey, maskApiKey } from "@/lib/ai/encrypt";
 
 export async function GET() {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.isDemo) return NextResponse.json({ openai: null, gemini: null, anthropic: null, provider: "openai" });
 
   if (!isSupabaseEnabled()) {
     return NextResponse.json({ openai: null, gemini: null, anthropic: null, provider: "openai" });
@@ -39,7 +39,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.isDemo) return NextResponse.json({ error: "Sign up to save your API key", login: true }, { status: 401 });
 
   const { api_key, provider } = await request.json();
 
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.isDemo) return NextResponse.json({ error: "Sign up first", login: true }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
   const provider = searchParams.get("provider") || "openai";
