@@ -152,13 +152,13 @@ async function runPipeline(
 
         draftOutput = result.text;
         finalOutput = result.text;
-        const usage = result.usage as { promptTokens?: number; completionTokens?: number } | undefined;
-        totalTokensIn += usage?.promptTokens || 0;
-        totalTokensOut += usage?.completionTokens || 0;
+        const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+        totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
+        totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
 
         steps[i].status = "done";
         steps[i].completed_at = new Date().toISOString();
-        steps[i].tokens_used = (usage?.promptTokens || 0) + (usage?.completionTokens || 0);
+        steps[i].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
 
       } else if (step.isCore2 && draftOutput) {
         // SECOND real API call — refine/synthesize the draft
@@ -171,13 +171,13 @@ async function runPipeline(
         });
 
         finalOutput = result.text;
-        const usage = result.usage as { promptTokens?: number; completionTokens?: number } | undefined;
-        totalTokensIn += usage?.promptTokens || 0;
-        totalTokensOut += usage?.completionTokens || 0;
+        const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+        totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
+        totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
 
         steps[i].status = "done";
         steps[i].completed_at = new Date().toISOString();
-        steps[i].tokens_used = (usage?.promptTokens || 0) + (usage?.completionTokens || 0);
+        steps[i].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
 
       } else {
         // Visual step — wait for UX
