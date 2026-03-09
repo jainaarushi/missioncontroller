@@ -14,18 +14,18 @@ import { ChevronRight } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
 const AGENT_THUMBNAILS: Record<string, string> = {
-  scout: "/agents/researcher.jpg",
-  quill: "/agents/writer.jpg",
-  metric: "/agents/analyst.jpg",
-  atlas: "/agents/assistant.jpg",
-  voyager: "/agents/travel-planner.jpg",
-  pulse: "/agents/finance.jpg",
-  sleuth: "/agents/web-intel.jpg",
-  caster: "/agents/converter.jpg",
-  architect: "/agents/tech-lead.jpg",
-  catalyst: "/agents/sales-rep.jpg",
-  vitalis: "/agents/fitness-coach.jpg",
-  strategist: "/agents/consultant.jpg",
+  "deep-research": "/agents/researcher.jpg",
+  "content-creator": "/agents/writer.jpg",
+  "data-analyst": "/agents/analyst.jpg",
+  "general-assistant": "/agents/assistant.jpg",
+  "travel-planner": "/agents/travel-planner.jpg",
+  "investment-analyst": "/agents/finance.jpg",
+  "web-intel": "/agents/web-intel.jpg",
+  "blog-to-podcast": "/agents/converter.jpg",
+  "system-architect": "/agents/tech-lead.jpg",
+  "sales-rep": "/agents/sales-rep.jpg",
+  "fitness-coach": "/agents/fitness-coach.jpg",
+  "strategy-advisor": "/agents/consultant.jpg",
 };
 
 export default function TodayPage() {
