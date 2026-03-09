@@ -27,16 +27,17 @@ export default function LoginPage() {
     setMessage(null);
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/today`,
-        },
       });
       if (error) {
         setError(error.message);
+      } else if (data.session) {
+        // Email confirmation is off — user is signed in immediately
+        window.location.href = "/today";
       } else {
+        // Email confirmation is on — tell user to check email
         setMessage("Check your email for the confirmation link.");
       }
     } else {
@@ -71,9 +72,7 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: "linear-gradient(145deg, #fffbf0 0%, #fff2c9 40%, #ffe9a8 100%)",
-      }}
+      style={{ backgroundColor: "#FAFAF8" }}
     >
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
