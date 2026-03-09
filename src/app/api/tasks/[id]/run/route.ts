@@ -4,7 +4,6 @@ import { getAuthUser } from "@/lib/auth";
 import { createUserAnthropic } from "@/lib/ai/client";
 import { getUserAnthropicKey } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
-import { getToolsForAgent } from "@/lib/ai/tools";
 import type { TaskStep } from "@/lib/types/task";
 
 export async function POST(
@@ -19,9 +18,10 @@ export async function POST(
   const agent = getAgent(task.agent_id);
   if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
 
-  // Initialize steps
   const steps: TaskStep[] = [
     { id: `s-${id}-1`, task_id: id, step_number: 1, description: `${agent.name} is analyzing the task`, status: "working", started_at: new Date().toISOString(), completed_at: null, tokens_used: 0 },
+    { id: `s-${id}-2`, task_id: id, step_number: 2, description: "Generating output", status: "pending", started_at: null, completed_at: null, tokens_used: 0 },
+    { id: `s-${id}-3`, task_id: id, step_number: 3, description: "Finalizing results", status: "pending", started_at: null, completed_at: null, tokens_used: 0 },
   ];
   mockSteps.set(id, steps);
 
@@ -32,7 +32,7 @@ export async function POST(
     current_step: `${agent.name} is analyzing the task`,
   });
 
-  // Check if the user has their own Anthropic API key
+  // Check if user has their own API key
   const user = await getAuthUser();
   let userApiKey: string | null = null;
   if (user) {
@@ -40,22 +40,21 @@ export async function POST(
   }
 
   if (userApiKey) {
-    runAgentWithTools(id, task.title, task.description, agent.name, agent.slug, agent.system_prompt, agent.model, steps, userApiKey);
+    runAgent(id, task.title, task.description, agent.name, agent.system_prompt, agent.model, steps, userApiKey);
   } else {
-    simulateAgentWork(id, agent.name, steps);
+    simulateAgent(id, agent.name, steps);
   }
 
   return NextResponse.json({ status: "started" });
 }
 
-// ── Real Agentic Execution with Tools ───────────────────────
+// ── Real Execution: system prompt + task → Claude → output ──
 
-async function runAgentWithTools(
+async function runAgent(
   taskId: string,
   title: string,
   description: string | null,
   agentName: string,
-  agentSlug: string,
   systemPrompt: string,
   model: string,
   steps: TaskStep[],
@@ -63,76 +62,39 @@ async function runAgentWithTools(
 ) {
   const startTime = Date.now();
   const anthropic = createUserAnthropic(apiKey);
-
-  // Get the right tools for this agent
-  const tools = getToolsForAgent(agentSlug);
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   try {
-    // Mark step 1 done
+    // Step 1 done
     steps[0].status = "done";
     steps[0].completed_at = new Date().toISOString();
-    updateTask(taskId, { progress: 10, current_step: `${agentName} is working...` });
+    steps[1].status = "working";
+    steps[1].started_at = new Date().toISOString();
+    updateTask(taskId, { progress: 30, current_step: `${agentName} is generating output` });
 
-    // Build the prompt
     const userMessage = description
-      ? `Task: ${title}\n\nDetails: ${description}`
-      : `Task: ${title}`;
+      ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
+      : `Task: ${title}\n\nToday's date: ${today}`;
 
-    // Add a working step
-    addStep(steps, taskId, `${agentName} is executing with tools`, "working");
-    updateTask(taskId, { progress: 20, current_step: `${agentName} is executing with tools` });
-
-    // Run the agentic loop — the AI SDK handles tool calling automatically
-    const { generateText, stepCountIs } = await import("ai");
+    const { generateText } = await import("ai");
     const result = await generateText({
       model: anthropic(model),
       system: systemPrompt,
       prompt: userMessage,
-      tools: tools as Parameters<typeof generateText>[0]["tools"],
-      stopWhen: stepCountIs(10), // Max 10 tool-use rounds
-      onStepFinish: ({ toolResults }) => {
-        // Log each tool call as a visible step
-        if (toolResults && toolResults.length > 0) {
-          for (const toolResult of toolResults) {
-            const toolName = String(toolResult.toolName || "tool").replace(/_/g, " ");
-            const detail = "";
-            const stepDesc = `Used ${toolName}${detail ? `: ${detail}` : ""}`;
-
-            // Mark previous working step as done
-            const lastWorking = steps.findLast((s: TaskStep) => s.status === "working");
-            if (lastWorking) {
-              lastWorking.status = "done";
-              lastWorking.completed_at = new Date().toISOString();
-            }
-
-            addStep(steps, taskId, stepDesc, "done");
-
-            // Update progress proportionally
-            const progress = Math.min(20 + (steps.length - 2) * 10, 85);
-            updateTask(taskId, {
-              progress,
-              current_step: stepDesc,
-            });
-          }
-
-          // Add next working step
-          addStep(steps, taskId, "Processing results...", "working");
-        }
-      },
     });
 
-    // Mark all remaining working steps as done
-    steps.forEach((s) => {
-      if (s.status === "working") {
-        s.status = "done";
-        s.completed_at = new Date().toISOString();
-      }
-    });
+    // Step 2 done
+    steps[1].status = "done";
+    steps[1].completed_at = new Date().toISOString();
+    steps[2].status = "working";
+    steps[2].started_at = new Date().toISOString();
+    updateTask(taskId, { progress: 85, current_step: "Finalizing results" });
 
-    // Add final step
-    addStep(steps, taskId, "Complete — ready for your review", "done");
+    // Step 3 done
+    steps[2].status = "done";
+    steps[2].completed_at = new Date().toISOString();
 
-    const usage = result.usage as { totalTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+    const usage = result.usage as { promptTokens?: number; completionTokens?: number } | undefined;
     const tokensIn = usage?.promptTokens || 0;
     const tokensOut = usage?.completionTokens || 0;
     const cost = calculateCost(tokensIn, tokensOut, model);
@@ -152,12 +114,8 @@ async function runAgentWithTools(
     console.error("Agent execution failed:", error);
 
     steps.forEach((s) => {
-      if (s.status === "working" || s.status === "pending") {
-        s.status = "failed";
-      }
+      if (s.status === "working" || s.status === "pending") s.status = "failed";
     });
-
-    addStep(steps, taskId, `Error: ${error instanceof Error ? error.message : "Unknown error"}`, "failed");
 
     updateTask(taskId, {
       status: "failed",
@@ -168,73 +126,39 @@ async function runAgentWithTools(
   }
 }
 
-// ── Helper: Add a step to the in-memory list ────────────────
+// ── Demo Mode ───────────────────────────────────────────────
 
-function addStep(steps: TaskStep[], taskId: string, description: string, status: "pending" | "working" | "done" | "failed") {
-  const stepNum = steps.length + 1;
-  steps.push({
-    id: `s-${taskId}-${stepNum}`,
-    task_id: taskId,
-    step_number: stepNum,
-    description,
-    status,
-    started_at: status !== "pending" ? new Date().toISOString() : null,
-    completed_at: status === "done" || status === "failed" ? new Date().toISOString() : null,
-    tokens_used: 0,
-  });
-}
-
-// ── Demo Mode (no API key) ──────────────────────────────────
-
-async function simulateAgentWork(taskId: string, agentName: string, steps: TaskStep[]) {
+async function simulateAgent(taskId: string, agentName: string, steps: TaskStep[]) {
   const task = getTask(taskId);
   if (!task) return;
 
   await delay(1000);
   steps[0].status = "done";
   steps[0].completed_at = new Date().toISOString();
-  addStep(steps, taskId, "Gathering relevant information", "working");
-  updateTask(taskId, { progress: 25, current_step: "Gathering relevant information" });
-
-  await delay(1500);
-  steps[1].status = "done";
-  steps[1].completed_at = new Date().toISOString();
-  addStep(steps, taskId, "Processing and generating output", "working");
-  updateTask(taskId, { progress: 50, current_step: "Processing and generating output" });
+  steps[1].status = "working";
+  steps[1].started_at = new Date().toISOString();
+  updateTask(taskId, { progress: 40, current_step: "Generating output" });
 
   await delay(2000);
-  steps[2].status = "done";
-  steps[2].completed_at = new Date().toISOString();
-  addStep(steps, taskId, "Finalizing results", "working");
+  steps[1].status = "done";
+  steps[1].completed_at = new Date().toISOString();
+  steps[2].status = "working";
+  steps[2].started_at = new Date().toISOString();
   updateTask(taskId, { progress: 80, current_step: "Finalizing results" });
 
   await delay(1000);
-  steps[3].status = "done";
-  steps[3].completed_at = new Date().toISOString();
-
-  const output = `# ${task.title}
-
-## Demo Mode
-
-This is a simulated response. To get real AI-powered results:
-
-1. Go to **Settings**
-2. Add your **Anthropic API key**
-3. Run this task again
-
-${agentName} will use Claude with real tools (web search, page reading, calculations) to generate actual results.
-
-> Get your API key at [console.anthropic.com](https://console.anthropic.com)`;
+  steps[2].status = "done";
+  steps[2].completed_at = new Date().toISOString();
 
   updateTask(taskId, {
     status: "review",
     progress: 100,
-    output,
+    output: `# ${task.title}\n\n## Demo Mode\n\nThis is a simulated response. To get real AI-powered results:\n\n1. Go to **Settings**\n2. Add your **Anthropic API key**\n3. Run this task again\n\n${agentName} will use Claude to generate real output.\n\n> Get your API key at [console.anthropic.com](https://console.anthropic.com)`,
     cost_usd: 0,
     tokens_in: 0,
     tokens_out: 0,
-    duration_seconds: 6,
-    current_step: "Complete — add API key in Settings for real AI output",
+    duration_seconds: 4,
+    current_step: "Complete — add API key in Settings for real output",
   });
 }
 
