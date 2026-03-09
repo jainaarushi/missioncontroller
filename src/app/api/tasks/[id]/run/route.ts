@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
 import { getAuthUser } from "@/lib/auth";
-import { createUserAnthropic } from "@/lib/ai/client";
-import { getUserAnthropicKey } from "@/lib/ai/get-user-key";
+import { createUserAnthropic, createUserGemini, PROVIDER_MODELS } from "@/lib/ai/client";
+import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { getTaskById, updateTaskById } from "@/lib/data/tasks";
@@ -81,12 +81,11 @@ export async function POST(
     current_step: `${agentName} is analyzing the task`,
   });
 
-  // Check for user's API key
-  let userApiKey: string | null = null;
-  userApiKey = await getUserAnthropicKey(user.id);
+  // Check for user's AI config (Anthropic or Gemini)
+  const aiConfig = await getUserAIConfig(user.id);
 
-  if (userApiKey) {
-    runAgent(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, agentModel, steps, userApiKey);
+  if (aiConfig) {
+    runAgent(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, steps, aiConfig.provider, aiConfig.apiKey);
   } else {
     simulateAgent(user.id, id, agentName, steps);
   }
@@ -103,13 +102,18 @@ async function runAgent(
   description: string | null,
   agentName: string,
   systemPrompt: string,
-  model: string,
   steps: TaskStep[],
+  provider: "anthropic" | "gemini",
   apiKey: string,
 ) {
   const startTime = Date.now();
-  const anthropic = createUserAnthropic(apiKey);
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  // Create the right AI model based on provider
+  const modelId = PROVIDER_MODELS[provider].default;
+  const aiModel = provider === "anthropic"
+    ? createUserAnthropic(apiKey)(modelId)
+    : createUserGemini(apiKey)(modelId);
 
   try {
     steps[0].status = "done";
@@ -124,7 +128,7 @@ async function runAgent(
 
     const { generateText } = await import("ai");
     const result = await generateText({
-      model: anthropic(model),
+      model: aiModel,
       system: systemPrompt,
       prompt: userMessage,
     });
@@ -141,7 +145,7 @@ async function runAgent(
     const usage = result.usage as { promptTokens?: number; completionTokens?: number } | undefined;
     const tokensIn = usage?.promptTokens || 0;
     const tokensOut = usage?.completionTokens || 0;
-    const cost = calculateCost(tokensIn, tokensOut, model);
+    const cost = provider === "gemini" ? 0 : calculateCost(tokensIn, tokensOut, modelId);
     const duration = Math.round((Date.now() - startTime) / 1000);
 
     await persistTaskUpdate(userId, taskId, {
