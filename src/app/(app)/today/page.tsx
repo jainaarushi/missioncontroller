@@ -10,6 +10,8 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
+import { getPastel } from "@/lib/utils/pastels";
+import { AgentAvatar } from "@/components/agents/agent-avatar";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
 function getGreeting(): string {
@@ -163,52 +165,135 @@ export default function TodayPage() {
     <>
       <Confetti show={showConfetti} />
 
-      {/* Greeting */}
-      <div style={{ marginBottom: 28, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <h1 style={{
-              fontSize: 32, fontWeight: 800, color: P.text, margin: 0,
-              letterSpacing: "-0.04em",
-            }}>
-              {getGreeting()}
-            </h1>
-            <p style={{ fontSize: 15, color: P.textSec, marginTop: 5, lineHeight: 1.5 }}>
-              {reviewTasks.length > 0 && (
-                <>
-                  <span style={{ color: P.coral, fontWeight: 700 }}>
-                    {reviewTasks.length} task{reviewTasks.length > 1 ? "s" : ""} ready for review
-                  </span>
-                  {" \u00B7 "}
-                </>
-              )}
-              {workingTasks.length > 0 && (
-                <>
-                  {workingTasks.length} agent{workingTasks.length !== 1 ? "s" : ""} working
-                  {" \u00B7 "}
-                </>
-              )}
-              ${totalCost.toFixed(2)} spent today
-            </p>
-          </div>
-          {/* Bulk select toggle */}
-          <button
-            onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
-            style={{
-              padding: "7px 14px", borderRadius: 9,
-              border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
-              backgroundColor: bulkMode ? P.indigoLight : P.card,
-              color: bulkMode ? P.indigo : P.textSec,
-              fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-              fontFamily: "inherit", transition: "all 0.15s",
-            }}
-          >
-            {bulkMode ? "Cancel" : "Select"}
-          </button>
+      {/* Greeting + Select */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+        marginBottom: 20, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
+      }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.04em" }}>
+            {getGreeting()}
+          </h1>
+          <p style={{ fontSize: 14, color: P.textSec, marginTop: 4 }}>
+            {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 700 }}>{reviewTasks.length} ready for review</span>{" · "}</>}
+            {workingTasks.length > 0 && <>{workingTasks.length} agent{workingTasks.length !== 1 ? "s" : ""} working{" · "}</>}
+            ${totalCost.toFixed(2)} spent
+          </p>
+        </div>
+        <button
+          onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
+          style={{
+            padding: "7px 14px", borderRadius: 9,
+            border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
+            backgroundColor: bulkMode ? P.indigoLight : P.card,
+            color: bulkMode ? P.indigo : P.textSec,
+            fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+            fontFamily: "inherit", transition: "all 0.15s",
+          }}
+        >
+          {bulkMode ? "Cancel" : "Select"}
+        </button>
+      </div>
+
+      {/* AI Agents — Canva-style horizontal scroll */}
+      <div style={{ marginBottom: 24, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both" }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: P.text, marginBottom: 12 }}>
+          Your AI agents
+        </div>
+        <div style={{
+          display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8,
+          scrollSnapType: "x mandatory",
+          msOverflowStyle: "none", scrollbarWidth: "none",
+        }}>
+          <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
+          {agents.map((agent, i) => {
+            const pastel = getPastel(agent.color);
+            const busy = workingTasks.some((t) => t.agent_id === agent.id);
+            return (
+              <div
+                key={agent.id}
+                onClick={() => setShowCreateModal(true)}
+                style={{
+                  flexShrink: 0, width: 150, minHeight: 120,
+                  padding: "16px 14px 12px",
+                  backgroundColor: pastel.bg,
+                  borderRadius: 16, cursor: "pointer",
+                  position: "relative", overflow: "hidden",
+                  scrollSnapAlign: "start",
+                  animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
+                  transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";
+                  e.currentTarget.style.boxShadow = `0 12px 32px ${agent.color}18`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0) scale(1)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                {/* Decorative shape */}
+                <div style={{
+                  position: "absolute", top: -10, right: -10,
+                  width: 50, height: 50, borderRadius: 14,
+                  backgroundColor: pastel.shape1, opacity: 0.5,
+                  transform: "rotate(15deg)",
+                }} />
+                <div style={{
+                  position: "absolute", bottom: 8, right: 8,
+                  width: 30, height: 30, borderRadius: "50%",
+                  backgroundColor: pastel.shape2,
+                }} />
+
+                {/* Icon */}
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12,
+                  background: agent.gradient,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 20, marginBottom: 10,
+                  boxShadow: `0 4px 12px ${agent.color}25`,
+                  position: "relative", zIndex: 2,
+                }}>
+                  {agent.icon}
+                </div>
+
+                {/* Name */}
+                <div style={{
+                  fontSize: 13, fontWeight: 700, color: P.text,
+                  position: "relative", zIndex: 2,
+                  marginBottom: 2,
+                }}>
+                  {agent.name}
+                </div>
+                <div style={{
+                  fontSize: 10.5, color: agent.color, fontWeight: 600,
+                  position: "relative", zIndex: 2,
+                }}>
+                  {agent.description}
+                </div>
+
+                {/* Busy indicator */}
+                {busy && (
+                  <div style={{
+                    position: "absolute", top: 8, right: 8, zIndex: 3,
+                    display: "flex", gap: 2,
+                  }}>
+                    {[0, 1, 2].map((d) => (
+                      <span key={d} style={{
+                        width: 4, height: 4, borderRadius: "50%",
+                        backgroundColor: agent.color,
+                        animation: `bounce 1.2s ease-in-out ${d * 0.15}s infinite`,
+                      }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* New task button */}
+      {/* Create task */}
       <div
         onClick={() => setShowCreateModal(true)}
         onMouseEnter={(e) => {
@@ -222,7 +307,7 @@ export default function TodayPage() {
           e.currentTarget.style.backgroundColor = "transparent";
         }}
         style={{
-          marginBottom: 20, padding: "14px 18px", borderRadius: 14,
+          marginBottom: 24, padding: "14px 18px", borderRadius: 14,
           border: `2px dashed ${P.border}`,
           fontSize: 14.5, color: P.textGhost,
           cursor: "pointer", transition: "all 0.2s",
