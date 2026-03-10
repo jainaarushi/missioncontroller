@@ -31,6 +31,10 @@ const AGENT_THUMBNAILS: Record<string, string> = {
   "sales-rep": "/agents/sales-rep.jpg",
   "fitness-coach": "/agents/fitness-coach.jpg",
   "strategy-advisor": "/agents/consultant.jpg",
+  "roast-master": "/agents/roast-master.jpg",
+  "dream-interpreter": "/agents/dream-interpreter.jpg",
+  "startup-idea-gen": "/agents/startup-idea-gen.jpg",
+  "product-launch": "/agents/product-launch.jpg",
 };
 
 export default function TodayPage() {
