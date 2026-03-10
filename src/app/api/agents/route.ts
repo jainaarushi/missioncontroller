@@ -31,14 +31,15 @@ export async function GET() {
 
   let agents = await listAgents(user.id);
 
-  // Auto-seed: add any missing preset agents (handles new agents added to the codebase)
+  // Auto-seed + cleanup using a single Supabase client
   if (isSupabaseEnabled()) {
-    const existingSlugs = new Set(agents.filter((a: { is_preset?: boolean }) => a.is_preset).map((a: { slug: string }) => a.slug));
-    const missing = PRESET_AGENTS.filter((a) => !existingSlugs.has(a.slug));
+    const supabase = await createClient();
+    if (supabase) {
+      // Auto-seed: add any missing preset agents
+      const existingSlugs = new Set(agents.filter((a: { is_preset?: boolean }) => a.is_preset).map((a: { slug: string }) => a.slug));
+      const missing = PRESET_AGENTS.filter((a) => !existingSlugs.has(a.slug));
 
-    if (missing.length > 0) {
-      const supabase = await createClient();
-      if (supabase) {
+      if (missing.length > 0) {
         const toInsert = missing.map((a) => ({
           name: a.name,
           slug: a.slug,
@@ -57,23 +58,14 @@ export async function GET() {
         await supabase.from("agents").insert(toInsert);
         agents = await listAgents(user.id);
       }
-    }
-  }
 
-  // Clean up: delete preset agents whose slugs are no longer in the seed file,
-  // and delete duplicate rows (keep newest per slug)
-  if (isSupabaseEnabled()) {
-    const validSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
-    const supabase = await createClient();
-    if (supabase) {
-      // Find stale preset agents: slug not in current seed file
-      // Targets is_preset OR is_public agents (old seeds may not have set is_preset)
+      // Clean up: delete stale presets and duplicates
+      const validSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
       const staleIds = agents
         .filter((a: { slug: string; is_preset?: boolean; is_public?: boolean }) =>
           !validSlugs.has(a.slug) && (a.is_preset || a.is_public))
         .map((a: { id: string }) => a.id);
 
-      // Find duplicate rows per slug (keep first, delete rest)
       const seenSlugs = new Set<string>();
       const dupeIds: string[] = [];
       for (const a of agents as { id: string; slug: string }[]) {
