@@ -35,6 +35,16 @@ const AGENT_THUMBNAILS: Record<string, string> = {
   "dream-interpreter": "/agents/dream-interpreter.jpg",
   "startup-idea-gen": "/agents/startup-idea-gen.jpg",
   "product-launch": "/agents/product-launch.jpg",
+  "linkedin-post": "/agents/linkedin-post.png",
+  "cover-letter": "/agents/cover-letter.png",
+  "fact-checker": "/agents/fact-checker.png",
+  "debugger": "/agents/debugger.png",
+  "system-architect": "/agents/system-architect-new.png",
+  "bedtime-story": "/agents/bedtime-story.png",
+  "web-intel": "/agents/web-intel-new.png",
+  "villain-origin": "/agents/villain-origin.png",
+  "baby-name": "/agents/baby-name.png",
+  "meme-caption": "/agents/meme-caption.png",
 };
 
 export default function TodayPage() {
