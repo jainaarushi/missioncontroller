@@ -49,7 +49,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
       height: "100vh",
     }}>
       {/* Logo */}
-      <div style={{
+      <a href="/today" style={{
         width: 38, height: 38, borderRadius: 12,
         background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
         display: "flex", alignItems: "center", justifyContent: "center",
@@ -57,9 +57,10 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
         boxShadow: "0 2px 10px rgba(99,102,241,0.3)",
         marginBottom: 24,
         cursor: "pointer",
+        textDecoration: "none",
       }}>
         A
-      </div>
+      </a>
 
       {/* Navigation */}
       <SidebarNav reviewCount={reviewCount} doneTasks={stats.working + stats.review} />
