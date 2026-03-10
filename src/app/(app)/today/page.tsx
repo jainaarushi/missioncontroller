@@ -466,6 +466,100 @@ export default function TodayPage() {
         </div>
       </div>
 
+      {/* ─── Specialist Divisions — Coming Soon ─── */}
+      <div style={{
+        marginBottom: 28,
+        animation: "fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.15s both",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{
+              fontSize: 15, fontWeight: 800, color: P.text, letterSpacing: "-0.02em",
+            }}>
+              Specialist Divisions
+            </span>
+            <span style={{
+              fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
+              background: "linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899, #7C3AED, #4F46E5)",
+              backgroundSize: "200% 100%",
+              animation: "shimmer 3s linear infinite",
+              color: "#fff", letterSpacing: "0.05em",
+            }}>
+              COMING SOON
+            </span>
+          </div>
+          <span style={{ fontSize: 11, color: P.textTer, fontWeight: 500 }}>
+            112 specialists across 11 divisions
+          </span>
+        </div>
+
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(165px, 1fr))", gap: 10,
+        }}>
+          {[
+            { name: "Engineering", count: 8, icon: "⚡", color: "#3B82F6", desc: "Frontend, Backend, AI, DevOps" },
+            { name: "Design", count: 7, icon: "🎨", color: "#EC4899", desc: "UI, UX, Brand, Visual" },
+            { name: "Marketing", count: 11, icon: "📈", color: "#F59E0B", desc: "Growth, Social, Content" },
+            { name: "Paid Media", count: 7, icon: "🎯", color: "#EF4444", desc: "PPC, Creative, Programmatic" },
+            { name: "Product", count: 3, icon: "🧩", color: "#8B5CF6", desc: "Sprint, Trends, Feedback" },
+            { name: "Project Mgmt", count: 5, icon: "📋", color: "#0EA5E9", desc: "Producer, Shepherd, Ops" },
+            { name: "Testing & QA", count: 8, icon: "🔍", color: "#10B981", desc: "Reality Checker, API, A11y" },
+            { name: "Support & Ops", count: 6, icon: "🛡️", color: "#6366F1", desc: "Analytics, Finance, Legal" },
+            { name: "Spatial / XR", count: 6, icon: "🥽", color: "#D946EF", desc: "visionOS, XR, Immersive" },
+            { name: "Game Dev", count: 16, icon: "🎮", color: "#F97316", desc: "Unity, Unreal, Godot, Roblox" },
+            { name: "Specialized", count: 8, icon: "🧠", color: "#14B8A6", desc: "Orchestrator, Identity, Data" },
+          ].map((div, i) => (
+            <div
+              key={div.name}
+              style={{
+                padding: "14px 14px 12px", borderRadius: 14,
+                backgroundColor: "#fff",
+                border: `1px solid ${div.color}15`,
+                position: "relative", overflow: "hidden",
+                cursor: "default",
+                opacity: 0.85,
+                transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                animation: `cardReveal 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.transform = "translateY(-3px)";
+                e.currentTarget.style.boxShadow = `0 8px 24px ${div.color}15`;
+                e.currentTarget.style.borderColor = div.color + "30";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "0.85";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.borderColor = div.color + "15";
+              }}
+            >
+              {/* Subtle top accent */}
+              <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 2,
+                background: `linear-gradient(90deg, ${div.color}, ${div.color}60)`,
+                opacity: 0.5,
+              }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>{div.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{div.name}</span>
+              </div>
+              <div style={{ fontSize: 10.5, color: P.textTer, lineHeight: 1.4, marginBottom: 6 }}>
+                {div.desc}
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: div.color,
+                backgroundColor: div.color + "0a",
+                padding: "2px 7px", borderRadius: 6,
+                display: "inline-block",
+              }}>
+                {div.count} specialists
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Create task — Canva-style search bar */}
       <div
         className="create-bar"
