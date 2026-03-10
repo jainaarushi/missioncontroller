@@ -23,11 +23,11 @@ const POPULAR_AGENTS = [
 ];
 
 const FEATURES = [
-  { icon: Brain, title: "56 AI Agents", desc: "From roast comedy to system architecture — every agent has a unique personality and expertise." },
+  { icon: Brain, title: "Every agent you need", desc: "Research, writing, coding, finance, health, fun — all under one roof. No more switching between tools." },
   { icon: Layers, title: "Multi-Agent Pipelines", desc: "Chain agents together. Research → Write → Edit. Drag to reorder the sequence." },
   { icon: MessageSquare, title: "Human Feedback Loop", desc: "Don't like the output? Give feedback and the agent revises — getting better each time." },
-  { icon: BarChart3, title: "Cost & Token Tracking", desc: "See exactly what each task costs. Per-task breakdown with token counts and agent performance." },
-  { icon: Zap, title: "Instant Setup", desc: "No signup needed to explore. Try any agent free — sign up only when you want to run them." },
+  { icon: BarChart3, title: "Track every dollar & token", desc: "Unlike other AI tools that hide usage, AgentStudio shows exactly what each task costs — per agent, per token. Full transparency, one dashboard." },
+  { icon: Zap, title: "Replace 10 tools in 10 seconds", desc: "No signup needed to explore. Try any agent free — replace your entire AI toolkit." },
   { icon: Shield, title: "Your Keys, Your Data", desc: "Bring your own API keys. Encrypted with AES-256. We never see or store your keys in plain text." },
 ];
 
@@ -129,7 +129,7 @@ export default function LandingPage() {
               backgroundColor: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)",
               fontSize: 13, fontWeight: 600, color: "#6366F1",
             }}>
-              <Sparkles size={14} /> 56 AI Agents Ready to Work
+              <Sparkles size={14} /> One Workspace. Every AI Agent.
             </span>
           </motion.div>
 
@@ -144,14 +144,14 @@ export default function LandingPage() {
               margin: "28px 0 20px", color: "#111",
             }}
           >
-            What will you create
+            All your AI agents.
             <br />
             <span style={{
               background: "linear-gradient(135deg, #4F46E5, #7C3AED, #EC4899)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
-              with AI today?
+              One workspace.
             </span>
           </motion.h1>
 
@@ -162,8 +162,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.25 }}
             style={{ fontSize: 19, color: "#666", maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6 }}
           >
-            56 specialized AI agents for research, writing, coding, strategy, and fun.
-            Just describe your task — the right agent handles the rest.
+            Stop juggling ChatGPT, Jasper, Copy.ai, and 10 other tools. AgentStudio brings 56 specialized agents into one clean workspace — research, write, code, analyze, and create without switching tabs.
           </motion.p>
 
           {/* CTA buttons */}
@@ -254,6 +253,76 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* ─── PROBLEM → SOLUTION ─── */}
+      <section style={{ padding: "80px 24px 0" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontSize: 36, fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 12 }}>
+              Too many AI tools. One simple fix.
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
+            variants={fadeUp}
+            style={{
+              display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 24, alignItems: "center",
+            }}
+          >
+            {/* Before */}
+            <div style={{
+              padding: "28px 24px", borderRadius: 18,
+              backgroundColor: "#FEF2F2", border: "1px solid #FECACA",
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", marginBottom: 10, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>Before</div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                {["10+ tabs open", "Different logins", "Scattered outputs", "No cost tracking"].map((t) => (
+                  <li key={t} style={{ fontSize: 15, color: "#666", display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: "#DC2626", fontWeight: 700 }}>✗</span> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Arrow */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ArrowRight size={28} color="#7C3AED" />
+            </div>
+
+            {/* After */}
+            <div style={{
+              padding: "28px 24px", borderRadius: 18,
+              backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0",
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#16A34A", marginBottom: 10, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>After</div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                {["One workspace", "56 agents", "All tasks tracked", "Every dollar & token visible"].map((t) => (
+                  <li key={t} style={{ fontSize: 15, color: "#666", display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: "#16A34A", fontWeight: 700 }}>✓</span> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* Unlike Other Tools callout */}
+          <motion.div
+            initial={fadeUp.hidden} whileInView={fadeUp.show} viewport={{ once: true }}
+            style={{
+              marginTop: 40, padding: "24px 28px", borderRadius: 16,
+              background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(124,58,237,0.06))",
+              border: "1px solid rgba(99,102,241,0.12)",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ fontSize: 16, color: "#444", lineHeight: 1.7, maxWidth: 640, margin: "0 auto" }}>
+              <span style={{ fontWeight: 700, color: "#4F46E5" }}>Other AI tools hide your costs.</span>{" "}
+              AgentStudio shows you exactly what every task costs — per agent, per token, in real time. No surprises on your bill.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ─── AGENTS SHOWCASE ─── */}
       <section id="agents" style={{ padding: "100px 24px 80px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -263,7 +332,7 @@ export default function LandingPage() {
               Pick an agent. Describe your task. Ship it.
             </h2>
             <p style={{ fontSize: 17, color: "#666", maxWidth: 520, margin: "0 auto" }}>
-              From comedy roasts to deep research — there{"'"}s an agent for everything.
+              Everything you used to need 10 different tools for — research, writing, coding, strategy, and even fun — all in one place.
             </p>
           </motion.div>
 
@@ -409,10 +478,10 @@ export default function LandingPage() {
 
           <div style={{ position: "relative", zIndex: 1 }}>
             <h2 style={{ fontSize: 36, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", marginBottom: 12 }}>
-              Ready to work with AI?
+              Replace your AI toolkit today
             </h2>
             <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 32, maxWidth: 440, margin: "0 auto 32px" }}>
-              No credit card needed. Explore all 56 agents free — sign up when you{"'"}re ready.
+              One workspace. 56 agents. Zero tab-switching. Free to start.
             </p>
             <a
               href="/today"
