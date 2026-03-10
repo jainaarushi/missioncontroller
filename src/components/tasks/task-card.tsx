@@ -198,7 +198,7 @@ export function TaskCard({
             {PRIORITY_CONFIG[task.priority].icon} {PRIORITY_CONFIG[task.priority].label}
           </span>
         )}
-        {task.cost_usd > 0 && <span style={{ fontSize: 11, color: P.textGhost, fontFamily: "'JetBrains Mono', var(--font-mono), monospace", fontWeight: 500 }}>${task.cost_usd.toFixed(2)}</span>}
+        {task.cost_usd > 0 && <span style={{ fontSize: 11, color: P.textGhost, fontFamily: "'JetBrains Mono', var(--font-mono), monospace", fontWeight: 500 }}>${task.cost_usd < 0.01 ? task.cost_usd.toFixed(4) : task.cost_usd.toFixed(2)}</span>}
         {!task.agent_id && !isDone && (
           <span style={{
             fontSize: 11.5, fontWeight: 600, color: P.indigo, backgroundColor: P.indigoLight,
