@@ -11,6 +11,7 @@ interface CreateTaskModalProps {
   onClose: () => void;
   onSubmit: (title: string, agentIds?: string[]) => void;
   agents: Agent[];
+  preSelectedAgentId?: string;
 }
 
 const CATEGORIES = [
@@ -123,7 +124,7 @@ const TASK_TEMPLATES: Record<string, { title: string; icon: string; color: strin
   ],
 };
 
-export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskModalProps) {
+export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAgentId }: CreateTaskModalProps) {
   const [value, setValue] = useState("");
   const [activeCategory, setActiveCategory] = useState("for-you");
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
@@ -150,15 +151,17 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
   }, [suggestions]);
 
   useEffect(() => {
-    if (open && inputRef.current) {
+    if (open) {
+      if (preSelectedAgentId) {
+        setSelectedAgentIds([preSelectedAgentId]);
+      }
       setTimeout(() => inputRef.current?.focus(), 100);
-    }
-    if (!open) {
+    } else {
       setSelectedAgentIds([]);
       setValue("");
       setActiveCategory("for-you");
     }
-  }, [open]);
+  }, [open, preSelectedAgentId]);
 
   useEffect(() => {
     if (!open) return;

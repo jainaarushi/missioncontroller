@@ -763,7 +763,7 @@ export default function TodayPage() {
               {/* Actions */}
               <div style={{ display: "flex", gap: 10 }}>
                 <button
-                  onClick={() => { setPreviewAgent(null); setShowCreateModal(true); }}
+                  onClick={() => { setShowCreateModal(true); }}
                   style={{
                     flex: 1, padding: "12px 0", borderRadius: 12, border: "none",
                     background: previewAgent.gradient, color: "#fff",
@@ -800,9 +800,10 @@ export default function TodayPage() {
       {/* Create task modal */}
       <CreateTaskModal
         open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => { setShowCreateModal(false); setPreviewAgent(null); }}
         onSubmit={handleCreateTask}
         agents={agents}
+        preSelectedAgentId={previewAgent?.id}
       />
 
       {/* Task detail modal */}
