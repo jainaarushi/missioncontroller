@@ -37,94 +37,103 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
     <div style={{
       marginBottom: 24,
       borderRadius: 16,
-      backgroundColor: "#fff",
-      border: `1px solid ${P.border}`,
-      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      background: "linear-gradient(135deg, #FAFAFE, #F5F3FF)",
+      border: "1.5px solid rgba(99,102,241,0.15)",
+      boxShadow: "0 1px 6px rgba(99,102,241,0.08)",
       overflow: "hidden",
       transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+      position: "relative",
     }}>
-      {/* Summary bar — always visible */}
+      {/* Thin rainbow accent */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: "linear-gradient(90deg, #10B981, #6366F1, #F97066)",
+      }} />
+
+      {/* Summary bar */}
       <div
         onClick={() => setExpanded(!expanded)}
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "14px 20px", cursor: "pointer",
+          padding: "12px 18px", cursor: "pointer",
           transition: "background-color 0.15s",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#FAFAF8"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(99,102,241,0.03)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           {/* Cost */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 10,
-              backgroundColor: P.emerald + "12",
+              width: 28, height: 28, borderRadius: 8,
+              background: "linear-gradient(135deg, #10B981, #059669)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <DollarSign size={16} color={P.emerald} strokeWidth={2.2} />
+              <DollarSign size={14} color="#fff" strokeWidth={2.5} />
             </div>
             <div>
               <div style={{
-                fontSize: 16, fontWeight: 800, color: P.text,
+                fontSize: 15, fontWeight: 800, color: P.text,
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 letterSpacing: "-0.02em",
               }}>
                 {formatCost(totalSpent)}
               </div>
-              <div style={{ fontSize: 10.5, color: P.textTer }}>total spent</div>
+              <div style={{ fontSize: 9.5, color: P.textTer, fontWeight: 500 }}>spent</div>
             </div>
           </div>
 
           {/* Tokens */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 10,
-              backgroundColor: P.indigo + "12",
+              width: 28, height: 28, borderRadius: 8,
+              background: "linear-gradient(135deg, #6366F1, #4F46E5)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Zap size={16} color={P.indigo} strokeWidth={2.2} />
+              <Zap size={14} color="#fff" strokeWidth={2.5} />
             </div>
             <div>
               <div style={{
-                fontSize: 16, fontWeight: 800, color: P.text,
+                fontSize: 15, fontWeight: 800, color: P.text,
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 letterSpacing: "-0.02em",
               }}>
                 {totalTokens.toLocaleString()}
               </div>
-              <div style={{ fontSize: 10.5, color: P.textTer }}>tokens used</div>
+              <div style={{ fontSize: 9.5, color: P.textTer, fontWeight: 500 }}>tokens</div>
             </div>
           </div>
 
           {/* Tasks completed */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 10,
-              backgroundColor: P.coral + "12",
+              width: 28, height: 28, borderRadius: 8,
+              background: "linear-gradient(135deg, #F97066, #EF4444)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Hash size={16} color={P.coral} strokeWidth={2.2} />
+              <Hash size={14} color="#fff" strokeWidth={2.5} />
             </div>
             <div>
               <div style={{
-                fontSize: 16, fontWeight: 800, color: P.text,
+                fontSize: 15, fontWeight: 800, color: P.text,
                 letterSpacing: "-0.02em",
               }}>
                 {completedTasks.length}
               </div>
-              <div style={{ fontSize: 10.5, color: P.textTer }}>tasks run</div>
+              <div style={{ fontSize: 9.5, color: P.textTer, fontWeight: 500 }}>tasks</div>
             </div>
           </div>
         </div>
 
         {/* Expand toggle */}
         <div style={{
-          display: "flex", alignItems: "center", gap: 6,
-          color: P.textTer, fontSize: 12, fontWeight: 500,
+          display: "flex", alignItems: "center", gap: 5,
+          color: P.indigo, fontSize: 11, fontWeight: 600,
+          padding: "4px 10px", borderRadius: 7,
+          backgroundColor: "rgba(99,102,241,0.08)",
         }}>
-          {expanded ? "Hide details" : "View per task"}
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {expanded ? "Hide" : "Details"}
+          {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </div>
       </div>
 
