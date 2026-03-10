@@ -68,7 +68,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
       <div style={{ flex: 1 }} />
 
       {/* Cost tracker icon */}
-      {!isDemo && (
+      {(
         <div style={{ position: "relative", marginBottom: 8 }}>
           <div
             onClick={() => setShowCost(!showCost)}
@@ -77,7 +77,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: "pointer", transition: "all 0.15s",
               backgroundColor: showCost ? P.sidebarActive : "transparent",
-              color: totalSpent > 0 ? P.emerald : P.textTer,
+              color: totalSpent > 0 ? P.emerald : P.textSec,
             }}
             onMouseEnter={(e) => { if (!showCost) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.03)"; }}
             onMouseLeave={(e) => { if (!showCost) e.currentTarget.style.backgroundColor = "transparent"; }}
