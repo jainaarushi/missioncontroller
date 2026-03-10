@@ -127,21 +127,49 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
       // Headers
       if (line.startsWith("### ")) {
-        elements.push(<h4 key={i} style={{ fontSize: 14, fontWeight: 700, color: P.text, margin: "16px 0 6px", letterSpacing: "-0.01em" }}>{processInline(line.slice(4))}</h4>);
+        elements.push(
+          <h4 key={i} style={{
+            fontSize: 14.5, fontWeight: 700, color: P.text, margin: "20px 0 8px",
+            letterSpacing: "-0.01em",
+            paddingBottom: 6, borderBottom: `1px solid ${P.border}`,
+          }}>{processInline(line.slice(4))}</h4>
+        );
         continue;
       }
       if (line.startsWith("## ")) {
-        elements.push(<h3 key={i} style={{ fontSize: 16, fontWeight: 700, color: P.text, margin: "20px 0 8px", letterSpacing: "-0.02em" }}>{processInline(line.slice(3))}</h3>);
+        elements.push(
+          <h3 key={i} style={{
+            fontSize: 17, fontWeight: 800, margin: "24px 0 10px",
+            letterSpacing: "-0.02em",
+            background: agent ? `linear-gradient(135deg, ${agent.color}, ${P.text})` : undefined,
+            WebkitBackgroundClip: agent ? "text" : undefined,
+            WebkitTextFillColor: agent ? "transparent" : undefined,
+            color: agent ? undefined : P.text,
+          }}>{processInline(line.slice(3))}</h3>
+        );
         continue;
       }
       if (line.startsWith("# ")) {
-        elements.push(<h2 key={i} style={{ fontSize: 18, fontWeight: 800, color: P.text, margin: "20px 0 8px", letterSpacing: "-0.02em" }}>{processInline(line.slice(2))}</h2>);
+        elements.push(
+          <h2 key={i} style={{
+            fontSize: 20, fontWeight: 900, margin: "24px 0 10px",
+            letterSpacing: "-0.03em",
+            background: agent ? `linear-gradient(135deg, ${agent.color}, ${P.text})` : undefined,
+            WebkitBackgroundClip: agent ? "text" : undefined,
+            WebkitTextFillColor: agent ? "transparent" : undefined,
+            color: agent ? undefined : P.text,
+          }}>{processInline(line.slice(2))}</h2>
+        );
         continue;
       }
 
       // Horizontal rule
       if (line.match(/^---+$/)) {
-        elements.push(<hr key={i} style={{ border: "none", borderTop: `1px solid ${P.border}`, margin: "16px 0" }} />);
+        elements.push(
+          <div key={i} style={{ margin: "20px 0", display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ flex: 1, height: 1, background: agent ? `linear-gradient(to right, ${agent.color}20, ${P.border}, transparent)` : P.border }} />
+          </div>
+        );
         continue;
       }
 
@@ -150,8 +178,11 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
         elements.push(
           <div key={i} style={{
             borderLeft: `3px solid ${agent?.color || P.indigo}`,
-            paddingLeft: 14, margin: "12px 0",
-            fontSize: 13, color: P.textSec, fontStyle: "italic", lineHeight: 1.6,
+            paddingLeft: 16, margin: "14px 0",
+            padding: "10px 16px",
+            backgroundColor: agent ? agent.color + "06" : "rgba(99,102,241,0.04)",
+            borderRadius: "0 10px 10px 0",
+            fontSize: 13.5, color: P.textSec, fontStyle: "italic", lineHeight: 1.7,
           }}>
             {processInline(line.slice(2))}
           </div>
@@ -162,8 +193,13 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       // List items
       if (line.match(/^[-*] /)) {
         elements.push(
-          <div key={i} style={{ display: "flex", gap: 8, margin: "4px 0", fontSize: 13.5, color: P.text, lineHeight: 1.6 }}>
-            <span style={{ color: agent?.color || P.indigo, fontWeight: 700, flexShrink: 0 }}>•</span>
+          <div key={i} style={{ display: "flex", gap: 10, margin: "5px 0", fontSize: 13.5, color: P.text, lineHeight: 1.7 }}>
+            <span style={{
+              color: agent?.color || P.indigo, fontWeight: 700, flexShrink: 0,
+              width: 6, height: 6, borderRadius: "50%",
+              backgroundColor: agent?.color || P.indigo,
+              marginTop: 8, opacity: 0.6,
+            }} />
             <span>{processInline(line.slice(2))}</span>
           </div>
         );
@@ -174,9 +210,15 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       const numMatch = line.match(/^(\d+)\.\s/);
       if (numMatch) {
         elements.push(
-          <div key={i} style={{ display: "flex", gap: 8, margin: "4px 0", fontSize: 13.5, color: P.text, lineHeight: 1.6 }}>
-            <span style={{ color: agent?.color || P.indigo, fontWeight: 700, flexShrink: 0, minWidth: 18 }}>{numMatch[1]}.</span>
-            <span>{processInline(line.slice(numMatch[0].length))}</span>
+          <div key={i} style={{ display: "flex", gap: 10, margin: "5px 0", fontSize: 13.5, color: P.text, lineHeight: 1.7 }}>
+            <span style={{
+              color: "#fff", fontWeight: 700, flexShrink: 0,
+              width: 20, height: 20, borderRadius: 6,
+              background: agent?.gradient || P.indigo,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 10, marginTop: 2,
+            }}>{numMatch[1]}</span>
+            <span style={{ flex: 1 }}>{processInline(line.slice(numMatch[0].length))}</span>
           </div>
         );
         continue;
@@ -196,12 +238,12 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
       // Empty line
       if (line.trim() === "") {
-        elements.push(<div key={i} style={{ height: 8 }} />);
+        elements.push(<div key={i} style={{ height: 10 }} />);
         continue;
       }
 
       // Regular paragraph
-      elements.push(<p key={i} style={{ fontSize: 13.5, color: P.text, lineHeight: 1.7, margin: "4px 0" }}>{processInline(line)}</p>);
+      elements.push(<p key={i} style={{ fontSize: 14, color: P.text, lineHeight: 1.75, margin: "5px 0" }}>{processInline(line)}</p>);
     }
 
     return elements;
@@ -219,9 +261,11 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       return codeParts.map((cp, j) => {
         if (cp.startsWith("`") && cp.endsWith("`")) {
           return <code key={`${i}-${j}`} style={{
-            fontSize: 12, padding: "1px 5px", borderRadius: 4,
-            backgroundColor: P.sidebar, border: `1px solid ${P.border}`,
+            fontSize: 12, padding: "2px 7px", borderRadius: 6,
+            backgroundColor: agent?.color ? agent.color + "0a" : P.sidebar,
+            border: `1px solid ${agent?.color ? agent.color + "15" : P.border}`,
             fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+            color: agent?.color || P.indigo, fontWeight: 500,
           }}>{cp.slice(1, -1)}</code>;
         }
         return cp;
@@ -239,20 +283,24 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
     const body = rows.slice(1);
 
     return (
-      <div key={keyBase} style={{ overflowX: "auto", margin: "12px 0" }}>
+      <div key={keyBase} style={{
+        overflowX: "auto", margin: "16px 0", borderRadius: 12,
+        border: `1px solid ${agent?.color ? agent.color + "20" : P.border}`,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+      }}>
         <table style={{
-          width: "100%", borderCollapse: "collapse", fontSize: 12.5,
-          border: `1px solid ${P.border}`, borderRadius: 10, overflow: "hidden",
+          width: "100%", borderCollapse: "collapse", fontSize: 13,
         }}>
           <thead>
             <tr>
               {header.map((cell, ci) => (
                 <th key={ci} style={{
-                  padding: "8px 12px", textAlign: "left",
+                  padding: "10px 14px", textAlign: "left",
                   fontWeight: 700, color: P.text,
-                  backgroundColor: agent?.color ? agent.color + "0a" : P.sidebar,
-                  borderBottom: `2px solid ${agent?.color || P.border}20`,
-                  fontSize: 11.5,
+                  backgroundColor: agent?.color ? agent.color + "08" : P.sidebar,
+                  borderBottom: `2px solid ${agent?.color ? agent.color + "20" : P.border}`,
+                  fontSize: 12, letterSpacing: "0.02em",
+                  textTransform: "uppercase" as const,
                 }}>
                   {cell}
                 </th>
@@ -261,12 +309,13 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
           </thead>
           <tbody>
             {body.map((row, ri) => (
-              <tr key={ri}>
+              <tr key={ri} style={{ transition: "background-color 0.15s" }}>
                 {row.map((cell, ci) => (
                   <td key={ci} style={{
-                    padding: "7px 12px", color: P.text,
-                    borderBottom: `1px solid ${P.border}`,
-                    backgroundColor: ri % 2 === 0 ? "transparent" : P.sidebar + "80",
+                    padding: "9px 14px", color: P.text,
+                    borderBottom: `1px solid ${P.border}40`,
+                    backgroundColor: ri % 2 === 0 ? "transparent" : agent?.color ? agent.color + "03" : "#FAFAF8",
+                    fontSize: 13,
                   }}>
                     {processInline(cell)}
                   </td>
@@ -553,29 +602,77 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
           {/* Output — rendered as formatted markdown */}
           {task.output && (
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: P.textSec }}>
-                  Output
-                </div>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(task.output || ""); }}
-                  style={{
-                    padding: "4px 10px", borderRadius: 6, border: `1px solid ${P.border}`,
-                    backgroundColor: P.card, fontSize: 11, fontWeight: 600,
-                    color: P.textTer, cursor: "pointer", fontFamily: "inherit",
-                    transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
-                >
-                  Copy
-                </button>
-              </div>
+            <div style={{ marginBottom: 24, animation: "fadeUp 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
+              {/* Output header bar */}
               <div style={{
-                padding: "20px 22px", borderRadius: 14,
-                backgroundColor: P.sidebar, border: `1px solid ${P.border}`,
+                display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12,
               }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {agent && (
+                    <div style={{
+                      width: 20, height: 20, borderRadius: 6,
+                      background: agent.gradient,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10,
+                    }}>
+                      {agent.icon}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 13, fontWeight: 700, color: P.text }}>
+                    {agent?.name || "Agent"} Output
+                  </span>
+                  {task.tokens_in + task.tokens_out > 0 && (
+                    <span style={{
+                      fontSize: 10, color: P.textTer, fontWeight: 500,
+                      fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                    }}>
+                      {(task.tokens_in + task.tokens_out).toLocaleString()} tokens
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(task.output || ""); }}
+                    style={{
+                      padding: "5px 12px", borderRadius: 8, border: `1px solid ${P.border}`,
+                      backgroundColor: P.card, fontSize: 11, fontWeight: 600,
+                      color: P.textSec, cursor: "pointer", fontFamily: "inherit",
+                      transition: "all 0.2s", display: "flex", alignItems: "center", gap: 5,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = agent?.color ? agent.color + "08" : P.sidebar;
+                      e.currentTarget.style.borderColor = agent?.color ? agent.color + "30" : P.borderHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = P.card;
+                      e.currentTarget.style.borderColor = P.border;
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              {/* Output content */}
+              <div style={{
+                padding: "24px 26px", borderRadius: 16,
+                backgroundColor: "#fff",
+                border: `1px solid ${agent?.color ? agent.color + "20" : P.border}`,
+                boxShadow: agent ? `0 2px 12px ${agent.color}06, 0 1px 3px rgba(0,0,0,0.04)` : "0 1px 3px rgba(0,0,0,0.04)",
+                position: "relative", overflow: "hidden",
+              }}>
+                {/* Subtle top accent line */}
+                {agent && (
+                  <div style={{
+                    position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                    background: agent.gradient, opacity: 0.5,
+                    borderRadius: "16px 16px 0 0",
+                  }} />
+                )}
                 {renderMarkdown(task.output)}
               </div>
             </div>
