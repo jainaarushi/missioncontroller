@@ -55,7 +55,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         {/* Gradient hero background like Canva */}
         <div style={{
           position: "fixed", top: 0, left: 72, right: 0, height: 280,
-          background: "linear-gradient(180deg, #EDE9FE 0%, #F3E8FF 30%, #FAFAF8 100%)",
+          background: "linear-gradient(180deg, #DDD6FE 0%, #E9D5FF 30%, #FAFAF8 100%)",
           zIndex: 0, pointerEvents: "none",
         }} />
         <div style={{ width: "100%", maxWidth: 1100, padding: "40px 40px", position: "relative", zIndex: 1 }}>

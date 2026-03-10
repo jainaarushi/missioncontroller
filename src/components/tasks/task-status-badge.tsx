@@ -19,9 +19,9 @@ const STATUS_CONFIG: Record<
   },
   review: {
     label: "Review",
-    dotColor: "bg-rose-400",
-    textColor: "text-rose-700",
-    bgColor: "bg-rose-50",
+    dotColor: "bg-rose-500 animate-glow-pulse",
+    textColor: "text-rose-600",
+    bgColor: "bg-rose-100",
   },
   done: {
     label: "Done",

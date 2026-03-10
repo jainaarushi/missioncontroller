@@ -72,8 +72,8 @@ export function TaskCard({
       style={{
         display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 20px",
         backgroundColor: selected ? P.indigoSoft : P.card, borderRadius: 16, cursor: draggable ? "grab" : "pointer",
-        border: `1.5px solid ${selected ? P.indigo + "40" : isReview && agent ? agent.color + "35" : P.border}`,
-        boxShadow: isReview && agent ? `0 4px 16px ${agent.color}10` : P.shadow,
+        border: `1.5px solid ${selected ? P.indigo + "40" : isReview && agent ? agent.color + "60" : P.border}`,
+        boxShadow: isReview && agent ? `0 4px 16px ${agent.color}25, 0 0 0 2px ${agent.color}15` : P.shadow,
         transition: "all 0.3s cubic-bezier(0.22,1,0.36,1)",
         animation: `slideUp 0.5s cubic-bezier(0.22,1,0.36,1) ${delay}s both`,
         position: "relative", overflow: "hidden",
@@ -81,12 +81,12 @@ export function TaskCard({
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = P.shadowHover;
         e.currentTarget.style.transform = "translateY(-3px) scale(1.005)";
-        e.currentTarget.style.borderColor = selected ? P.indigo + "60" : isReview && agent ? agent.color + "50" : P.borderHover;
+        e.currentTarget.style.borderColor = selected ? P.indigo + "60" : isReview && agent ? agent.color + "80" : P.borderHover;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = isReview && agent ? `0 4px 16px ${agent.color}10` : P.shadow;
+        e.currentTarget.style.boxShadow = isReview && agent ? `0 4px 16px ${agent.color}25, 0 0 0 2px ${agent.color}15` : P.shadow;
         e.currentTarget.style.transform = "translateY(0) scale(1)";
-        e.currentTarget.style.borderColor = selected ? P.indigo + "40" : isReview && agent ? agent.color + "35" : P.border;
+        e.currentTarget.style.borderColor = selected ? P.indigo + "40" : isReview && agent ? agent.color + "60" : P.border;
       }}
     >
       {/* Top progress line */}
@@ -175,11 +175,11 @@ export function TaskCard({
         {isReview && agent && (
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 7, marginTop: 8,
-            padding: "5px 12px 5px 5px", borderRadius: 20, backgroundColor: agent.color + "0a",
+            padding: "5px 12px 5px 5px", borderRadius: 20, backgroundColor: agent.color + "18",
             transition: "all 0.3s",
           }}>
             <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
-            <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 700 }}>Ready for your review →</span>
+            <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 800 }}>Ready for your review →</span>
           </div>
         )}
       </div>

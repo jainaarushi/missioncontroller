@@ -32,15 +32,15 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { num: "1", title: "Pick an Agent", desc: "Browse 56 specialized AI agents. Click one to see what it does — from research to rap battles.", color: "#7C3AED" },
+  { num: "1", title: "Pick an Agent", desc: "Browse specialized AI agents. Click one to see what it does — from research to rap battles.", color: "#7C3AED" },
   { num: "2", title: "Describe Your Task", desc: "Type what you need in plain English. The agent understands context, tone, and nuance.", color: "#6366F1" },
   { num: "3", title: "Review & Iterate", desc: "Get polished output in seconds. Not perfect? Add feedback and the agent revises.", color: "#4F46E5" },
 ];
 
 const STATS = [
-  { num: "56", label: "AI Agents" },
+  { num: "50+", label: "AI Agents" },
   { num: "20+", label: "Fun Agents" },
-  { num: "36", label: "Pro Agents" },
+  { num: "30+", label: "Pro Agents" },
   { num: "$0", label: "To Start" },
 ];
 
@@ -162,7 +162,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.25 }}
             style={{ fontSize: 19, color: "#666", maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6 }}
           >
-            Stop juggling ChatGPT, Jasper, Copy.ai, and 10 other tools. AgentStudio brings 56 specialized agents into one clean workspace — research, write, code, analyze, and create without switching tabs.
+            Stop juggling ChatGPT, Jasper, Copy.ai, and 10 other tools. AgentStudio brings every specialized agent into one clean workspace — research, write, code, analyze, and create without switching tabs.
           </motion.p>
 
           {/* CTA buttons */}
@@ -296,7 +296,7 @@ export default function LandingPage() {
             }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#16A34A", marginBottom: 10, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>After</div>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-                {["One workspace", "56 agents", "All tasks tracked", "Every dollar & token visible"].map((t) => (
+                {["One workspace", "Every agent you need", "All tasks tracked", "Every dollar & token visible"].map((t) => (
                   <li key={t} style={{ fontSize: 15, color: "#666", display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ color: "#16A34A", fontWeight: 700 }}>✓</span> {t}
                   </li>
@@ -324,9 +324,9 @@ export default function LandingPage() {
       </section>
 
       {/* ─── AGENTS SHOWCASE ─── */}
-      <section id="agents" style={{ padding: "100px 24px 80px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48 }}>
+      <section id="agents" style={{ padding: "100px 0 80px" }}>
+        <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48, padding: "0 24px" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Meet Your Agents</span>
             <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
               Pick an agent. Describe your task. Ship it.
@@ -339,27 +339,28 @@ export default function LandingPage() {
           <motion.div
             initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
             variants={stagger}
-            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}
+            style={{ display: "flex", overflowX: "auto", gap: 8, padding: "0", scrollbarWidth: "none" }}
           >
-            {POPULAR_AGENTS.map((agent) => (
+            {[...POPULAR_AGENTS, ...POPULAR_AGENTS, ...POPULAR_AGENTS].map((agent, i) => (
               <motion.a
-                key={agent.name}
+                key={`${agent.name}-${i}`}
                 href="/today"
                 variants={item}
                 whileHover={{ y: -6, transition: { duration: 0.2 } }}
                 style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "14px 16px", borderRadius: 16,
+                  display: "flex", alignItems: "center", gap: 7,
+                  padding: "7px 10px", borderRadius: 9,
                   backgroundColor: agent.bg,
                   textDecoration: "none", color: "#111",
                   transition: "box-shadow 0.3s",
                   cursor: "pointer",
+                  flexShrink: 0, minWidth: 140,
                 }}
               >
-                <span style={{ fontSize: 28, flexShrink: 0 }}>{agent.icon}</span>
+                <span style={{ fontSize: 15, flexShrink: 0 }}>{agent.icon}</span>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{agent.name}</div>
-                  <div style={{ fontSize: 11.5, color: "#666", marginTop: 1 }}>{agent.desc}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700 }}>{agent.name}</div>
+                  <div style={{ fontSize: 9, color: "#666", marginTop: 1 }}>{agent.desc}</div>
                 </div>
               </motion.a>
             ))}
@@ -370,7 +371,7 @@ export default function LandingPage() {
               display: "inline-flex", alignItems: "center", gap: 6,
               fontSize: 15, fontWeight: 600, color: "#7C3AED", textDecoration: "none",
             }}>
-              See all 56 agents <ArrowRight size={16} />
+              See all agents <ArrowRight size={16} />
             </a>
           </motion.div>
         </div>
@@ -481,7 +482,7 @@ export default function LandingPage() {
               Replace your AI toolkit today
             </h2>
             <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 32, maxWidth: 440, margin: "0 auto 32px" }}>
-              One workspace. 56 agents. Zero tab-switching. Free to start.
+              One workspace. Every agent. Zero tab-switching. Free to start.
             </p>
             <a
               href="/today"

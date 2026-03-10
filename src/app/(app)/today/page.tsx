@@ -270,7 +270,7 @@ export default function TodayPage() {
       </div>
 
       {/* AI Agents — 2-row Canva-style grid with horizontal scroll — full width */}
-      <div style={{ marginBottom: 28, marginLeft: -40, marginRight: -40, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
+      <div style={{ marginBottom: 28, marginLeft: -40, marginRight: -40, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ position: "relative" }}>
           <div
             ref={scrollRef}
@@ -296,7 +296,18 @@ export default function TodayPage() {
             }}
           >
             <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
-            {agents.map((agent, i) => {
+            {(() => {
+              const prioritySlugs = ["content-creator", "linkedin-post", "academic-researcher", "product-launch", "travel-planner", "recipe-planner"];
+              const sorted = [...agents].sort((a, b) => {
+                const aIdx = prioritySlugs.indexOf(a.slug);
+                const bIdx = prioritySlugs.indexOf(b.slug);
+                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                if (aIdx !== -1) return -1;
+                if (bIdx !== -1) return 1;
+                return 0;
+              });
+              return sorted;
+            })().map((agent, i) => {
               const thumb = AGENT_THUMBNAILS[agent.slug];
               const pastelBg = CANVA_PASTELS[i % CANVA_PASTELS.length];
               const col = Math.floor(i / 2);
@@ -366,7 +377,7 @@ export default function TodayPage() {
               <div style={{
                 position: "absolute", right: 0, top: 0, bottom: 8,
                 width: 80, pointerEvents: "none",
-                background: "linear-gradient(to right, transparent, #F3EFFE)",
+                background: "linear-gradient(to right, transparent, #EBE2FE)",
               }} />
               <button
                 onClick={() => {
@@ -407,21 +418,19 @@ export default function TodayPage() {
       <div
         onClick={() => setShowCreateModal(true)}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "#7C3AED";
-          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.08), 0 4px 20px rgba(0,0,0,0.06)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12), 0 4px 20px rgba(0,0,0,0.06)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "#E5E5E5";
-          e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
+          e.currentTarget.style.boxShadow = "0 0 0 2px rgba(124,58,237,0.08), 0 1px 4px rgba(0,0,0,0.04)";
         }}
         style={{
           marginBottom: 28, padding: "16px 22px", borderRadius: 16,
           backgroundColor: "#fff",
-          border: "2px solid #E5E5E5",
+          border: "2px solid #7C3AED",
           fontSize: 15, color: P.text,
           cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
           display: "flex", alignItems: "center", gap: 14,
-          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+          boxShadow: "0 0 0 2px rgba(124,58,237,0.08), 0 1px 4px rgba(0,0,0,0.04)",
         }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={P.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
