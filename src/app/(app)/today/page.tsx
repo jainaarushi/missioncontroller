@@ -252,32 +252,72 @@ export default function TodayPage() {
     <>
       <Confetti show={showConfetti} />
 
-      {/* Section header */}
+      {/* Section header + coming soon */}
       <div style={{
         marginBottom: 14, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
+        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <h2 style={{
-            fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.04em",
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <h2 style={{
+              fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.04em",
+              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              Agent Studio
+            </h2>
+            <span style={{
+              fontSize: 10, fontWeight: 700, color: P.indigo,
+              backgroundColor: P.indigoLight, padding: "3px 8px", borderRadius: 20,
+              letterSpacing: "0.04em",
+            }}>
+              {agents.length} AGENTS
+            </span>
+          </div>
+          {tasks.length === 0 && (
+            <p style={{ fontSize: 13, color: P.textTer, margin: "6px 0 0", lineHeight: 1.4 }}>
+              Pick an agent, describe your task, and let AI handle the rest
+            </p>
+          )}
+        </div>
+
+        {/* Team collaboration — coming soon */}
+        <div style={{
+          padding: "10px 16px", borderRadius: 14,
+          background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(124,58,237,0.08))",
+          border: "1px solid rgba(99,102,241,0.12)",
+          animation: "fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both",
+          display: "flex", alignItems: "center", gap: 10,
+          cursor: "default",
+        }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8,
             background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13,
+            animation: "pulseGlow 3s ease-in-out infinite",
+            color: "rgba(99,102,241,0.6)",
           }}>
-            Agent Studio
-          </h2>
+            👥
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: P.text, letterSpacing: "-0.01em" }}>
+              Team Collaboration
+            </div>
+            <div style={{ fontSize: 10, color: P.textTer, fontWeight: 500 }}>
+              Coming soon
+            </div>
+          </div>
           <span style={{
-            fontSize: 10, fontWeight: 700, color: P.indigo,
-            backgroundColor: P.indigoLight, padding: "3px 8px", borderRadius: 20,
-            letterSpacing: "0.04em",
+            fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
+            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+            color: "#fff", letterSpacing: "0.05em",
+            marginLeft: 2,
           }}>
-            {agents.length} AGENTS
+            SOON
           </span>
         </div>
-        {tasks.length === 0 && (
-          <p style={{ fontSize: 13, color: P.textTer, margin: "6px 0 0", lineHeight: 1.4 }}>
-            Pick an agent, describe your task, and let AI handle the rest
-          </p>
-        )}
       </div>
 
       {/* AI Agents — 2-row Canva-style grid with horizontal scroll — full width */}
