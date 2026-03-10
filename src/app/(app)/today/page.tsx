@@ -272,50 +272,49 @@ export default function TodayPage() {
                     overflow: "hidden",
                     scrollSnapAlign: "start",
                     animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
-                    backgroundColor: pastelBg,
+                    backgroundColor: thumb ? "transparent" : pastelBg,
                     position: "relative",
-                    padding: "14px 14px 12px",
-                    display: "flex", flexDirection: "column",
-                    justifyContent: "space-between",
                     minHeight: 0,
                   }}
                 >
-                  {/* Agent name — top left like Canva */}
-                  <div style={{
-                    fontSize: 12.5, fontWeight: 700, color: P.text,
-                    lineHeight: 1.3, position: "relative", zIndex: 2,
-                    maxWidth: "65%",
-                  }}>
-                    {agent.name}
-                  </div>
-
-                  {/* Floating thumbnail/icon — bottom right, moves on hover */}
-                  <div className="agent-thumb-img" style={{
-                    position: "absolute", bottom: 6, right: 6,
-                    width: 56, height: 56, borderRadius: 12,
-                    overflow: "hidden",
-                    boxShadow: `0 4px 12px ${agent.color}20`,
-                  }}>
-                    {thumb ? (
-                      <img
-                        src={thumb}
-                        alt={agent.name}
-                        style={{
-                          width: "100%", height: "100%",
-                          objectFit: "cover", borderRadius: 12,
-                        }}
-                      />
-                    ) : (
-                      <div style={{
+                  {thumb ? (
+                    /* Full image card — title is baked into the image */
+                    <img
+                      src={thumb}
+                      alt={agent.name}
+                      className="agent-thumb-img"
+                      style={{
                         width: "100%", height: "100%",
+                        objectFit: "cover", display: "block",
+                        borderRadius: 16,
+                      }}
+                    />
+                  ) : (
+                    /* Fallback — pastel card with icon */
+                    <div style={{
+                      padding: "14px 14px 12px",
+                      display: "flex", flexDirection: "column",
+                      justifyContent: "space-between",
+                      height: "100%",
+                    }}>
+                      <div style={{
+                        fontSize: 12.5, fontWeight: 700, color: P.text,
+                        lineHeight: 1.3, maxWidth: "65%",
+                      }}>
+                        {agent.name}
+                      </div>
+                      <div className="agent-thumb-img" style={{
+                        position: "absolute", bottom: 6, right: 6,
+                        width: 48, height: 48, borderRadius: 12,
                         background: agent.gradient,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 24, borderRadius: 12,
+                        fontSize: 22,
+                        boxShadow: `0 4px 12px ${agent.color}20`,
                       }}>
                         {agent.icon}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
