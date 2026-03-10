@@ -252,24 +252,30 @@ export default function TodayPage() {
     <>
       <Confetti show={showConfetti} />
 
-      {/* Section header — Your AI agents */}
+      {/* Section header */}
       <div style={{
         marginBottom: 14, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
       }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.03em" }}>
-            Your AI agents
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <h2 style={{
+            fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.04em",
+            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            Agent Studio
           </h2>
           <span style={{
-            fontSize: 11, fontWeight: 600, color: P.indigo,
-            backgroundColor: P.indigoLight, padding: "2px 8px", borderRadius: 6,
+            fontSize: 10, fontWeight: 700, color: P.indigo,
+            backgroundColor: P.indigoLight, padding: "3px 8px", borderRadius: 20,
+            letterSpacing: "0.04em",
           }}>
-            {agents.length}
+            {agents.length} AGENTS
           </span>
         </div>
         {tasks.length === 0 && (
-          <p style={{ fontSize: 13, color: P.textTer, margin: "4px 0 0", lineHeight: 1.4 }}>
-            Pick an agent to create a task, or scroll to explore
+          <p style={{ fontSize: 13, color: P.textTer, margin: "6px 0 0", lineHeight: 1.4 }}>
+            Pick an agent, describe your task, and let AI handle the rest
           </p>
         )}
       </div>
