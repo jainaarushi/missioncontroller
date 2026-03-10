@@ -51,15 +51,13 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
       {/* Logo */}
       <a href="/today" style={{
         width: 38, height: 38, borderRadius: 12,
-        background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 17, fontWeight: 900, color: "#fff",
+        overflow: "hidden",
         boxShadow: "0 2px 10px rgba(99,102,241,0.3)",
         marginBottom: 24,
         cursor: "pointer",
-        textDecoration: "none",
+        display: "block", flexShrink: 0,
       }}>
-        A
+        <img src="/logo.png" alt="AgentStudio" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </a>
 
       {/* Navigation */}

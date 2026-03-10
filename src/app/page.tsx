@@ -72,12 +72,9 @@ export default function LandingPage() {
           height: 64, display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 10,
-              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14, fontWeight: 900, color: "#fff",
-            }}>A</div>
+            <img src="/logo.png" alt="AgentStudio" style={{
+              width: 32, height: 32, borderRadius: 10, objectFit: "cover",
+            }} />
             <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em" }}>AgentStudio</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
@@ -509,12 +506,9 @@ export default function LandingPage() {
           fontSize: 13, color: "#999",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-              width: 24, height: 24, borderRadius: 7,
-              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 10, fontWeight: 900, color: "#fff",
-            }}>A</div>
+            <img src="/logo.png" alt="AgentStudio" style={{
+              width: 24, height: 24, borderRadius: 7, objectFit: "cover",
+            }} />
             <span style={{ fontWeight: 700, color: "#333" }}>AgentStudio</span>
           </div>
           <p>&copy; {new Date().getFullYear()} AgentStudio. All rights reserved.</p>
