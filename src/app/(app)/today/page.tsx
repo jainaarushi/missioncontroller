@@ -208,8 +208,8 @@ export default function TodayPage() {
         )}
       </div>
 
-      {/* AI Agents — 2-row Canva-style grid with horizontal scroll */}
-      <div style={{ marginBottom: 28, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
+      {/* AI Agents — 2-row Canva-style grid with horizontal scroll — full width */}
+      <div style={{ marginBottom: 28, marginLeft: -40, marginRight: -40, paddingLeft: 40, paddingRight: 40, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ position: "relative" }}>
           <div
             ref={scrollRef}
