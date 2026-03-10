@@ -468,7 +468,7 @@ export default function TodayPage() {
 
       {/* ─── Specialist Divisions — Coming Soon (single horizontal scroll) ─── */}
       <div style={{
-        marginBottom: 20, marginLeft: -24, marginRight: -24,
+        marginBottom: 20, marginTop: -10, marginLeft: -24, marginRight: -24,
         animation: "fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.15s both",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 24px" }}>
