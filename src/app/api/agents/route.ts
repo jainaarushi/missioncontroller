@@ -7,8 +7,6 @@ import { PRESET_AGENTS } from "@/seed/agents";
 import { mockAgents } from "@/lib/mock-data";
 import { z } from "zod";
 
-const DEMO_USER_ID = "u1000000-0000-0000-0000-000000000001";
-
 const createAgentSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),
@@ -31,15 +29,25 @@ export async function GET() {
 
   let agents = await listAgents(user.id);
 
-  // Auto-seed: add any missing preset agents (handles new agents added to the codebase)
+  // Auto-seed: re-seed when preset count or first agent doesn't match
   if (isSupabaseEnabled()) {
-    const existingSlugs = new Set(agents.filter((a: { is_preset?: boolean }) => a.is_preset).map((a: { slug: string }) => a.slug));
-    const missing = PRESET_AGENTS.filter((a) => !existingSlugs.has(a.slug));
+    const presetAgents = agents.filter((a: { is_preset?: boolean }) => a.is_preset);
+    const needsReseed =
+      presetAgents.length !== PRESET_AGENTS.length ||
+      (presetAgents.length > 0 && presetAgents[0].slug !== PRESET_AGENTS[0].slug);
 
-    if (missing.length > 0) {
+    if (needsReseed) {
       const supabase = await createClient();
       if (supabase) {
-        const toInsert = missing.map((a) => ({
+        // Delete all old preset agents
+        await supabase
+          .from("agents")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("is_preset", true);
+
+        // Insert all preset agents fresh in correct order
+        const toInsert = PRESET_AGENTS.map((a) => ({
           name: a.name,
           slug: a.slug,
           description: a.description,
