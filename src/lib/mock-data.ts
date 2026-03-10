@@ -158,4 +158,87 @@ export function deleteTask(id: string) {
   return true;
 }
 
-// No demo tasks — start clean for demo users
+// Seed demo tasks so new users see a realistic workspace
+function seedDemoTasks() {
+  const contentCreator = mockAgents.find((a) => a.slug === "content-creator");
+  const deepResearch = mockAgents.find((a) => a.slug === "deep-research");
+  const dataAnalyst = mockAgents.find((a) => a.slug === "data-analyst");
+
+  const demoTasks: Array<{
+    title: string;
+    status: "review" | "working" | "todo";
+    agent: typeof mockAgents[0] | undefined;
+    cost: number;
+    tokensIn: number;
+    tokensOut: number;
+    progress: number;
+    currentStep: string | null;
+    priority: "urgent" | "high" | "normal" | "low";
+  }> = [
+    {
+      title: "Write a blog post about AI productivity tools",
+      status: "review",
+      agent: contentCreator,
+      cost: 0.0847,
+      tokensIn: 6240,
+      tokensOut: 1890,
+      progress: 100,
+      currentStep: null,
+      priority: "high",
+    },
+    {
+      title: "Research competitor pricing strategies for Q2",
+      status: "review",
+      agent: deepResearch,
+      cost: 0.0623,
+      tokensIn: 4120,
+      tokensOut: 1340,
+      progress: 100,
+      currentStep: null,
+      priority: "normal",
+    },
+    {
+      title: "Analyze last month's user engagement metrics",
+      status: "working",
+      agent: dataAnalyst,
+      cost: 0.0377,
+      tokensIn: 2120,
+      tokensOut: 690,
+      progress: 64,
+      currentStep: "Crunching the numbers…",
+      priority: "normal",
+    },
+  ];
+
+  for (const dt of demoTasks) {
+    const id = `t${String(taskIdCounter++).padStart(8, "0")}`;
+    const task: TaskWithAgent = {
+      id,
+      user_id: DEMO_USER_ID,
+      agent_id: dt.agent?.id || null,
+      title: dt.title,
+      description: null,
+      status: dt.status,
+      progress: dt.progress,
+      current_step: dt.currentStep,
+      output: dt.status === "review" ? "Sample output — click to review the full result." : null,
+      output_format: "markdown",
+      cost_usd: dt.cost,
+      tokens_in: dt.tokensIn,
+      tokens_out: dt.tokensOut,
+      duration_seconds: 0,
+      created_at: new Date().toISOString(),
+      started_at: new Date().toISOString(),
+      completed_at: dt.status === "review" ? new Date().toISOString() : null,
+      section: "today",
+      sort_order: mockTasks.length,
+      priority: dt.priority,
+      agent: dt.agent
+        ? { id: dt.agent.id, name: dt.agent.name, icon: dt.agent.icon, color: dt.agent.color, gradient: dt.agent.gradient }
+        : null,
+    };
+    mockTasks.push(task);
+  }
+}
+
+seedDemoTasks();

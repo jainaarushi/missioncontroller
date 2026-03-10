@@ -26,13 +26,8 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
 
   const maxCost = Math.max(...costTasks.map((t) => Number(t.cost_usd) || 0), 0.001);
 
-  // Show demo data if no activity at all
-  const isDemo = totalSpent === 0 && totalTokens === 0 && completedTasks.length === 0;
-  const displaySpent = isDemo ? 0.1847 : totalSpent;
-  const displayTokensIn = isDemo ? 12480 : totalTokensIn;
-  const displayTokensOut = isDemo ? 3920 : totalTokensOut;
-  const displayTokens = isDemo ? 16400 : totalTokens;
-  const displayCompleted = isDemo ? 3 : completedTasks.length;
+  // Don't show if no activity at all
+  if (totalSpent === 0 && totalTokens === 0 && completedTasks.length === 0) return null;
 
   function formatCost(n: number) {
     return n < 0.01 ? `$${n.toFixed(4)}` : `$${n.toFixed(2)}`;
@@ -75,7 +70,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 letterSpacing: "-0.02em",
               }}>
-                {formatCost(displaySpent)}
+                {formatCost(totalSpent)}
               </div>
               <div style={{ fontSize: 10.5, color: P.textTer }}>total spent</div>
             </div>
@@ -96,7 +91,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 letterSpacing: "-0.02em",
               }}>
-                {displayTokens.toLocaleString()}
+                {totalTokens.toLocaleString()}
               </div>
               <div style={{ fontSize: 10.5, color: P.textTer }}>tokens used</div>
             </div>
@@ -116,7 +111,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                 fontSize: 16, fontWeight: 800, color: P.text,
                 letterSpacing: "-0.02em",
               }}>
-                {displayCompleted}
+                {completedTasks.length}
               </div>
               <div style={{ fontSize: 10.5, color: P.textTer }}>tasks run</div>
             </div>
@@ -153,7 +148,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                 fontWeight: 700, color: P.text,
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
               }}>
-                {displayTokensIn.toLocaleString()}
+                {totalTokensIn.toLocaleString()}
               </span>
             </div>
             <div style={{
@@ -165,10 +160,10 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                 fontWeight: 700, color: P.text,
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
               }}>
-                {displayTokensOut.toLocaleString()}
+                {totalTokensOut.toLocaleString()}
               </span>
             </div>
-            {displayCompleted > 0 && (
+            {completedTasks.length > 0 && (
               <div style={{
                 padding: "8px 14px", borderRadius: 8, backgroundColor: "#F5F5F3",
                 display: "flex", alignItems: "center", gap: 6,
@@ -178,7 +173,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                   fontWeight: 700, color: P.emerald,
                   fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 }}>
-                  {formatCost(displaySpent / displayCompleted)}
+                  {formatCost(totalSpent / completedTasks.length)}
                 </span>
               </div>
             )}
