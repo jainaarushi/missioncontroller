@@ -33,6 +33,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
         .agent-card:active { transform: scale(0.97) !important; transition-duration: 0.1s; }
         .agent-thumb-img { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
         @keyframes scaleIn { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
+        @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
+        @keyframes floatY { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
+        @keyframes borderGlow { 0%,100%{border-color:rgba(124,58,237,0.15)}50%{border-color:rgba(124,58,237,0.35)} }
+        .create-bar { animation: borderGlow 3s ease-in-out infinite; }
+        .create-bar:hover { animation: none !important; }
+        .usage-panel { animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
+        .section-header { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+        .task-section { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
         @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)} }
         @keyframes pulseGlow { 0%,100%{box-shadow:0 0 4px currentColor;opacity:1}50%{box-shadow:0 0 14px currentColor;opacity:0.7} }
         @keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(300px) rotate(720deg);opacity:0} }

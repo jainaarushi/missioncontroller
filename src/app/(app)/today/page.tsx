@@ -296,8 +296,7 @@ export default function TodayPage() {
             background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 13,
-            animation: "pulseGlow 3s ease-in-out infinite",
-            color: "rgba(99,102,241,0.6)",
+            animation: "floatY 3s ease-in-out infinite",
           }}>
             👥
           </div>
@@ -311,7 +310,9 @@ export default function TodayPage() {
           </div>
           <span style={{
             fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
-            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+            background: "linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899, #7C3AED, #4F46E5)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 3s linear infinite",
             color: "#fff", letterSpacing: "0.05em",
             marginLeft: 2,
           }}>
@@ -467,6 +468,7 @@ export default function TodayPage() {
 
       {/* Create task — Canva-style search bar */}
       <div
+        className="create-bar"
         onClick={() => setShowCreateModal(true)}
         onMouseEnter={(e) => {
           e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12), 0 4px 20px rgba(0,0,0,0.06)";
@@ -477,7 +479,7 @@ export default function TodayPage() {
         style={{
           marginBottom: 28, padding: "16px 22px", borderRadius: 16,
           backgroundColor: "#fff",
-          border: "2px solid #7C3AED",
+          border: "2px solid rgba(124,58,237,0.25)",
           fontSize: 15, color: P.text,
           cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
           display: "flex", alignItems: "center", gap: 14,
@@ -499,10 +501,12 @@ export default function TodayPage() {
       </div>
 
       {/* Usage panel — cost & tokens */}
-      <UsagePanel tasks={tasks} />
+      <div className="usage-panel">
+        <UsagePanel tasks={tasks} />
+      </div>
 
       {/* Tasks header — status + select */}
-      <div style={{
+      <div className="section-header" style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         marginBottom: 16,
       }}>
