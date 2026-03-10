@@ -5,46 +5,42 @@ const hasConfig =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
-// Cache the client per request to avoid "lock was stolen" errors
-// from multiple concurrent cookies() + createServerClient() calls
-let cachedPromise: Promise<ReturnType<typeof createServerClient> | null> | null = null;
-let cachedForCookieStore: Awaited<ReturnType<typeof cookies>> | null = null;
+// Use a WeakMap keyed by the cookie store object to cache clients per-request.
+// Each request gets a unique cookie store from Next.js, so this is safe for
+// concurrent users — no data leaks between requests.
+const clientCache = new WeakMap<object, ReturnType<typeof createServerClient>>();
 
 export async function createClient() {
   if (!hasConfig) return null;
 
   const cookieStore = await cookies();
 
-  // If the cookie store is the same object (same request), reuse the cached client
-  if (cachedPromise && cachedForCookieStore === cookieStore) {
-    return cachedPromise;
-  }
+  const cached = clientCache.get(cookieStore);
+  if (cached) return cached;
 
-  cachedForCookieStore = cookieStore;
-  cachedPromise = Promise.resolve(
-    createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {
-              // Called from Server Component — safe to ignore
-            }
-          },
+  const client = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
         },
-      }
-    )
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Called from Server Component — safe to ignore
+          }
+        },
+      },
+    }
   );
 
-  return cachedPromise;
+  clientCache.set(cookieStore, client);
+  return client;
 }
 
 export function isSupabaseEnabled(): boolean {
