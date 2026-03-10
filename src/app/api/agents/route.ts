@@ -74,6 +74,14 @@ export async function GET() {
     }
   }
 
+  // Sort agents to match PRESET_AGENTS order (presets first, then custom)
+  const slugOrder = new Map(PRESET_AGENTS.map((a, i) => [a.slug, i]));
+  agents.sort((a: { slug: string; is_preset?: boolean }, b: { slug: string; is_preset?: boolean }) => {
+    const aOrder = slugOrder.get(a.slug) ?? 9999;
+    const bOrder = slugOrder.get(b.slug) ?? 9999;
+    return aOrder - bOrder;
+  });
+
   return NextResponse.json(agents);
 }
 
