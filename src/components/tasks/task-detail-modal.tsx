@@ -22,6 +22,8 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const [hoveredAgent, setHoveredAgent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const task = fullTask || initialTask;
 
@@ -80,13 +82,22 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   }
 
   async function handleRevise() {
+    const note = feedback.trim() || "Please improve the output";
     setLoading(true);
     await fetch(`/api/tasks/${task!.id}/revise`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note: "Please revise based on feedback" }),
+      body: JSON.stringify({ note }),
     });
-    await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+    const runRes = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+    if (runRes.status === 401) {
+      setLoading(false);
+      setLoginPrompt(true);
+      setTimeout(() => { window.location.href = "/login"; }, 2000);
+      return;
+    }
+    setFeedback("");
+    setShowFeedback(false);
     mutateTask();
     onUpdate();
     setLoading(false);
@@ -541,41 +552,121 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
             </div>
           )}
 
-          {/* Actions */}
+          {/* Actions — Review mode */}
           {isReview && (
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={handleApprove}
-                disabled={loading}
-                style={{
-                  flex: 1, padding: "13px 0", borderRadius: 12, border: "none", cursor: "pointer",
-                  background: P.emeraldGrad, color: "#fff", fontSize: 15, fontWeight: 700,
-                  fontFamily: "inherit",
-                  boxShadow: `0 4px 16px ${P.emerald}30`,
-                  transition: "all 0.2s",
-                  opacity: loading ? 0.6 : 1,
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-              >
-                Approve ✓
-              </button>
-              <button
-                onClick={handleRevise}
-                disabled={loading}
-                style={{
-                  padding: "13px 24px", borderRadius: 12,
-                  border: `1.5px solid ${P.border}`,
-                  backgroundColor: P.card, color: P.text,
-                  fontSize: 15, fontWeight: 600, cursor: "pointer",
-                  fontFamily: "inherit", transition: "all 0.15s",
-                  opacity: loading ? 0.6 : 1,
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
-              >
-                Revise
-              </button>
+            <div>
+              {/* Feedback input area */}
+              {showFeedback ? (
+                <div style={{
+                  marginBottom: 12, padding: "14px 16px", borderRadius: 12,
+                  backgroundColor: P.sidebar, border: `1.5px solid ${P.border}`,
+                  animation: "fadeUp 0.25s cubic-bezier(0.16,1,0.3,1)",
+                }}>
+                  <label style={{
+                    fontSize: 12, fontWeight: 600, color: P.textSec,
+                    display: "block", marginBottom: 8,
+                  }}>
+                    What would you like changed?
+                  </label>
+                  <textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="e.g. Make it shorter, add more data, change the tone to casual, focus on the pricing section..."
+                    style={{
+                      width: "100%", minHeight: 80, padding: "10px 12px",
+                      borderRadius: 10, border: `1.5px solid ${P.border}`,
+                      backgroundColor: P.card, color: P.text,
+                      fontSize: 14, fontFamily: "inherit", resize: "vertical",
+                      outline: "none", lineHeight: 1.5,
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = P.indigo; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+                  />
+                  <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => { setShowFeedback(false); setFeedback(""); }}
+                      style={{
+                        padding: "8px 16px", borderRadius: 8,
+                        border: `1px solid ${P.border}`, backgroundColor: P.card,
+                        color: P.textSec, fontSize: 13, fontWeight: 600,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleRevise}
+                      disabled={loading}
+                      style={{
+                        padding: "8px 20px", borderRadius: 8,
+                        border: "none", background: P.indigo,
+                        color: "#fff", fontSize: 13, fontWeight: 700,
+                        cursor: "pointer", fontFamily: "inherit",
+                        opacity: loading ? 0.6 : 1,
+                      }}
+                    >
+                      {loading ? "Revising..." : "Revise with feedback"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Prompt to add feedback */
+                <div
+                  onClick={() => setShowFeedback(true)}
+                  style={{
+                    marginBottom: 12, padding: "12px 16px", borderRadius: 10,
+                    border: `1.5px dashed ${P.border}`,
+                    cursor: "pointer", transition: "all 0.2s",
+                    display: "flex", alignItems: "center", gap: 10,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = P.indigo; e.currentTarget.style.backgroundColor = P.indigo + "06"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = "transparent"; }}
+                >
+                  <span style={{ fontSize: 16 }}>💬</span>
+                  <span style={{ fontSize: 13, color: P.textSec, fontWeight: 500 }}>
+                    Not what you expected? Add feedback to improve the result...
+                  </span>
+                </div>
+              )}
+
+              {/* Approve / Quick Revise buttons */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={handleApprove}
+                  disabled={loading}
+                  style={{
+                    flex: 1, padding: "13px 0", borderRadius: 12, border: "none", cursor: "pointer",
+                    background: P.emeraldGrad, color: "#fff", fontSize: 15, fontWeight: 700,
+                    fontFamily: "inherit",
+                    boxShadow: `0 4px 16px ${P.emerald}30`,
+                    transition: "all 0.2s",
+                    opacity: loading ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                >
+                  Approve ✓
+                </button>
+                {!showFeedback && (
+                  <button
+                    onClick={handleRevise}
+                    disabled={loading}
+                    style={{
+                      padding: "13px 24px", borderRadius: 12,
+                      border: `1.5px solid ${P.border}`,
+                      backgroundColor: P.card, color: P.text,
+                      fontSize: 15, fontWeight: 600, cursor: "pointer",
+                      fontFamily: "inherit", transition: "all 0.15s",
+                      opacity: loading ? 0.6 : 1,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
+                  >
+                    Revise
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
