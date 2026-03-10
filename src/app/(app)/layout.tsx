@@ -28,11 +28,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
         @keyframes thumbZoom { from{transform:scale(1.08)}to{transform:scale(1)} }
         @keyframes scrollPulse { 0%,100%{transform:translateY(-50%) scale(1);box-shadow:0 2px 12px rgba(0,0,0,0.1)}50%{transform:translateY(-50%) scale(1.05);box-shadow:0 4px 20px rgba(0,0,0,0.14)} }
         .agent-card { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1); }
-        .agent-card:hover { transform: translateY(-4px) !important; box-shadow: 0 16px 32px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06) !important; }
-        .agent-card:hover .agent-thumb img { transform: scale(1.06); }
-        .agent-card:active { transform: translateY(-1px) scale(0.98) !important; transition-duration: 0.1s; }
-        .agent-thumb img { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
-        .agent-card:hover .agent-label { color: #6366F1 !important; }
+        .agent-card:hover { transform: translateY(-2px) !important; }
+        .agent-card:hover .agent-thumb-img { transform: translate(4px, -4px) rotate(2deg) scale(1.05) !important; }
+        .agent-card:active { transform: scale(0.97) !important; transition-duration: 0.1s; }
+        .agent-thumb-img { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
         @keyframes scaleIn { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
         @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)} }
         @keyframes pulseGlow { 0%,100%{box-shadow:0 0 4px currentColor;opacity:1}50%{box-shadow:0 0 14px currentColor;opacity:0.7} }

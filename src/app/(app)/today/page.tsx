@@ -13,6 +13,10 @@ import { P } from "@/lib/palette";
 import { ChevronRight } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
+// Canva-style: only 4 pastel colors that rotate
+const CANVA_PASTELS = ["#F5D5E0", "#E8D5F5", "#F5E6D5", "#FFF5CC"];
+
+
 const AGENT_THUMBNAILS: Record<string, string> = {
   "deep-research": "/agents/researcher.jpg",
   "content-creator": "/agents/writer.jpg",
@@ -218,8 +222,8 @@ export default function TodayPage() {
               display: "grid",
               gridTemplateRows: "1fr 1fr",
               gridAutoFlow: "column",
-              gridAutoColumns: "170px",
-              gap: 12,
+              gridAutoColumns: "220px",
+              gap: 10,
               overflowX: "auto",
               paddingBottom: 8,
               scrollSnapType: "x mandatory",
@@ -231,8 +235,7 @@ export default function TodayPage() {
             <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
             {agents.map((agent, i) => {
               const thumb = AGENT_THUMBNAILS[agent.slug];
-              const busy = workingTasks.some((t) => t.agent_id === agent.id);
-              // Stagger: column-first order for 2-row grid
+              const pastelBg = PASTEL_BG[agent.color] || "#F5F3FF";
               const col = Math.floor(i / 2);
               const row = i % 2;
               const delay = col * 0.06 + row * 0.03;
@@ -242,18 +245,33 @@ export default function TodayPage() {
                   className="agent-card"
                   onClick={() => setShowCreateModal(true)}
                   style={{
-                    borderRadius: 14, cursor: "pointer",
+                    borderRadius: 16, cursor: "pointer",
                     overflow: "hidden",
                     scrollSnapAlign: "start",
                     animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
-                    backgroundColor: P.card,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
+                    backgroundColor: pastelBg,
+                    position: "relative",
+                    padding: "14px 14px 12px",
+                    display: "flex", flexDirection: "column",
+                    justifyContent: "space-between",
+                    minHeight: 0,
                   }}
                 >
-                  {/* Thumbnail with zoom-in entrance */}
-                  <div className="agent-thumb" style={{
-                    width: "100%", height: 90, position: "relative",
+                  {/* Agent name — top left like Canva */}
+                  <div style={{
+                    fontSize: 12.5, fontWeight: 700, color: P.text,
+                    lineHeight: 1.3, position: "relative", zIndex: 2,
+                    maxWidth: "65%",
+                  }}>
+                    {agent.name}
+                  </div>
+
+                  {/* Floating thumbnail/icon — bottom right, moves on hover */}
+                  <div className="agent-thumb-img" style={{
+                    position: "absolute", bottom: 6, right: 6,
+                    width: 56, height: 56, borderRadius: 12,
                     overflow: "hidden",
+                    boxShadow: `0 4px 12px ${agent.color}20`,
                   }}>
                     {thumb ? (
                       <img
@@ -261,8 +279,7 @@ export default function TodayPage() {
                         alt={agent.name}
                         style={{
                           width: "100%", height: "100%",
-                          objectFit: "cover",
-                          animation: `thumbZoom 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
+                          objectFit: "cover", borderRadius: 12,
                         }}
                       />
                     ) : (
@@ -270,45 +287,11 @@ export default function TodayPage() {
                         width: "100%", height: "100%",
                         background: agent.gradient,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 28,
+                        fontSize: 24, borderRadius: 12,
                       }}>
                         {agent.icon}
                       </div>
                     )}
-                    {/* Busy indicator */}
-                    {busy && (
-                      <div style={{
-                        position: "absolute", top: 6, right: 6, zIndex: 3,
-                        display: "flex", gap: 2, backgroundColor: "rgba(255,255,255,0.9)",
-                        borderRadius: 8, padding: "3px 6px",
-                        backdropFilter: "blur(4px)",
-                      }}>
-                        {[0, 1, 2].map((d) => (
-                          <span key={d} style={{
-                            width: 4, height: 4, borderRadius: "50%",
-                            backgroundColor: agent.color,
-                            animation: `bounce 1.2s ease-in-out ${d * 0.15}s infinite`,
-                          }} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Label */}
-                  <div style={{ padding: "8px 10px 10px" }}>
-                    <div className="agent-label" style={{
-                      fontSize: 12.5, fontWeight: 700, color: P.text,
-                      marginBottom: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                      transition: "color 0.2s",
-                    }}>
-                      {agent.name}
-                    </div>
-                    <div style={{
-                      fontSize: 10.5, color: P.textSec, fontWeight: 500,
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>
-                      {agent.description}
-                    </div>
                   </div>
                 </div>
               );
@@ -321,7 +304,7 @@ export default function TodayPage() {
               <div style={{
                 position: "absolute", right: 0, top: 0, bottom: 8,
                 width: 80, pointerEvents: "none",
-                background: "linear-gradient(to right, transparent, #FAFAF8)",
+                background: "linear-gradient(to right, transparent, #F3EFFE)",
               }} />
               <button
                 onClick={() => {
