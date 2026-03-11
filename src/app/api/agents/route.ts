@@ -59,13 +59,11 @@ export async function GET() {
         agents = await listAgents(user.id);
       }
 
-      // Clean up: delete stale presets and duplicates
+      // Clean up: delete ALL duplicates and any agent with a slug not in the seed
+      // (unless it's a user-created custom agent with is_preset=false and a truly custom slug)
       const validSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
-      const staleIds = agents
-        .filter((a: { slug: string; is_preset?: boolean; is_public?: boolean }) =>
-          !validSlugs.has(a.slug) && (a.is_preset || a.is_public))
-        .map((a: { id: string }) => a.id);
 
+      // Delete duplicates — keep only the first occurrence per slug
       const seenSlugs = new Set<string>();
       const dupeIds: string[] = [];
       for (const a of agents as { id: string; slug: string }[]) {
@@ -73,9 +71,25 @@ export async function GET() {
         else seenSlugs.add(a.slug);
       }
 
+      // Delete agents with unknown slugs that look like old presets
+      // (any agent with is_preset, is_public, OR a slug that matches a known pattern but isn't in the current seed)
+      const staleIds = agents
+        .filter((a: { id: string; slug: string; is_preset?: boolean; is_public?: boolean }) => {
+          // Skip if it's already marked for dupe deletion
+          if (dupeIds.includes(a.id)) return false;
+          // Skip if slug is in current seed (it's valid)
+          if (validSlugs.has(a.slug)) return false;
+          // Delete if is_preset or is_public (definitely an old preset)
+          if (a.is_preset || a.is_public) return true;
+          // Keep truly custom agents (user-created)
+          return false;
+        })
+        .map((a: { id: string }) => a.id);
+
       const toDelete = [...staleIds, ...dupeIds];
       if (toDelete.length > 0) {
-        await supabase.from("agents").delete().in("id", toDelete);
+        const { error: delError } = await supabase.from("agents").delete().in("id", toDelete);
+        if (delError) console.error("Agent cleanup failed:", delError);
         agents = await listAgents(user.id);
       }
     }
