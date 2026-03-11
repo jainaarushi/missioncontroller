@@ -134,22 +134,6 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   // Smart agent suggestions based on what the user types
   const suggestions = useMemo(() => suggestAgents(value, agents), [value, agents]);
 
-  // Auto-select the top suggested agent when suggestions change
-  useEffect(() => {
-    if (suggestions.length > 0) {
-      const topAgentId = suggestions[0].agent.id;
-      setSelectedAgentIds((prev) => {
-        // Replace selection with top suggestion if user hasn't manually picked one from the suggestions
-        if (prev.length === 0 || !suggestions.some((s) => prev.includes(s.agent.id))) {
-          return [topAgentId];
-        }
-        return prev;
-      });
-    } else if (value.trim().length < 3) {
-      setSelectedAgentIds([]);
-    }
-  }, [suggestions]);
-
   useEffect(() => {
     if (open) {
       if (preSelectedAgentId) {
