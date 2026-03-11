@@ -278,7 +278,29 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
     const elements: React.ReactNode[] = [];
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i];
+      const line = lines[i];
+
+      // Images — ![alt](src)
+      const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+      if (imgMatch) {
+        elements.push(
+          <div key={i} style={{ margin: "16px 0", textAlign: "center" as const }}>
+            <img
+              src={imgMatch[2]}
+              alt={imgMatch[1]}
+              style={{
+                maxWidth: "100%", borderRadius: 12,
+                boxShadow: agent ? `0 4px 20px ${agent.color}15` : "0 4px 20px rgba(0,0,0,0.08)",
+                border: `1px solid ${agent?.color ? agent.color + "15" : P.border}`,
+              }}
+            />
+            {imgMatch[1] && (
+              <div style={{ fontSize: 11, color: P.textTer, marginTop: 6 }}>{imgMatch[1]}</div>
+            )}
+          </div>
+        );
+        continue;
+      }
 
       // Headers
       if (line.startsWith("### ")) {

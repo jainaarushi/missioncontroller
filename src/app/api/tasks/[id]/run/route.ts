@@ -138,7 +138,66 @@ async function runPipeline(
   let totalTokensOut = 0;
   let finalOutput = "";
 
+  // Detect if user wants image output
+  const lowerTitle = title.toLowerCase();
+  const lowerDesc = (description || "").toLowerCase();
+  const combined = lowerTitle + " " + lowerDesc;
+  const wantsImage = /\b(generate|create|make|draw|design|sketch|render|produce)\b.*\b(image|picture|photo|illustration|graphic|logo|icon|banner|poster|thumbnail|art|artwork|visual|diagram)\b/i.test(combined)
+    || /\b(image|picture|photo|illustration|graphic|logo|icon|banner|poster|thumbnail)\b.*\b(of|for|about|showing|with)\b/i.test(combined);
+
   try {
+    // If user wants an image AND provider supports it (OpenAI)
+    if (wantsImage && provider === "openai") {
+      await persistTaskUpdate(userId, taskId, {
+        progress: 30,
+        current_step: "Generating image...",
+      });
+
+      try {
+        const { generateImage } = await import("ai");
+        const imageModel = createUserOpenAI(apiKey).image("dall-e-3");
+        const imagePrompt = description
+          ? `${title}. ${description}`
+          : title;
+
+        const imageResult = await generateImage({
+          model: imageModel,
+          prompt: imagePrompt,
+          size: "1024x1024",
+        });
+
+        const image = imageResult.images[0];
+        if (image) {
+          const base64 = image.base64;
+          finalOutput = `![Generated Image](data:image/png;base64,${base64})\n\n**Prompt:** ${imagePrompt}`;
+
+          const cost = 0.04; // DALL-E 3 standard pricing
+          const duration = Math.round((Date.now() - startTime) / 1000);
+
+          await persistTaskUpdate(userId, taskId, {
+            status: "review",
+            progress: 100,
+            output: finalOutput,
+            output_format: "image",
+            cost_usd: cost,
+            tokens_in: 0,
+            tokens_out: 0,
+            duration_seconds: duration,
+            current_step: "Image generated — ready for review",
+          });
+          return;
+        }
+      } catch (imgErr) {
+        console.error("Image generation failed, falling back to text:", imgErr);
+        // Fall through to text generation
+      }
+    }
+
+    // If user wanted an image but we're not on OpenAI, add context to the text prompt
+    if (wantsImage && provider !== "openai") {
+      systemPrompt += "\n\nNote: The user wants a visual/image output. Since image generation is not available with this provider, provide a detailed text description of what the image would look like, and create the best text-based output you can (ASCII art, detailed visual description, or structured layout).";
+    }
+
     for (let i = 0; i < pipeline.length; i++) {
       const step = pipeline[i];
       const progress = Math.round(((i + 0.5) / pipeline.length) * 100);
