@@ -86,6 +86,7 @@ export default function TodayPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewAgent, setPreviewAgent] = useState<typeof agents[0] | null>(null);
+  const [createAgentId, setCreateAgentId] = useState<string | null>(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -168,6 +169,7 @@ export default function TodayPage() {
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
         e.preventDefault();
         setPreviewAgent(null);
+        setCreateAgentId(null);
         setShowCreateModal(true);
       }
     }
@@ -566,7 +568,7 @@ export default function TodayPage() {
       {/* Create task — Canva-style search bar */}
       <div
         className="create-bar"
-        onClick={() => { setPreviewAgent(null); setShowCreateModal(true); }}
+        onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
         onMouseEnter={(e) => {
           e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12), 0 4px 20px rgba(0,0,0,0.06)";
         }}
@@ -767,7 +769,7 @@ export default function TodayPage() {
               {/* Actions */}
               <div style={{ display: "flex", gap: 10 }}>
                 <button
-                  onClick={() => { setShowCreateModal(true); }}
+                  onClick={() => { setCreateAgentId(previewAgent?.id || null); setPreviewAgent(null); setShowCreateModal(true); }}
                   style={{
                     flex: 1, padding: "12px 0", borderRadius: 12, border: "none",
                     background: previewAgent.gradient, color: "#fff",
@@ -804,10 +806,10 @@ export default function TodayPage() {
       {/* Create task modal */}
       <CreateTaskModal
         open={showCreateModal}
-        onClose={() => { setShowCreateModal(false); setPreviewAgent(null); }}
+        onClose={() => { setShowCreateModal(false); setCreateAgentId(null); }}
         onSubmit={handleCreateTask}
         agents={agents}
-        preSelectedAgentId={previewAgent?.id}
+        preSelectedAgentId={createAgentId || undefined}
       />
 
       {/* Task detail modal */}
