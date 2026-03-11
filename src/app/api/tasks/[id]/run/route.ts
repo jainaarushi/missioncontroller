@@ -4,7 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
-import { calculateCost } from "@/lib/ai/cost";
+import { calculateCost, calculateImageCost } from "@/lib/ai/cost";
 import { getPipeline } from "@/lib/ai/pipelines";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { getTaskById, updateTaskById } from "@/lib/data/tasks";
@@ -171,7 +171,7 @@ async function runPipeline(
           const base64 = image.base64;
           finalOutput = `![Generated Image](data:image/png;base64,${base64})\n\n**Prompt:** ${imagePrompt}`;
 
-          const cost = 0.04; // DALL-E 3 standard pricing
+          const cost = calculateImageCost("dall-e-3", "1024x1024", 1);
           const duration = Math.round((Date.now() - startTime) / 1000);
 
           await persistTaskUpdate(userId, taskId, {
