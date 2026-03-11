@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
   // Demo users — create in mock data
   if (user.isDemo) {
-    createMockTask(parsed.data.title);
+    createMockTask(parsed.data.title, parsed.data.section || "today", parsed.data.priority || "normal");
     const created = mockTasks[0]; // createMockTask prepends to array
     return NextResponse.json(created, { status: 201 });
   }
