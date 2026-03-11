@@ -501,7 +501,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 850, maxHeight: "85vh", overflowY: "auto",
+          width: "min(850px, 95vw)", maxHeight: "85vh", overflowY: "auto",
           backgroundColor: P.card, borderRadius: 20,
           boxShadow: P.shadowFloat, position: "relative",
           animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",

@@ -214,6 +214,30 @@
   background-size: 40px 40px;
 }
 
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+  /* Hide sidebar on mobile */
+  .app-sidebar { display: none !important; }
+  /* Full-width content */
+  .app-content { padding: 16px 12px !important; }
+  /* Fix gradient position without sidebar */
+  .app-gradient { left: 0 !important; }
+  /* Stack nav links */
+  .landing-nav-links { display: none !important; }
+  .landing-nav-cta { display: none !important; }
+  /* Mobile menu button */
+  .mobile-menu-btn { display: flex !important; }
+  /* Fix modal widths */
+  .modal-content { width: 95vw !important; max-width: 95vw !important; }
+  /* Hide create modal sidebar on mobile */
+  .create-modal-sidebar { display: none !important; }
+  /* Stack analytics grid */
+  .analytics-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .analytics-grid-2 { grid-template-columns: 1fr !important; }
+  /* Agents page grid */
+  .agents-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

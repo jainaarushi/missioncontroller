@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { CommandPalette } from "@/components/shared/command-palette";
 import { SWRProvider } from "@/components/providers/swr-provider";
@@ -8,13 +9,50 @@ import { useStats } from "@/lib/hooks/use-stats";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { P } from "@/lib/palette";
 
+function MobileNav({ reviewCount }: { reviewCount: number }) {
+  return (
+    <nav style={{
+      position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
+      backgroundColor: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+      borderTop: "1px solid rgba(0,0,0,0.06)",
+      display: "flex", justifyContent: "space-around", alignItems: "center",
+      padding: "8px 0 env(safe-area-inset-bottom, 8px)",
+      height: 56,
+    }}>
+      {[
+        { href: "/today", icon: "🏠", label: "Today" },
+        { href: "/agents", icon: "🤖", label: "Agents" },
+        { href: "/analytics", icon: "📊", label: "Analytics" },
+        { href: "/settings", icon: "⚙️", label: "Settings" },
+      ].map((item) => (
+        <a key={item.href} href={item.href} style={{
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+          textDecoration: "none", color: P.textSec, fontSize: 10, fontWeight: 600,
+          position: "relative",
+        }}>
+          <span style={{ fontSize: 20 }}>{item.icon}</span>
+          <span>{item.label}</span>
+          {item.href === "/today" && reviewCount > 0 && (
+            <span style={{
+              position: "absolute", top: -2, right: -6,
+              width: 16, height: 16, borderRadius: "50%",
+              backgroundColor: P.coral, color: "#fff",
+              fontSize: 9, fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{reviewCount}</span>
+          )}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 function AppShell({ children }: { children: React.ReactNode }) {
   const { agents } = useAgents();
   const { stats } = useStats();
   const { tasks } = useTasks();
 
   const reviewCount = tasks.filter((t) => t.status === "review").length;
-  const workingTasks = tasks.filter((t) => t.status === "working");
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FAFAF8" }}>
@@ -53,22 +91,35 @@ function AppShell({ children }: { children: React.ReactNode }) {
         * { box-sizing:border-box }
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.07);border-radius:3px}
         ::selection{background:#6366F120}
+
+        /* Mobile bottom nav */
+        .mobile-nav { display: none; }
+        @media (max-width: 768px) {
+          .desktop-sidebar { display: none !important; }
+          .mobile-nav { display: flex !important; }
+          .app-gradient { left: 0 !important; }
+          .app-content-wrapper { padding: 16px 12px 72px !important; }
+        }
       `}</style>
-      <Sidebar
-        stats={stats}
-        reviewCount={reviewCount}
-        tasks={tasks}
-      />
+      <div className="desktop-sidebar">
+        <Sidebar
+          stats={stats}
+          reviewCount={reviewCount}
+          tasks={tasks}
+        />
+      </div>
       <div style={{ flex: 1, display: "flex", justifyContent: "center", overflow: "auto" }}>
-        {/* Gradient hero background like Canva */}
-        <div style={{
+        <div className="app-gradient" style={{
           position: "fixed", top: 0, left: 72, right: 0, height: 280,
           background: "linear-gradient(180deg, #DDD6FE 0%, #E9D5FF 30%, #FAFAF8 100%)",
           zIndex: 0, pointerEvents: "none",
         }} />
-        <div style={{ width: "100%", maxWidth: 1100, padding: "24px 24px", position: "relative", zIndex: 1 }}>
+        <div className="app-content-wrapper" style={{ width: "100%", maxWidth: 1100, padding: "24px 24px", position: "relative", zIndex: 1 }}>
           {children}
         </div>
+      </div>
+      <div className="mobile-nav">
+        <MobileNav reviewCount={reviewCount} />
       </div>
       <CommandPalette tasks={tasks} agents={agents} />
     </div>

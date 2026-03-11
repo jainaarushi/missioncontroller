@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Top stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 28 }}>
+      <div className="analytics-grid-4" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 28 }}>
         {[
           { label: "Total Tasks", value: totalTasks, color: P.indigo },
           { label: "Completed", value: `${completionRate}%`, color: P.emerald },
@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Two-column: Agent Performance + Priority Breakdown */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+      <div className="analytics-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
         {/* Agent Performance */}
         <div style={{
           padding: "22px", backgroundColor: P.card, borderRadius: 16,

@@ -87,7 +87,7 @@ export default function AgentsPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+      <div className="agents-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
         {agents.map((agent, i) => {
           const done = tasks.filter((t) => t.agent_id === agent.id && t.status === "done").length;
           const pastel = getPastel(agent.color);

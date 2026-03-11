@@ -761,7 +761,7 @@ export default function TodayPage() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: 440, backgroundColor: P.card, borderRadius: 20,
+              width: "min(440px, 92vw)", backgroundColor: P.card, borderRadius: 20,
               boxShadow: P.shadowFloat, position: "relative",
               animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
               overflow: "hidden",
@@ -874,7 +874,7 @@ export default function TodayPage() {
             animation: "fadeIn 0.3s ease",
           }} />
           <div style={{
-            position: "relative", width: 480, padding: "48px 40px",
+            position: "relative", width: "min(480px, 90vw)", padding: "48px 28px",
             backgroundColor: "#fff", borderRadius: 24,
             boxShadow: "0 24px 80px rgba(0,0,0,0.15)",
             textAlign: "center",

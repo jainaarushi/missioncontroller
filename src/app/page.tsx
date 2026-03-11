@@ -59,6 +59,24 @@ const item = {
 export default function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAF8", color: "#111" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .landing-nav-links { display: none !important; }
+          .landing-hero { padding-top: 100px !important; padding-bottom: 40px !important; }
+          .landing-hero h1 { font-size: 32px !important; }
+          .landing-hero p { font-size: 15px !important; }
+          .landing-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .landing-features-grid { grid-template-columns: 1fr !important; }
+          .landing-steps { padding: 16px 16px !important; }
+          .landing-cta-box { padding: 36px 20px !important; margin: 0 12px !important; }
+          .landing-cta-box h2 { font-size: 24px !important; }
+          .landing-problem-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .landing-problem-arrow { display: none !important; }
+          .landing-section { padding-left: 16px !important; padding-right: 16px !important; }
+          .landing-agents-grid { gap: 8px !important; }
+          .landing-footer { flex-direction: column !important; gap: 12px !important; text-align: center; }
+        }
+      `}</style>
 
       {/* ─── NAV ─── */}
       <nav style={{
@@ -76,7 +94,7 @@ export default function LandingPage() {
             }} />
             <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em" }}>AgentStudio</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <div className="landing-nav-links" style={{ display: "flex", alignItems: "center", gap: 32 }}>
             <a href="#features" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>Features</a>
             <a href="#agents" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>Agents</a>
             <a href="#how-it-works" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>How It Works</a>
@@ -97,7 +115,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ─── HERO ─── */}
-      <section style={{ position: "relative", paddingTop: 140, paddingBottom: 80 }}>
+      <section className="landing-hero" style={{ position: "relative", paddingTop: 140, paddingBottom: 80 }}>
         {/* Gradient background */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: 700,
@@ -227,6 +245,7 @@ export default function LandingPage() {
       {/* ─── STATS BAR ─── */}
       <section style={{ padding: "0 24px", marginTop: -40, position: "relative", zIndex: 2 }}>
         <motion.div
+          className="landing-stats"
           initial="hidden" whileInView="show" viewport={{ once: true }}
           variants={fadeUp}
           style={{
@@ -259,6 +278,7 @@ export default function LandingPage() {
           </motion.div>
 
           <motion.div
+            className="landing-problem-grid"
             initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
             variants={fadeUp}
             style={{
@@ -281,7 +301,7 @@ export default function LandingPage() {
             </div>
 
             {/* Arrow */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="landing-problem-arrow" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <ArrowRight size={28} color="#7C3AED" />
             </div>
 
@@ -389,6 +409,7 @@ export default function LandingPage() {
           <motion.div
             initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
             variants={stagger}
+            className="landing-features-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}
           >
             {FEATURES.map((f) => (
@@ -460,9 +481,10 @@ export default function LandingPage() {
       {/* ─── CTA ─── */}
       <section style={{ padding: "60px 24px 100px" }}>
         <motion.div
+          className="landing-cta-box"
           initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}
           style={{
-            maxWidth: 800, margin: "0 auto", textAlign: "center",
+            maxWidth: 800, margin: "0 auto", textAlign: "center" as const,
             padding: "60px 40px", borderRadius: 28,
             background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
             position: "relative", overflow: "hidden",
@@ -499,7 +521,7 @@ export default function LandingPage() {
 
       {/* ─── FOOTER ─── */}
       <footer style={{ borderTop: "1px solid #F0F0F0", padding: "24px" }}>
-        <div style={{
+        <div className="landing-footer" style={{
           maxWidth: 1200, margin: "0 auto",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           fontSize: 13, color: "#999",

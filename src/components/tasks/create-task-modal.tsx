@@ -300,7 +300,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 820, maxHeight: "88vh",
+          width: "min(820px, 95vw)", maxHeight: "88vh",
           backgroundColor: P.card, borderRadius: 20,
           boxShadow: P.shadowFloat, position: "relative",
           animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
@@ -325,7 +325,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
         </button>
 
         {/* Left sidebar — categories */}
-        <div style={{
+        <div className="create-modal-sidebar" style={{
           width: 200, borderRight: `1px solid ${P.border}`,
           padding: "28px 0", flexShrink: 0,
           overflowY: "auto",
