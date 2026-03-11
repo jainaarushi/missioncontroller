@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
@@ -31,6 +32,7 @@ export default function AgentsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleDelete(agentId: string) {
     if (deletingId) return;
@@ -95,6 +97,7 @@ export default function AgentsPage() {
           return (
             <div
               key={agent.id}
+              onClick={() => router.push(`/today?agent=${agent.id}`)}
               onMouseEnter={() => setHoveredId(agent.id)}
               onMouseLeave={() => setHoveredId(null)}
               style={{

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { TaskSection } from "@/components/tasks/task-section";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
 import { CreateTaskModal } from "@/components/tasks/create-task-modal";
@@ -96,6 +97,18 @@ export default function TodayPage() {
   useRealtimeTasks(mutate);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(true);
+  const searchParams = useSearchParams();
+
+  // Open create modal with pre-selected agent from URL param (from agents page)
+  useEffect(() => {
+    const agentId = searchParams.get("agent");
+    if (agentId && agents.length > 0) {
+      setCreateAgentId(agentId);
+      setShowCreateModal(true);
+      // Clean up URL
+      window.history.replaceState({}, "", "/today");
+    }
+  }, [searchParams, agents]);
 
   const reviewTasks = tasks.filter((t) => t.status === "review");
   const workingTasks = tasks.filter((t) => t.status === "working");
