@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Type check
-    if (!isSupported(file.type)) {
+    // Type check (also try filename extension as fallback)
+    if (!isSupported(file.type, file.name)) {
       return NextResponse.json({
-        error: `Unsupported file type: ${file.type}. Supported: ${getSupportedExtensions().join(", ")}`,
+        error: `Unsupported file type: ${file.type || "unknown"}. Supported: ${getSupportedExtensions().join(", ")}`,
       }, { status: 400 });
     }
 
