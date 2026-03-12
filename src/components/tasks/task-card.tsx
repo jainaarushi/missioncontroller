@@ -144,6 +144,8 @@ export function TaskCard({
             <div style={{ width: 24, height: 24, borderRadius: 8, background: agent.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 2px 8px ${agent.color}25` }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#fff" }} />
             </div>
+          ) : agent ? (
+            <div style={{ width: 24, height: 24, borderRadius: 8, border: `2px solid ${agent.color}40`, backgroundColor: agent.color + "08", transition: "all 0.2s" }} />
           ) : (
             <div style={{ width: 24, height: 24, borderRadius: 8, border: `2px solid ${P.textGhost}`, transition: "all 0.2s" }} />
           )}
@@ -180,6 +182,18 @@ export function TaskCard({
           }}>
             <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
             <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 800 }}>Ready for your review →</span>
+          </div>
+        )}
+
+        {/* Show assigned agent on todo/failed tasks */}
+        {!isWorking && !isReview && !isDone && agent && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 7, marginTop: 8,
+            padding: "5px 12px 5px 5px", borderRadius: 20, backgroundColor: agent.color + "08",
+            transition: "all 0.3s",
+          }}>
+            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
+            <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 600 }}>{agent.name}</span>
           </div>
         )}
       </div>
