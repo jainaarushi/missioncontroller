@@ -22,8 +22,8 @@ export const PROVIDER_MODELS: Record<AIProvider, { default: string; fast: string
     fast: "gpt-4o-mini",
   },
   gemini: {
-    default: "gemini-2.0-flash-lite",
-    fast: "gemini-2.0-flash-lite",
+    default: "gemini-2.5-flash",
+    fast: "gemini-2.5-flash-lite",
   },
   anthropic: {
     default: "claude-sonnet-4-20250514",

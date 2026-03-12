@@ -293,7 +293,7 @@ async function runPipeline(
     }
 
     // All done
-    const cost = provider === "gemini" ? 0 : calculateCost(totalTokensIn, totalTokensOut, modelId);
+    const cost = calculateCost(totalTokensIn, totalTokensOut, modelId);
     const duration = Math.round((Date.now() - startTime) / 1000);
 
     await persistTaskUpdate(userId, taskId, {

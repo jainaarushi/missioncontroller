@@ -5,9 +5,11 @@ const RATES: Record<string, { input: number; output: number }> = {
   // OpenAI (per token) — https://openai.com/api/pricing/
   "gpt-4o-mini": { input: 0.15 / 1_000_000, output: 0.6 / 1_000_000 },
   "gpt-4o": { input: 2.5 / 1_000_000, output: 10.0 / 1_000_000 },
-  // Gemini (free tier = $0) — https://ai.google.dev/pricing
+  // Gemini — https://ai.google.dev/pricing
+  "gemini-2.5-flash": { input: 0.15 / 1_000_000, output: 0.6 / 1_000_000 },
+  "gemini-2.5-flash-lite": { input: 0.075 / 1_000_000, output: 0.3 / 1_000_000 },
+  "gemini-2.0-flash": { input: 0.1 / 1_000_000, output: 0.4 / 1_000_000 },
   "gemini-2.0-flash-lite": { input: 0, output: 0 },
-  "gemini-1.5-flash": { input: 0, output: 0 },
 };
 
 // Image generation pricing (per image)
