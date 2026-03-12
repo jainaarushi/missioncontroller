@@ -1,18 +1,19 @@
-import { tool } from "ai";
 import { z } from "zod";
+
+const financeParams = z.object({
+  symbol: z.string().describe("Stock ticker symbol (e.g., AAPL, GOOGL, TSLA)"),
+  data_type: z
+    .enum(["quote", "fundamentals", "history"])
+    .describe("quote = current price, fundamentals = P/E ratio etc, history = 6mo price data"),
+});
 
 // Yahoo Finance data — no API key needed
 export function createFinanceDataTool() {
-  return tool({
+  return {
     description:
       "Get stock market data: current price, fundamentals (P/E, market cap), or price history. Use stock ticker symbols like AAPL, GOOGL, TSLA.",
-    parameters: z.object({
-      symbol: z.string().describe("Stock ticker symbol (e.g., AAPL, GOOGL, TSLA)"),
-      data_type: z
-        .enum(["quote", "fundamentals", "history"])
-        .describe("quote = current price, fundamentals = P/E ratio etc, history = 6mo price data"),
-    }),
-    execute: async ({ symbol, data_type }) => {
+    parameters: financeParams,
+    execute: async ({ symbol, data_type }: z.infer<typeof financeParams>) => {
       const ticker = symbol.toUpperCase().trim();
 
       try {
@@ -31,8 +32,7 @@ export function createFinanceDataTool() {
             price: meta.regularMarketPrice,
             previousClose: meta.previousClose,
             change: change.toFixed(2),
-            changePercent:
-              ((change / meta.previousClose) * 100).toFixed(2) + "%",
+            changePercent: ((change / meta.previousClose) * 100).toFixed(2) + "%",
             currency: meta.currency,
             exchange: meta.exchangeName,
             marketState: meta.marketState,
@@ -81,17 +81,13 @@ export function createFinanceDataTool() {
           if (!result) return { error: `No history found for ${ticker}` };
 
           const timestamps: number[] = result.timestamp || [];
-          const closes: (number | null)[] =
-            result.indicators?.quote?.[0]?.close || [];
+          const closes: (number | null)[] = result.indicators?.quote?.[0]?.close || [];
 
-          // Sample every 5 days for manageable data size
           const points = [];
           for (let i = 0; i < timestamps.length; i += 5) {
             if (closes[i] != null) {
               points.push({
-                date: new Date(timestamps[i] * 1000)
-                  .toISOString()
-                  .split("T")[0],
+                date: new Date(timestamps[i] * 1000).toISOString().split("T")[0],
                 close: Number(closes[i]!.toFixed(2)),
               });
             }
@@ -107,5 +103,5 @@ export function createFinanceDataTool() {
         };
       }
     },
-  });
+  };
 }

@@ -157,10 +157,11 @@ function parseResearch(output: string): {
 
   // Extract URLs as sources
   const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = urlRegex.exec(output)) !== null) {
-    if (!sources.find(s => s.url === match[2])) {
-      sources.push({ title: match[1], url: match[2] });
+    const m = match;
+    if (!sources.find(s => s.url === m[2])) {
+      sources.push({ title: m[1], url: m[2] });
     }
   }
 

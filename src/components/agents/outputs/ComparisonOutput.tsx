@@ -158,7 +158,7 @@ function parseComparison(output: string) {
 
       if (currentSwotSection && /^[-•*]\s/.test(line)) {
         const item = line.replace(/^[-•*]\s+/, "").replace(/\*\*/g, "").trim();
-        if (item) (currentSwot as Record<string, string[]>)[currentSwotSection].push(item);
+        if (item) (currentSwot as unknown as Record<string, string[]>)[currentSwotSection].push(item);
         continue;
       }
 

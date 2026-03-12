@@ -327,8 +327,10 @@ function buildToolsForStep(
   step: PipelineStep,
   toolKeys: UserToolKeys,
   parsedFileData: ParsedFileData | null,
-): Record<string, ReturnType<typeof createWebSearchTool>> {
-  const tools: Record<string, ReturnType<typeof createWebSearchTool>> = {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Record<string, any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tools: Record<string, any> = {};
 
   for (const toolId of step.tools || []) {
     switch (toolId) {

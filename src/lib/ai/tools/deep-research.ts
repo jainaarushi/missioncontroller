@@ -1,22 +1,22 @@
-import { tool } from "ai";
 import { z } from "zod";
 
+const deepResearchParams = z.object({
+  topic: z.string().describe("The research topic or question"),
+  depth: z
+    .number()
+    .optional()
+    .default(2)
+    .describe("Research depth: 1=quick (3 queries), 2=moderate (5 queries), 3=thorough (7 queries)"),
+});
+
 export function createDeepResearchTool(tavilyApiKey: string) {
-  return tool({
+  return {
     description:
       "Perform deep multi-step web research on a topic. Searches multiple queries from different angles, deduplicates, and compiles sources. Use this for thorough research tasks.",
-    parameters: z.object({
-      topic: z.string().describe("The research topic or question"),
-      depth: z
-        .number()
-        .optional()
-        .default(2)
-        .describe("Research depth: 1=quick (3 queries), 2=moderate (5 queries), 3=thorough (7 queries)"),
-    }),
-    execute: async ({ topic, depth }) => {
+    parameters: deepResearchParams,
+    execute: async ({ topic, depth }: z.infer<typeof deepResearchParams>) => {
       const allResults: Array<{ title: string; url: string; content: string }> = [];
 
-      // Generate search queries from different angles
       const queries = [
         topic,
         `${topic} latest developments 2024 2025`,
@@ -53,16 +53,12 @@ export function createDeepResearchTool(tavilyApiKey: string) {
             const data = await res.json();
             for (const r of data.results || []) {
               if (!allResults.find((existing) => existing.url === r.url)) {
-                allResults.push({
-                  title: r.title,
-                  url: r.url,
-                  content: r.content,
-                });
+                allResults.push({ title: r.title, url: r.url, content: r.content });
               }
             }
           }
         } catch {
-          // Skip failed queries, continue with others
+          // Skip failed queries
         }
       }
 
@@ -73,5 +69,5 @@ export function createDeepResearchTool(tavilyApiKey: string) {
         sources: allResults.slice(0, 20),
       };
     },
-  });
+  };
 }

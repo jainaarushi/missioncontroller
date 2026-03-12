@@ -1,24 +1,25 @@
-import { tool } from "ai";
 import { z } from "zod";
 
+const webSearchParams = z.object({
+  query: z.string().describe("Search query"),
+  search_depth: z
+    .enum(["basic", "advanced"])
+    .optional()
+    .default("basic")
+    .describe("basic = fast, advanced = more thorough"),
+  max_results: z
+    .number()
+    .optional()
+    .default(5)
+    .describe("Max results to return (1-10)"),
+});
+
 export function createWebSearchTool(tavilyApiKey: string) {
-  return tool({
+  return {
     description:
       "Search the web for current information. Returns relevant results with snippets and an AI-generated answer.",
-    parameters: z.object({
-      query: z.string().describe("Search query"),
-      search_depth: z
-        .enum(["basic", "advanced"])
-        .optional()
-        .default("basic")
-        .describe("basic = fast, advanced = more thorough"),
-      max_results: z
-        .number()
-        .optional()
-        .default(5)
-        .describe("Max results to return (1-10)"),
-    }),
-    execute: async ({ query, search_depth, max_results }) => {
+    parameters: webSearchParams,
+    execute: async ({ query, search_depth, max_results }: z.infer<typeof webSearchParams>) => {
       const response = await fetch("https://api.tavily.com/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,5 +52,5 @@ export function createWebSearchTool(tavilyApiKey: string) {
         ),
       };
     },
-  });
+  };
 }

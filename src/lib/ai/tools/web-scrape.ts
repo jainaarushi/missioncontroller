@@ -1,14 +1,15 @@
-import { tool } from "ai";
 import { z } from "zod";
 
+const webScrapeParams = z.object({
+  url: z.string().url().describe("URL to fetch and extract content from"),
+});
+
 export function createWebScrapeTool(firecrawlApiKey?: string) {
-  return tool({
+  return {
     description:
       "Fetch and extract content from a URL. Returns the page content as clean text or markdown.",
-    parameters: z.object({
-      url: z.string().url().describe("URL to fetch and extract content from"),
-    }),
-    execute: async ({ url }) => {
+    parameters: webScrapeParams,
+    execute: async ({ url }: z.infer<typeof webScrapeParams>) => {
       if (firecrawlApiKey) {
         try {
           const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
@@ -24,11 +25,7 @@ export function createWebScrapeTool(firecrawlApiKey?: string) {
             const data = await response.json();
             const content = data.data?.markdown || data.data?.content;
             if (content) {
-              return {
-                content: content.slice(0, 15000),
-                url,
-                source: "firecrawl",
-              };
+              return { content: content.slice(0, 15000), url, source: "firecrawl" };
             }
           }
         } catch {
@@ -36,12 +33,10 @@ export function createWebScrapeTool(firecrawlApiKey?: string) {
         }
       }
 
-      // Basic fetch fallback (no key needed)
       try {
         const response = await fetch(url, {
           headers: {
-            "User-Agent":
-              "Mozilla/5.0 (compatible; AgentStudio/1.0; +https://agentstudio.world)",
+            "User-Agent": "Mozilla/5.0 (compatible; AgentStudio/1.0; +https://agentstudio.world)",
           },
           signal: AbortSignal.timeout(10000),
         });
@@ -51,7 +46,6 @@ export function createWebScrapeTool(firecrawlApiKey?: string) {
         }
 
         const html = await response.text();
-        // Strip HTML tags and excessive whitespace
         const text = html
           .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -69,5 +63,5 @@ export function createWebScrapeTool(firecrawlApiKey?: string) {
         };
       }
     },
-  });
+  };
 }
