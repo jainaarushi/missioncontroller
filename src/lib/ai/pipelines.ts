@@ -287,6 +287,53 @@ export const AGENT_PIPELINES: Record<string, PipelineStep[]> = {
     { description: "Creating launch playbook", duration: 0, isCore2: true, core2Prompt: "You are a product launch strategist. Using the research below, create a launch playbook with:\n1. Market Opportunity Assessment\n2. Target Audience Personas (2-3)\n3. Competitive Positioning\n4. Pricing Strategy with comparison table\n5. 12-Week Go-to-Market Timeline\n6. Marketing Channel Strategy\n7. Content Calendar (first 30 days)\n8. Launch Day Checklist\n9. KPIs and Success Metrics\n\nBe specific and actionable.\n\nMarket research:\n\n" },
     { description: "Finalizing playbook", duration: 1000 },
   ],
+
+  // ── New Agent Pipelines ────────────────────────────────────
+
+  // SEO Agent — keyword research + competitor analysis
+  seo: [
+    { description: "Analyzing target keywords and intent", duration: 1000 },
+    { description: "Researching search data and competitors", duration: 0, isCore: true, tools: ["web-search", "web-scrape"], maxToolSteps: 12, toolContext: "You are an SEO specialist. Research thoroughly:\n1. Search for the target keywords and related terms\n2. Search for top-ranking pages for these keywords\n3. Scrape 2-3 competitor pages to analyze their content structure\n4. Search for keyword difficulty and search volume data\n5. Search for related long-tail keywords and questions\n6. Research current SEO best practices and algorithm updates\nGather real ranking data and competitor insights." },
+    { description: "Analyzing rankings and content gaps", duration: 1500 },
+    { description: "Building SEO strategy", duration: 0, isCore2: true, core2Prompt: "You are an SEO expert. Using the research below, create a comprehensive SEO audit and strategy with:\n1. Keyword Strategy (primary, secondary, long-tail) with estimated volume\n2. On-Page Optimization Checklist\n3. Content Gap Analysis vs competitors\n4. Technical SEO Recommendations\n5. Content Calendar for SEO (10 article ideas with target keywords)\n6. Link Building Strategy\n7. Priority Action Items (ranked by impact)\n\nUse real data from the research. Format with tables.\n\nSEO research:\n\n" },
+    { description: "Finalizing recommendations", duration: 800 },
+  ],
+
+  // Social Media — trend research + content calendar
+  social_media: [
+    { description: "Analyzing brand and audience", duration: 1000 },
+    { description: "Researching trends and competitor strategies", duration: 0, isCore: true, tools: ["web-search"], maxToolSteps: 10, toolContext: "You are a social media strategist. Research:\n1. Search for current trends on the relevant platforms\n2. Search for competitor social media strategies and engagement\n3. Search for viral content patterns in this industry\n4. Search for optimal posting times and frequency data\n5. Search for hashtag strategies and trending topics\nFocus on actionable, current data." },
+    { description: "Designing content pillars", duration: 1200 },
+    { description: "Creating content calendar", duration: 0, isCore2: true, core2Prompt: "You are a social media strategist. Using the research below, create a comprehensive social media plan with:\n1. Platform Strategy (which platforms and why)\n2. Content Pillars (3-5 themes with examples)\n3. 30-Day Content Calendar (day, platform, content type, topic, hashtags)\n4. 10 Viral Post Ideas with hooks\n5. Engagement Strategy (community building tactics)\n6. Growth Metrics to Track\n\nMake it specific and ready to execute.\n\nTrend research:\n\n" },
+    { description: "Polishing strategy", duration: 800 },
+  ],
+
+  // VC Due Diligence — deep company research
+  vc_due_diligence: [
+    { description: "Researching the company", duration: 1200 },
+    { description: "Gathering market and competitive data", duration: 0, isCore: true, tools: ["web-search", "web-scrape"], maxToolSteps: 15, toolContext: "You are a VC analyst conducting due diligence. Research deeply:\n1. Search for the company: product, team, funding history\n2. Search for founder backgrounds and previous ventures\n3. Search for market size estimates and industry reports\n4. Search for competitors and their funding/traction\n5. Search for customer reviews, press coverage, and partnerships\n6. Search for recent news or controversies\n7. If the company website is available, scrape key pages\nBe thorough — this is an investment decision." },
+    { description: "Analyzing financials and traction", duration: 1500 },
+    { description: "Writing investment memo", duration: 0, isCore2: true, core2Prompt: "You are a VC partner writing an investment memo. Using the research below, create a professional memo with:\n1. Executive Summary (1 paragraph)\n2. Company Overview (product, team, stage)\n3. Market Analysis (TAM/SAM/SOM)\n4. Competitive Landscape (table)\n5. Traction and Unit Economics\n6. Team Assessment\n7. Key Risks and Mitigants\n8. Bull Case / Bear Case\n9. Investment Recommendation (Invest / Pass / Monitor)\n10. Suggested Terms\n\nUse real data. Be balanced.\n\nDue diligence data:\n\n" },
+    { description: "Finalizing memo", duration: 1000 },
+  ],
+
+  // Market Sizing — data-driven analysis
+  market_sizing: [
+    { description: "Defining market boundaries", duration: 1000 },
+    { description: "Researching market data and reports", duration: 0, isCore: true, tools: ["web-search", "calculator"], maxToolSteps: 12, toolContext: "You are a market analyst. Research thoroughly:\n1. Search for industry reports and market size estimates\n2. Search for census data, government statistics, and public filings\n3. Search for competitor revenue data and market share\n4. Search for growth rates and CAGR projections\n5. Use the calculator for bottom-up calculations\n6. Search for analogous markets for validation\nGet hard numbers — not just ranges." },
+    { description: "Calculating top-down and bottom-up estimates", duration: 1500 },
+    { description: "Building market analysis", duration: 0, isCore2: true, core2Prompt: "You are a market research analyst. Using the data below, create a rigorous market sizing report with:\n1. Market Definition and Scope\n2. Top-Down Analysis (industry → segment → addressable)\n3. Bottom-Up Analysis (customers × deal size × frequency)\n4. TAM / SAM / SOM Table with numbers\n5. Growth Projections (3-year and 5-year)\n6. Key Assumptions and Sensitivity Analysis\n7. Comparable Markets for Validation\n8. Sources\n\nShow your math. Use tables.\n\nMarket data:\n\n" },
+    { description: "Finalizing report", duration: 800 },
+  ],
+
+  // eCommerce — store optimization
+  ecommerce: [
+    { description: "Analyzing your store and products", duration: 1000 },
+    { description: "Researching competitors and market trends", duration: 0, isCore: true, tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "You are an eCommerce expert. Research:\n1. Search for competitor stores and their pricing strategies\n2. Search for industry benchmarks (conversion rates, AOV, cart abandonment)\n3. Search for trending products and market opportunities\n4. Scrape 1-2 competitor product pages for comparison\n5. Search for CRO best practices for eCommerce\nGather real pricing and benchmark data." },
+    { description: "Optimizing conversion funnel", duration: 1500 },
+    { description: "Creating growth strategy", duration: 0, isCore2: true, core2Prompt: "You are an eCommerce strategist. Using the research below, create a comprehensive store optimization plan with:\n1. Store Audit Summary (strengths, weaknesses)\n2. Product Description Rewrites (for top 3 products)\n3. CRO Recommendations (10 specific changes with expected impact)\n4. Pricing Analysis vs competitors (table)\n5. Email Automation Sequences (cart abandonment, welcome, post-purchase)\n6. Growth Roadmap (30/60/90 day plan)\n7. KPIs to Track\n\nBe specific with real competitor data.\n\nResearch:\n\n" },
+    { description: "Finalizing plan", duration: 800 },
+  ],
 };
 
 export const DEFAULT_PIPELINE: PipelineStep[] = [
@@ -339,6 +386,23 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "mental-wellbeing": "vitalis",
   "project-planner": "strategist",
   "sprint-planner": "strategist",
+  // New agents → search-enhanced pipelines
+  "seo-agent": "seo",
+  "social-media": "social_media",
+  "ad-copy": "quill",
+  "newsletter-agent": "quill",
+  "video-script": "quill",
+  "vc-due-diligence": "vc_due_diligence",
+  "market-sizing": "market_sizing",
+  "pricing-strategist": "strategist",
+  "proposal-writer": "catalyst",
+  "ecommerce-agent": "ecommerce",
+  "teaching-agent": "atlas",
+  "game-design": "architect",
+  "ui-ux-feedback": "architect",
+  "devops-agent": "architect",
+  "life-coach": "vitalis",
+  "music-generator": "atlas",
 };
 
 export function getPipeline(agentSlug: string): PipelineStep[] {
