@@ -9,6 +9,7 @@ import { calculateCost, calculateImageCost } from "@/lib/ai/cost";
 import { getPipeline, type PipelineStep } from "@/lib/ai/pipelines";
 import { getRequiredToolKeys } from "@/lib/ai/tools/registry";
 import { createWebSearchTool } from "@/lib/ai/tools/web-search";
+import { createDuckDuckGoSearchTool } from "@/lib/ai/tools/duckduckgo";
 import { createWebScrapeTool } from "@/lib/ai/tools/web-scrape";
 import { createFinanceDataTool } from "@/lib/ai/tools/finance-data";
 import { createDataQueryTool, parseFileDataFromDescription, type ParsedFileData } from "@/lib/ai/tools/data-query";
@@ -335,8 +336,11 @@ function buildToolsForStep(
   for (const toolId of step.tools || []) {
     switch (toolId) {
       case "web-search":
+        // Smart fallback: Tavily if user has key (better quality), DuckDuckGo otherwise (free)
         if (toolKeys.tavily) {
           tools.web_search = createWebSearchTool(toolKeys.tavily);
+        } else {
+          tools.web_search = createDuckDuckGoSearchTool();
         }
         break;
       case "web-scrape":
@@ -351,6 +355,7 @@ function buildToolsForStep(
         }
         break;
       case "deep-research":
+        // Deep research uses Tavily internally; if no Tavily key, skip (web_search via DDG covers it)
         if (toolKeys.tavily) {
           tools.deep_research = createDeepResearchTool(toolKeys.tavily);
         }
