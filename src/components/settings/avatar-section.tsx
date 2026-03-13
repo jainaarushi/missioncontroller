@@ -97,8 +97,9 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
       setProgress(finalProgress);
       await mutate();
     } catch (err) {
-      setError("Network error. Please try again.");
-      console.error(err);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setError(`Generation failed: ${msg}. Check console for details.`);
+      console.error("Avatar generation error:", err);
     } finally {
       setGenerating(false);
     }

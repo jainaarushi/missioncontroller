@@ -10,6 +10,9 @@ const CONCURRENCY = 2;
 const GEMINI_MODEL = "gemini-2.0-flash-preview-image-generation";
 const BUCKET = "avatars";
 
+// Allow up to 120s for generating 7 images (Vercel defaults to 10s)
+export const maxDuration = 120;
+
 async function ensureBucket(supabase: Awaited<ReturnType<typeof createClient>>) {
   if (!supabase) return;
   // Try to create — if it already exists, Supabase returns an error we ignore
