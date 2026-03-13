@@ -7,7 +7,7 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
-import { getAgentPersona, type AgentPersona } from "@/lib/agent-personas";
+import { getAgentPersona } from "@/lib/agent-personas";
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -409,8 +409,6 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
   const persona = agent.is_preset ? getAgentPersona(slug) : null;
 
   const accentColor = agent.color || "#6366F1";
-  const pastelBg = accentColor + "08";
-  const pastelBorder = accentColor + "18";
 
   // For resume cards (preset agents with persona)
   if (persona) {
@@ -420,10 +418,7 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
         persona={persona}
         index={index}
         isHovered={isHovered}
-        totalDone={totalDone}
         accentColor={accentColor}
-        pastelBg={pastelBg}
-        pastelBorder={pastelBorder}
         category={category}
         setHoveredId={setHoveredId}
         router={router}
@@ -532,37 +527,35 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
   );
 }
 
-// ── Resume Card (preset agents with persona) ────────────────
+// ── Trading Card (preset agents with persona) ────────────────
 
 function ResumeCard({
   agent,
   persona,
   index,
   isHovered,
-  totalDone,
   accentColor,
-  pastelBg,
-  pastelBorder,
   category,
   setHoveredId,
   router,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   agent: any;
-  persona: AgentPersona;
+  persona: { humanName: string; title: string; animal: string; specialties: string[]; about: string; tasksLabel: string };
   index: number;
   isHovered: boolean;
-  totalDone: number;
   accentColor: string;
-  pastelBg: string;
-  pastelBorder: string;
   category: { name: string; color: string } | null | undefined;
   setHoveredId: (id: string | null) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router: any;
 }) {
   const firstName = persona.humanName.split(" ")[0];
-  const displayTasks = totalDone > 0 ? `${totalDone} done` : persona.tasksLabel;
+  // Light pastel background derived from accent
+  const cardBg = accentColor + "0C";
+  const cardBgHover = accentColor + "14";
+  const ringColor = accentColor + "50";
+  const ringColorOuter = accentColor + "25";
 
   return (
     <div
@@ -571,143 +564,139 @@ function ResumeCard({
       onMouseLeave={() => setHoveredId(null)}
       style={{
         position: "relative",
-        padding: "18px 16px 16px",
-        backgroundColor: pastelBg,
-        borderRadius: 18, cursor: "pointer",
-        overflow: "hidden", minHeight: 200,
+        backgroundColor: isHovered ? cardBgHover : cardBg,
+        borderRadius: 20, cursor: "pointer",
+        overflow: "hidden", minHeight: 220,
         display: "flex", flexDirection: "column",
-        borderLeft: `3px solid ${accentColor}40`,
-        borderTop: `1px solid ${pastelBorder}`,
-        borderRight: `1px solid ${pastelBorder}`,
-        borderBottom: `1px solid ${pastelBorder}`,
+        border: `2px solid ${accentColor}20`,
         animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${index * 0.04}s both`,
         transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
         transform: isHovered ? "translateY(-6px)" : "translateY(0)",
         boxShadow: isHovered
-          ? `0 20px 40px ${accentColor}15, 0 6px 12px ${accentColor}08`
-          : `0 2px 8px ${accentColor}06`,
+          ? `0 20px 40px ${accentColor}18, 0 8px 16px ${accentColor}10`
+          : `0 2px 8px ${accentColor}08`,
       }}
     >
-      {/* Top row: avatar + name + available dot */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={persona.photoUrl}
-          alt={persona.humanName}
-          width={44}
-          height={44}
-          style={{
-            borderRadius: 12,
-            backgroundColor: accentColor + "12",
-            flexShrink: 0,
-          }}
-        />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-          }}>
-            <div style={{
-              fontSize: 14, fontWeight: 800, color: P.text,
-              letterSpacing: "-0.02em", lineHeight: 1.2,
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-            }}>
-              {persona.humanName}
-            </div>
-            {/* Green available dot */}
-            <div style={{
-              width: 7, height: 7, borderRadius: "50%",
-              backgroundColor: "#10B981",
-              flexShrink: 0,
-              boxShadow: "0 0 0 2px #10B98130",
-            }} />
-          </div>
-          <div style={{
-            fontSize: 11, fontWeight: 650, color: accentColor,
-            lineHeight: 1.3, marginTop: 1,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-          }}>
-            {persona.title}
-          </div>
-          <div style={{
-            fontSize: 10, color: P.textSec, marginTop: 2,
-          }}>
-            {persona.yearsExp}+ yrs experience
-          </div>
-        </div>
-      </div>
-
-      {/* Rating + tasks */}
+      {/* ── Title Banner ── */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
-      }}>
-        <div style={{ display: "flex", gap: 1 }}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span key={star} style={{
-              fontSize: 11,
-              color: star <= Math.round(persona.rating) ? "#F59E0B" : "#E5E7EB",
-            }}>
-              &#9733;
-            </span>
-          ))}
-        </div>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: P.text }}>{persona.rating}</span>
-        <span style={{ fontSize: 10, color: P.textTer }}>&middot;</span>
-        <span style={{ fontSize: 10, color: P.textSec, fontWeight: 600 }}>{displayTasks}</span>
-      </div>
-
-      {/* Specialty pills */}
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const, marginBottom: 10 }}>
-        {persona.specialties.map((s) => (
-          <span key={s} style={{
-            fontSize: 9, fontWeight: 700,
-            color: accentColor,
-            backgroundColor: accentColor + "12",
-            padding: "2px 8px", borderRadius: 6,
-          }}>
-            {s}
-          </span>
-        ))}
-      </div>
-
-      {/* Category + Available */}
-      <div style={{
+        background: `linear-gradient(135deg, ${accentColor}DD, ${accentColor}AA)`,
+        padding: "8px 14px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        marginTop: "auto",
       }}>
+        <span style={{
+          fontSize: 11, fontWeight: 900, color: "#fff",
+          letterSpacing: "0.06em", textTransform: "uppercase" as const,
+          textShadow: "0 1px 2px rgba(0,0,0,0.15)",
+        }}>
+          {persona.title.length > 22 ? persona.title.slice(0, 22) + "..." : persona.title}
+        </span>
         {category && (
           <span style={{
-            fontSize: 9, fontWeight: 700,
-            color: category.color,
-            backgroundColor: category.color + "10",
-            padding: "2px 8px", borderRadius: 6,
+            fontSize: 8, fontWeight: 800, color: "#fff",
+            backgroundColor: "rgba(255,255,255,0.25)",
+            padding: "2px 6px", borderRadius: 4,
+            textTransform: "uppercase" as const,
+            letterSpacing: "0.04em",
           }}>
             {category.name.split(" ")[0]}
           </span>
         )}
-        <span style={{
-          fontSize: 9.5, fontWeight: 650, color: "#10B981",
-          display: "flex", alignItems: "center", gap: 3,
+      </div>
+
+      {/* ── Body: Avatar left, Info right ── */}
+      <div style={{ padding: "12px 14px 0", display: "flex", gap: 12 }}>
+        {/* Circular avatar with ring */}
+        <div style={{
+          width: 64, height: 64, borderRadius: "50%",
+          background: `linear-gradient(135deg, ${ringColor}, ${ringColorOuter})`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+          boxShadow: `0 4px 12px ${accentColor}20`,
         }}>
-          Available
+          <div style={{
+            width: 56, height: 56, borderRadius: "50%",
+            backgroundColor: accentColor + "15",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 30,
+            border: `2px solid ${accentColor}30`,
+          }}>
+            {persona.animal}
+          </div>
+        </div>
+
+        {/* Name + About */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 14.5, fontWeight: 900, color: P.text,
+            letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 3,
+          }}>
+            {persona.humanName}
+          </div>
+          <div style={{
+            fontSize: 10.5, color: P.textSec, lineHeight: 1.45,
+          }}>
+            <span style={{ fontWeight: 700, color: accentColor, fontSize: 9, textTransform: "uppercase" as const, letterSpacing: "0.03em" }}>About: </span>
+            {persona.about}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Skills list ── */}
+      <div style={{ padding: "8px 14px 0" }}>
+        <div style={{
+          fontSize: 9, fontWeight: 800, color: accentColor,
+          textTransform: "uppercase" as const, letterSpacing: "0.05em",
+          marginBottom: 4,
+        }}>
+          Skills:
+        </div>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const }}>
+          {persona.specialties.map((s) => (
+            <span key={s} style={{
+              fontSize: 9.5, fontWeight: 700,
+              color: accentColor,
+              backgroundColor: accentColor + "15",
+              padding: "3px 8px", borderRadius: 6,
+              border: `1px solid ${accentColor}20`,
+            }}>
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Tasks label ── */}
+      <div style={{ padding: "8px 14px 0" }}>
+        <span style={{
+          fontSize: 10, fontWeight: 600, color: P.textSec,
+        }}>
+          {persona.tasksLabel} completed
         </span>
       </div>
 
-      {/* Hover CTA */}
+      {/* ── Bottom: Hire Me + Contact ── */}
       <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0,
-        padding: "10px 16px 14px",
-        background: `linear-gradient(to top, ${pastelBg} 70%, transparent)`,
-        opacity: isHovered ? 1 : 0,
-        transform: isHovered ? "translateY(0)" : "translateY(6px)",
-        transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-        zIndex: 5, display: "flex", justifyContent: "center",
+        marginTop: "auto",
+        padding: "10px 14px 12px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <span style={{
-          fontSize: 11.5, fontWeight: 700, color: "#fff",
-          background: agent.gradient || `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`,
-          padding: "6px 18px", borderRadius: 9,
-          boxShadow: `0 4px 14px ${accentColor}35`,
+          fontSize: 12, fontWeight: 900, color: accentColor,
           letterSpacing: "-0.01em",
+          opacity: isHovered ? 1 : 0.7,
+          transition: "opacity 0.3s",
+        }}>
+          HIRE ME!
+        </span>
+        <span style={{
+          fontSize: 10, fontWeight: 700,
+          color: "#fff",
+          backgroundColor: isHovered
+            ? accentColor
+            : accentColor + "90",
+          padding: "4px 12px", borderRadius: 8,
+          transition: "all 0.3s",
+          boxShadow: isHovered ? `0 3px 10px ${accentColor}30` : "none",
         }}>
           Hire {firstName} &rarr;
         </span>
