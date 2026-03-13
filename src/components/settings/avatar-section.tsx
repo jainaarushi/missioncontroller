@@ -54,21 +54,31 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
     setGenerating(true);
     setError(null);
 
-    // Initialize progress
-    const initial: Record<string, "loading" | "done" | "error"> = {};
-    for (const cat of AVATAR_PROMPTS) {
-      initial[cat.id] = "loading";
-    }
-    setProgress(initial);
-
-    const formData = new FormData();
-    formData.append("face", faceFile);
+    // Initialize progress — only "creative" for testing
+    setProgress({ creative: "loading" });
 
     try {
+      // Convert file to base64 and send as JSON (avoids FormData issues)
+      const buffer = await faceFile.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ""),
+      );
+
+      console.log("[avatar] sending request, file size:", faceFile.size, "type:", faceFile.type);
+
       const res = await fetch("/api/user/avatar/generate", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          face: base64,
+          faceType: faceFile.type,
+        }),
       });
+
+      console.log("[avatar] response status:", res.status);
+
+      const text = await res.text();
+      console.log("[avatar] response body:", text.slice(0, 500));
 
       if (res.status === 401) {
         setError("Sign in to generate avatars");
@@ -81,7 +91,14 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
         return;
       }
 
-      const data = await res.json();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setError(`Server returned invalid response: ${text.slice(0, 200)}`);
+        setGenerating(false);
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || "Generation failed");
