@@ -7,34 +7,7 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
-import { useAvatars } from "@/lib/hooks/use-avatars";
-
-const PASTEL_MAP: Record<string, { bg: string; shape1: string; shape2: string; shape3: string }> = {
-  "#6366F1": { bg: "#EDE9FE", shape1: "#DDD6FE", shape2: "#C4B5FD60", shape3: "#A78BFA40" },
-  "#EC4899": { bg: "#FCE7F3", shape1: "#F9A8D4", shape2: "#F472B660", shape3: "#EC489940" },
-  "#10B981": { bg: "#ECFDF5", shape1: "#A7F3D0", shape2: "#6EE7B760", shape3: "#34D39940" },
-  "#F59E0B": { bg: "#FEF3C7", shape1: "#FCD34D", shape2: "#FBBF2460", shape3: "#F59E0B40" },
-  "#0EA5E9": { bg: "#E0F2FE", shape1: "#7DD3FC", shape2: "#38BDF860", shape3: "#0EA5E940" },
-  "#059669": { bg: "#ECFDF5", shape1: "#6EE7B7", shape2: "#34D39960", shape3: "#05966940" },
-  "#7C3AED": { bg: "#EDE9FE", shape1: "#C4B5FD", shape2: "#A78BFA60", shape3: "#7C3AED40" },
-  "#D946EF": { bg: "#FAE8FF", shape1: "#E879F9", shape2: "#D946EF60", shape3: "#C026D340" },
-  "#DC2626": { bg: "#FEF2F2", shape1: "#FECACA", shape2: "#F8717160", shape3: "#DC262640" },
-  "#F97316": { bg: "#FFF7ED", shape1: "#FED7AA", shape2: "#FDBA7460", shape3: "#FB923C40" },
-  "#14B8A6": { bg: "#F0FDFA", shape1: "#99F6E4", shape2: "#5EEAD460", shape3: "#14B8A640" },
-  "#1D4ED8": { bg: "#EFF6FF", shape1: "#93C5FD", shape2: "#60A5FA60", shape3: "#3B82F640" },
-  "#E11D48": { bg: "#FFF1F2", shape1: "#FECDD3", shape2: "#FDA4AF60", shape3: "#FB718540" },
-  "#0891B2": { bg: "#ECFEFF", shape1: "#A5F3FC", shape2: "#67E8F960", shape3: "#22D3EE40" },
-  "#6D28D9": { bg: "#F5F3FF", shape1: "#C4B5FD", shape2: "#A78BFA60", shape3: "#7C3AED40" },
-  "#2563EB": { bg: "#EFF6FF", shape1: "#93C5FD", shape2: "#60A5FA60", shape3: "#3B82F640" },
-  "#475569": { bg: "#F1F5F9", shape1: "#CBD5E1", shape2: "#94A3B860", shape3: "#64748B40" },
-  "#0D9488": { bg: "#F0FDFA", shape1: "#99F6E4", shape2: "#5EEAD460", shape3: "#14B8A640" },
-  "#06B6D4": { bg: "#ECFEFF", shape1: "#A5F3FC", shape2: "#67E8F960", shape3: "#22D3EE40" },
-  "#EF4444": { bg: "#FEF2F2", shape1: "#FECACA", shape2: "#FCA5A560", shape3: "#F8717140" },
-};
-
-function getPastel(color: string) {
-  return PASTEL_MAP[color] || { bg: "#F5F3FF", shape1: "#DDD6FE", shape2: "#C4B5FD60", shape3: "#A78BFA40" };
-}
+import { getAgentPersona, type AgentPersona } from "@/lib/agent-personas";
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -49,7 +22,6 @@ const CATEGORY_ICONS: Record<string, string> = {
 export default function AgentsPage() {
   const { agents, mutate } = useAgents();
   const { tasks } = useTasks();
-  const { avatars } = useAvatars();
   const [showCreate, setShowCreate] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -110,10 +82,6 @@ export default function AgentsPage() {
   return (
     <>
       <style>{`
-        @keyframes floatIcon { 0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(-3deg)} }
-        @keyframes orbit1 { 0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(6px,-4px) rotate(12deg)}50%{transform:translate(0,-8px) rotate(0deg)}75%{transform:translate(-6px,-4px) rotate(-12deg)}100%{transform:translate(0,0) rotate(0deg)} }
-        @keyframes orbit2 { 0%{transform:translate(0,0) scale(1)}50%{transform:translate(-4px,6px) scale(1.15)}100%{transform:translate(0,0) scale(1)} }
-        @keyframes shimmer { 0%{opacity:0.4}50%{opacity:0.7}100%{opacity:0.4} }
         @keyframes createPulse { 0%,100%{box-shadow:0 0 0 0 rgba(249,112,102,0.2)}50%{box-shadow:0 0 0 14px rgba(249,112,102,0)} }
         @keyframes popIn { 0%{opacity:0;transform:scale(0.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)} }
@@ -245,7 +213,6 @@ export default function AgentsPage() {
                 setHoveredId={setHoveredId}
                 onDelete={handleDelete}
                 router={router}
-                avatars={avatars}
               />
             ))}
           </div>
@@ -304,7 +271,6 @@ export default function AgentsPage() {
                   setHoveredId={setHoveredId}
                   onDelete={handleDelete}
                   router={router}
-                  avatars={avatars}
                 />
               ))}
             </div>
@@ -359,7 +325,6 @@ export default function AgentsPage() {
                 setHoveredId={setHoveredId}
                 onDelete={handleDelete}
                 router={router}
-                avatars={avatars}
               />
             ))}
             {/* Create Agent card */}
@@ -419,7 +384,7 @@ export default function AgentsPage() {
   );
 }
 
-// ── Agent Card Component ────────────────────────────────────
+// ── Resume Card Component ────────────────────────────────────
 
 interface AgentCardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -432,19 +397,41 @@ interface AgentCardProps {
   onDelete: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router: any;
-  avatars?: Record<string, string>;
 }
 
-function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, router, avatars }: AgentCardProps) {
+function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, router }: AgentCardProps) {
   const done = tasks.filter((t: { agent_id: string; status: string }) => t.agent_id === agent.id && t.status === "done").length;
-  const pastel = getPastel(agent.color);
   const isHovered = hoveredId === agent.id;
   const totalDone = (agent.tasks_completed || 0) + done;
   const slug = agent.slug || "";
   const catId = AGENT_CATEGORY_MAP[slug];
   const category = catId ? AGENT_CATEGORIES.find(c => c.id === catId) : null;
-  const avatarUrl = catId && avatars ? avatars[catId] : undefined;
+  const persona = agent.is_preset ? getAgentPersona(slug) : null;
 
+  const accentColor = agent.color || "#6366F1";
+  const pastelBg = accentColor + "08";
+  const pastelBorder = accentColor + "18";
+
+  // For resume cards (preset agents with persona)
+  if (persona) {
+    return (
+      <ResumeCard
+        agent={agent}
+        persona={persona}
+        index={index}
+        isHovered={isHovered}
+        totalDone={totalDone}
+        accentColor={accentColor}
+        pastelBg={pastelBg}
+        pastelBorder={pastelBorder}
+        category={category}
+        setHoveredId={setHoveredId}
+        router={router}
+      />
+    );
+  }
+
+  // Fallback for custom agents — simple card with emoji
   return (
     <div
       onClick={() => router.push(`/today?agent=${agent.id}`)}
@@ -452,40 +439,20 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
       onMouseLeave={() => setHoveredId(null)}
       style={{
         position: "relative",
-        padding: "20px 16px 16px",
-        backgroundColor: pastel.bg,
+        padding: "18px 16px 16px",
+        backgroundColor: "#FAFAF8",
         borderRadius: 18, cursor: "pointer",
         overflow: "hidden", minHeight: 200,
         display: "flex", flexDirection: "column",
+        border: `1.5px solid ${P.border}`,
         animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${index * 0.04}s both`,
         transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        transform: isHovered ? "translateY(-8px) scale(1.02)" : "translateY(0) scale(1)",
+        transform: isHovered ? "translateY(-6px)" : "translateY(0)",
         boxShadow: isHovered
-          ? `0 24px 48px ${agent.color}18, 0 8px 16px ${agent.color}10`
-          : `0 2px 8px ${agent.color}06`,
+          ? `0 20px 40px ${accentColor}12, 0 6px 12px ${accentColor}08`
+          : P.shadow,
       }}
     >
-      {/* Decorative shapes */}
-      <div style={{
-        position: "absolute", top: -20, right: -20,
-        width: 70, height: 70, borderRadius: 18,
-        backgroundColor: pastel.shape1,
-        transform: "rotate(20deg)", opacity: 0.5,
-        animation: "orbit1 8s ease-in-out infinite",
-      }} />
-      <div style={{
-        position: "absolute", bottom: 30, right: -8,
-        width: 40, height: 40, borderRadius: "50%",
-        backgroundColor: pastel.shape2,
-        animation: "orbit2 6s ease-in-out infinite",
-      }} />
-      <div style={{
-        position: "absolute", top: "50%", right: 20,
-        width: 24, height: 24, borderRadius: 8,
-        backgroundColor: pastel.shape3,
-        animation: "shimmer 4s ease-in-out infinite",
-      }} />
-
       {/* Delete for custom */}
       {!agent.is_preset && (
         <button
@@ -494,10 +461,10 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
             position: "absolute", top: 8, right: 8, zIndex: 10,
             width: 22, height: 22, borderRadius: 6,
             border: "none",
-            backgroundColor: "rgba(255,255,255,0.6)",
+            backgroundColor: "rgba(0,0,0,0.05)",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", fontSize: 9, color: P.textTer,
-            transition: "all 0.2s", backdropFilter: "blur(4px)",
+            transition: "all 0.2s",
             opacity: isHovered ? 1 : 0,
           }}
         >
@@ -505,121 +472,244 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
         </button>
       )}
 
-      {/* Icon / Avatar */}
-      {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={agent.name}
-          style={{
-            width: 52, height: 52, borderRadius: 15,
-            objectFit: "cover",
-            boxShadow: isHovered
-              ? `0 14px 28px ${agent.color}35, 0 4px 10px ${agent.color}20`
-              : `0 6px 16px ${agent.color}20`,
-            transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
-            animation: isHovered ? "floatIcon 3s ease-in-out infinite" : "none",
-            marginBottom: 12,
-            position: "relative", zIndex: 2,
-          }}
-        />
-      ) : (
-        <div style={{
-          width: 52, height: 52, borderRadius: 15,
-          background: agent.gradient,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 24,
-          boxShadow: isHovered
-            ? `0 14px 28px ${agent.color}35, 0 4px 10px ${agent.color}20`
-            : `0 6px 16px ${agent.color}20`,
-          transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
-          animation: isHovered ? "floatIcon 3s ease-in-out infinite" : "none",
-          marginBottom: 12,
-          position: "relative", zIndex: 2,
-        }}>
-          {agent.icon}
-        </div>
-      )}
+      <div style={{
+        width: 44, height: 44, borderRadius: 12,
+        background: agent.gradient || accentColor,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 22, marginBottom: 12,
+      }}>
+        {agent.icon}
+      </div>
 
-      {/* Text */}
-      <div style={{ position: "relative", zIndex: 2, flex: 1 }}>
-        <div style={{
-          fontSize: 14.5, fontWeight: 800, color: P.text,
-          letterSpacing: "-0.02em", marginBottom: 2, lineHeight: 1.3,
-        }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: P.text, marginBottom: 2, letterSpacing: "-0.02em" }}>
           {agent.name}
         </div>
-        <div style={{
-          fontSize: 11, color: agent.color, fontWeight: 650, marginBottom: 5,
-        }}>
+        <div style={{ fontSize: 11, color: accentColor, fontWeight: 650, marginBottom: 6 }}>
           {agent.description}
         </div>
         <div style={{
           fontSize: 10.5, color: P.textSec, lineHeight: 1.5,
-          opacity: isHovered ? 1 : 0.7,
-          transition: "opacity 0.3s",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical" as const,
-          overflow: "hidden",
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
         }}>
           {agent.long_description}
         </div>
       </div>
 
-      {/* Bottom badges */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 5, marginTop: 10,
-        position: "relative", zIndex: 2, flexWrap: "wrap" as const,
-      }}>
-        {category && (
-          <span style={{
-            fontSize: 8.5, fontWeight: 700, color: category.color,
-            backgroundColor: "rgba(255,255,255,0.7)",
-            backdropFilter: "blur(4px)",
-            padding: "2px 7px", borderRadius: 5,
-          }}>
-            {category.name.split(" ")[0]}
-          </span>
-        )}
-        {!agent.is_preset && (
-          <span style={{
-            fontSize: 8.5, fontWeight: 700, color: "#F97066",
-            backgroundColor: "rgba(255,255,255,0.7)",
-            padding: "2px 7px", borderRadius: 5,
-          }}>
-            Custom
-          </span>
-        )}
+      <div style={{ display: "flex", gap: 5, marginTop: 10, flexWrap: "wrap" as const }}>
+        <span style={{
+          fontSize: 8.5, fontWeight: 700, color: "#F97066",
+          backgroundColor: "#FEF3F2", padding: "2px 7px", borderRadius: 5,
+        }}>Custom</span>
         {totalDone > 0 && (
           <span style={{
             fontSize: 8.5, fontWeight: 600, color: P.textSec,
-            backgroundColor: "rgba(255,255,255,0.5)",
-            padding: "2px 7px", borderRadius: 5,
-          }}>
-            {totalDone} done
-          </span>
+            backgroundColor: "#F5F5F5", padding: "2px 7px", borderRadius: 5,
+          }}>{totalDone} done</span>
         )}
       </div>
 
       {/* Hover CTA */}
       <div style={{
-        position: "absolute",
-        bottom: 0, left: 0, right: 0,
+        position: "absolute", bottom: 0, left: 0, right: 0,
         padding: "8px 16px 12px",
-        background: `linear-gradient(to top, ${pastel.bg} 60%, transparent)`,
+        background: `linear-gradient(to top, #FAFAF8 60%, transparent)`,
         opacity: isHovered ? 1 : 0,
         transform: isHovered ? "translateY(0)" : "translateY(6px)",
         transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-        zIndex: 5,
-        display: "flex", justifyContent: "center",
+        zIndex: 5, display: "flex", justifyContent: "center",
       }}>
         <span style={{
           fontSize: 11, fontWeight: 700, color: "#fff",
-          background: agent.gradient,
+          background: agent.gradient || accentColor,
           padding: "5px 16px", borderRadius: 8,
-          boxShadow: `0 4px 12px ${agent.color}30`,
+          boxShadow: `0 4px 12px ${accentColor}30`,
         }}>
           Use {agent.name} &rarr;
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Resume Card (preset agents with persona) ────────────────
+
+function ResumeCard({
+  agent,
+  persona,
+  index,
+  isHovered,
+  totalDone,
+  accentColor,
+  pastelBg,
+  pastelBorder,
+  category,
+  setHoveredId,
+  router,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  agent: any;
+  persona: AgentPersona;
+  index: number;
+  isHovered: boolean;
+  totalDone: number;
+  accentColor: string;
+  pastelBg: string;
+  pastelBorder: string;
+  category: { name: string; color: string } | null | undefined;
+  setHoveredId: (id: string | null) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router: any;
+}) {
+  const firstName = persona.humanName.split(" ")[0];
+  const displayTasks = totalDone > 0 ? `${totalDone} done` : persona.tasksLabel;
+
+  return (
+    <div
+      onClick={() => router.push(`/today?agent=${agent.id}`)}
+      onMouseEnter={() => setHoveredId(agent.id)}
+      onMouseLeave={() => setHoveredId(null)}
+      style={{
+        position: "relative",
+        padding: "18px 16px 16px",
+        backgroundColor: pastelBg,
+        borderRadius: 18, cursor: "pointer",
+        overflow: "hidden", minHeight: 200,
+        display: "flex", flexDirection: "column",
+        borderLeft: `3px solid ${accentColor}40`,
+        borderTop: `1px solid ${pastelBorder}`,
+        borderRight: `1px solid ${pastelBorder}`,
+        borderBottom: `1px solid ${pastelBorder}`,
+        animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${index * 0.04}s both`,
+        transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        transform: isHovered ? "translateY(-6px)" : "translateY(0)",
+        boxShadow: isHovered
+          ? `0 20px 40px ${accentColor}15, 0 6px 12px ${accentColor}08`
+          : `0 2px 8px ${accentColor}06`,
+      }}
+    >
+      {/* Top row: avatar + name + available dot */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={persona.photoUrl}
+          alt={persona.humanName}
+          width={44}
+          height={44}
+          style={{
+            borderRadius: 12,
+            backgroundColor: accentColor + "12",
+            flexShrink: 0,
+          }}
+        />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <div style={{
+              fontSize: 14, fontWeight: 800, color: P.text,
+              letterSpacing: "-0.02em", lineHeight: 1.2,
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+            }}>
+              {persona.humanName}
+            </div>
+            {/* Green available dot */}
+            <div style={{
+              width: 7, height: 7, borderRadius: "50%",
+              backgroundColor: "#10B981",
+              flexShrink: 0,
+              boxShadow: "0 0 0 2px #10B98130",
+            }} />
+          </div>
+          <div style={{
+            fontSize: 11, fontWeight: 650, color: accentColor,
+            lineHeight: 1.3, marginTop: 1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            {persona.title}
+          </div>
+          <div style={{
+            fontSize: 10, color: P.textSec, marginTop: 2,
+          }}>
+            {persona.yearsExp}+ yrs experience
+          </div>
+        </div>
+      </div>
+
+      {/* Rating + tasks */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
+      }}>
+        <div style={{ display: "flex", gap: 1 }}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span key={star} style={{
+              fontSize: 11,
+              color: star <= Math.round(persona.rating) ? "#F59E0B" : "#E5E7EB",
+            }}>
+              &#9733;
+            </span>
+          ))}
+        </div>
+        <span style={{ fontSize: 10.5, fontWeight: 700, color: P.text }}>{persona.rating}</span>
+        <span style={{ fontSize: 10, color: P.textTer }}>&middot;</span>
+        <span style={{ fontSize: 10, color: P.textSec, fontWeight: 600 }}>{displayTasks}</span>
+      </div>
+
+      {/* Specialty pills */}
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const, marginBottom: 10 }}>
+        {persona.specialties.map((s) => (
+          <span key={s} style={{
+            fontSize: 9, fontWeight: 700,
+            color: accentColor,
+            backgroundColor: accentColor + "12",
+            padding: "2px 8px", borderRadius: 6,
+          }}>
+            {s}
+          </span>
+        ))}
+      </div>
+
+      {/* Category + Available */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        marginTop: "auto",
+      }}>
+        {category && (
+          <span style={{
+            fontSize: 9, fontWeight: 700,
+            color: category.color,
+            backgroundColor: category.color + "10",
+            padding: "2px 8px", borderRadius: 6,
+          }}>
+            {category.name.split(" ")[0]}
+          </span>
+        )}
+        <span style={{
+          fontSize: 9.5, fontWeight: 650, color: "#10B981",
+          display: "flex", alignItems: "center", gap: 3,
+        }}>
+          Available
+        </span>
+      </div>
+
+      {/* Hover CTA */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0,
+        padding: "10px 16px 14px",
+        background: `linear-gradient(to top, ${pastelBg} 70%, transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transform: isHovered ? "translateY(0)" : "translateY(6px)",
+        transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+        zIndex: 5, display: "flex", justifyContent: "center",
+      }}>
+        <span style={{
+          fontSize: 11.5, fontWeight: 700, color: "#fff",
+          background: agent.gradient || `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`,
+          padding: "6px 18px", borderRadius: 9,
+          boxShadow: `0 4px 14px ${accentColor}35`,
+          letterSpacing: "-0.01em",
+        }}>
+          Hire {firstName} &rarr;
         </span>
       </div>
     </div>
