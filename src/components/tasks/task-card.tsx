@@ -181,7 +181,7 @@ export function TaskCard({
             transition: "all 0.3s",
           }}>
             <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
-            <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 800 }}>Ready for your review →</span>
+            <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 800 }}>Mission complete — debrief ready →</span>
           </div>
         )}
 
@@ -239,7 +239,7 @@ export function TaskCard({
               e.currentTarget.style.transform = "scale(1)";
               e.currentTarget.style.boxShadow = `0 2px 8px ${agent?.color || P.indigo}30`;
             }}
-          >▶ Run</button>
+          >🚀 Deploy</button>
         )}
       </div>
     </div>

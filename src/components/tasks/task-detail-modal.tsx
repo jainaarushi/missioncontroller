@@ -1121,7 +1121,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                         opacity: loading ? 0.6 : 1,
                       }}
                     >
-                      {loading ? "Revising..." : "Revise with feedback"}
+                      {loading ? "Sending back..." : "Send back with notes"}
                     </button>
                   </div>
                 </div>
@@ -1161,7 +1161,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                   onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
                 >
-                  Approve ✓
+                  Accept Debrief ✓
                 </button>
                 {!showFeedback && (
                   <button
@@ -1178,7 +1178,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
                     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
                   >
-                    Revise
+                    Send Back
                   </button>
                 )}
               </div>

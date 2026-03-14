@@ -239,15 +239,16 @@ export default function TodayPage() {
 
   async function handleCreateTask(title: string, agentIds?: string[], fileContent?: string) {
     const firstAgent = agentIds?.[0] ? agents.find((a) => a.id === agentIds[0]) : null;
+    const teamSize = agentIds?.length || 0;
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
       user_id: "",
       agent_id: firstAgent?.id || null,
       title,
       description: fileContent || null,
-      status: "todo",
-      progress: 0,
-      current_step: null,
+      status: teamSize > 0 ? "working" : "todo",
+      progress: teamSize > 0 ? 5 : 0,
+      current_step: teamSize > 1 ? `Deploying team of ${teamSize}...` : teamSize === 1 ? `${firstAgent?.name} starting...` : null,
       output: null,
       output_format: "markdown",
       cost_usd: 0,
@@ -255,7 +256,7 @@ export default function TodayPage() {
       tokens_out: 0,
       duration_seconds: 0,
       created_at: new Date().toISOString(),
-      started_at: null,
+      started_at: teamSize > 0 ? new Date().toISOString() : null,
       completed_at: null,
       section: "today",
       sort_order: 0,
@@ -285,13 +286,27 @@ export default function TodayPage() {
         });
       }
 
-      // If agents were selected, assign the first one (don't auto-run)
+      // If agents were selected, assign the first one and auto-run with team
       if (agentIds && agentIds.length > 0) {
         await fetch(`/api/tasks/${task.id}/assign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ agent_id: agentIds[0] }),
         });
+
+        // Auto-run with the full team
+        const teamIds = agentIds.length > 1 ? agentIds.slice(1) : [];
+        const runRes = await fetch(`/api/tasks/${task.id}/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ team: teamIds }),
+        });
+
+        if (runRes.status === 401) {
+          setAuthPrompt("login");
+        } else if (runRes.status === 402) {
+          setAuthPrompt("key");
+        }
       }
     }
 
@@ -713,7 +728,7 @@ export default function TodayPage() {
 
       {/* Review section */}
       <TaskSection
-        label="READY FOR REVIEW"
+        label="AWAITING DEBRIEF"
         sectionId="review"
         tasks={reviewTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}
@@ -726,7 +741,7 @@ export default function TodayPage() {
 
       {/* Working section — drop zone for running agents */}
       <TaskSection
-        label="AGENTS WORKING"
+        label="ON MISSION"
         sectionId="working"
         tasks={workingTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}
@@ -739,7 +754,7 @@ export default function TodayPage() {
 
       {/* To do section */}
       <TaskSection
-        label="TO DO"
+        label="READY TO DEPLOY"
         sectionId="todo"
         tasks={todoTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}

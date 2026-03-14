@@ -5,6 +5,7 @@ import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { AgentInputForm } from "@/components/agents/agent-input-form";
 import { suggestAgents } from "@/lib/utils/agent-suggest";
 import { AGENT_INPUT_CONFIGS, serializeAgentInput, generateTaskTitle } from "@/lib/agent-ui/input-registry";
+import { AGENT_AVATAR_MAP } from "@/lib/agent-avatars";
 import { P } from "@/lib/palette";
 import type { Agent } from "@/lib/types/agent";
 
@@ -17,7 +18,7 @@ interface CreateTaskModalProps {
 }
 
 const CATEGORIES = [
-  { id: "for-you", icon: "✨", label: "For you" },
+  { id: "all", icon: "🌟", label: "All Agents" },
   { id: "research", icon: "🔭", label: "Research" },
   { id: "writing", icon: "✒️", label: "Writing" },
   { id: "code", icon: "💻", label: "Code" },
@@ -29,108 +30,35 @@ const CATEGORIES = [
   { id: "fun", icon: "🔥", label: "Fun" },
 ];
 
-// Category → agent slug mapping
 const CATEGORY_AGENTS: Record<string, string[]> = {
-  "for-you": [],
-  "research": ["deep-research", "fact-checker", "startup-trends", "academic-researcher", "web-intel"],
-  "writing": ["content-creator", "technical-writer", "editor", "blog-to-podcast", "email-drafter"],
-  "code": ["system-architect", "python-expert", "fullstack-developer", "code-reviewer", "debugger"],
+  "all": [],
+  "research": ["deep-research", "fact-checker", "startup-trends", "academic-researcher", "web-intel", "competitor-intel", "market-sizing", "vc-due-diligence"],
+  "writing": ["content-creator", "technical-writer", "editor", "blog-to-podcast", "email-drafter", "journalist", "newsletter-agent", "video-script"],
+  "code": ["system-architect", "python-expert", "fullstack-developer", "code-reviewer", "debugger", "devops-agent", "game-design"],
   "data": ["data-analyst", "visualization-expert"],
-  "business": ["strategy-advisor", "sales-rep", "product-launch", "customer-support", "journalist"],
-  "finance": ["investment-analyst", "personal-finance"],
-  "planning": ["project-planner", "sprint-planner", "meeting-notes", "decision-helper"],
-  "health": ["fitness-coach", "recipe-planner", "mental-wellbeing", "travel-planner", "home-renovation"],
-  "fun": ["roast-master", "dream-interpreter", "villain-origin", "rap-battle", "meme-caption", "fortune-teller", "alien-anthropologist", "toxic-trait", "dating-profile", "bedtime-story", "song-lyrics", "excuse-generator", "movie-plot", "linkedin-post", "future-coach", "debate-champion", "baby-name", "startup-idea-gen", "cover-letter", "apology-writer"],
+  "business": ["strategy-advisor", "sales-rep", "product-launch", "customer-support", "pricing-strategist", "proposal-writer", "ad-copy", "seo-agent", "social-media"],
+  "finance": ["investment-analyst", "personal-finance", "real-estate-analyst"],
+  "planning": ["project-planner", "sprint-planner", "meeting-notes", "decision-helper", "startup-idea-gen", "ux-designer", "ui-ux-feedback"],
+  "health": ["fitness-coach", "recipe-planner", "mental-wellbeing", "travel-planner", "home-renovation", "life-coach", "baby-name"],
+  "fun": ["roast-master", "dream-interpreter", "villain-origin", "rap-battle", "meme-caption", "fortune-teller", "alien-anthropologist", "toxic-trait", "dating-profile", "bedtime-story", "song-lyrics", "excuse-generator", "movie-plot", "linkedin-post", "future-coach", "debate-champion", "cover-letter", "apology-writer", "music-generator"],
 };
 
-// Suggested task templates
-const TASK_TEMPLATES: Record<string, { title: string; icon: string; color: string }[]> = {
-  "for-you": [
-    { title: "Roast me based on my LinkedIn bio", icon: "🔥", color: "#EF4444" },
-    { title: "Research top competitors in my space", icon: "🔍", color: "#6366F1" },
-    { title: "Write a viral LinkedIn post about AI", icon: "💼", color: "#0A66C2" },
-    { title: "Generate a startup idea for [industry]", icon: "💡", color: "#F59E0B" },
-    { title: "Create a workout plan for busy weeks", icon: "💪", color: "#14B8A6" },
-    { title: "Turn my boring life into a villain origin story", icon: "🦹", color: "#581C87" },
-  ],
-  "research": [
-    { title: "Research the top 10 players in [industry]", icon: "🏢", color: "#6366F1" },
-    { title: "Find recent funding rounds in AI/ML startups", icon: "💰", color: "#8B5CF6" },
-    { title: "Fact-check claims from a recent report", icon: "✅", color: "#059669" },
-    { title: "Do a literature review on [topic]", icon: "🎓", color: "#4338CA" },
-    { title: "Compare pricing of 5 competing products", icon: "💲", color: "#6366F1" },
-    { title: "Research market size for [sector]", icon: "📊", color: "#6366F1" },
-  ],
-  "writing": [
-    { title: "Draft a blog post about [topic]", icon: "📝", color: "#EC4899" },
-    { title: "Write a product launch announcement email", icon: "🚀", color: "#EC4899" },
-    { title: "Turn this article into a podcast script", icon: "🎙️", color: "#D946EF" },
-    { title: "Edit and proofread my draft", icon: "🔍", color: "#BE185D" },
-    { title: "Write API documentation for [feature]", icon: "📝", color: "#0891B2" },
-    { title: "Create a 3-email follow-up sequence", icon: "📧", color: "#EA580C" },
-  ],
-  "code": [
-    { title: "Design architecture for a real-time chat app", icon: "💬", color: "#DC2626" },
-    { title: "Review my Python code for best practices", icon: "🐍", color: "#2563EB" },
-    { title: "Debug this error in my React app", icon: "🐛", color: "#E11D48" },
-    { title: "Build a REST API with Node.js and Postgres", icon: "💻", color: "#7C3AED" },
-    { title: "Review this PR for security issues", icon: "🔎", color: "#9333EA" },
-    { title: "Evaluate microservices vs monolith for our scale", icon: "⚖️", color: "#DC2626" },
-  ],
-  "data": [
-    { title: "Analyze website conversion funnel for last 30 days", icon: "📉", color: "#10B981" },
-    { title: "Build a KPI dashboard report", icon: "📊", color: "#10B981" },
-    { title: "Find trends in customer churn data", icon: "📈", color: "#10B981" },
-    { title: "Design the best chart type for this data", icon: "📈", color: "#0D9488" },
-  ],
-  "business": [
-    { title: "Analyze our competitive positioning", icon: "♟️", color: "#1D4ED8" },
-    { title: "Build a go-to-market plan for [product]", icon: "🚀", color: "#C026D3" },
-    { title: "Find 10 target companies matching our ICP", icon: "🎯", color: "#F97316" },
-    { title: "Draft personalized outreach for [prospect]", icon: "✉️", color: "#F97316" },
-    { title: "Write a press release for [announcement]", icon: "📰", color: "#334155" },
-    { title: "Create a 90-day action plan with KPIs", icon: "📋", color: "#1D4ED8" },
-  ],
-  "finance": [
-    { title: "Analyze AAPL vs MSFT stock performance", icon: "📈", color: "#059669" },
-    { title: "Create a monthly budget breakdown", icon: "💳", color: "#16A34A" },
-    { title: "Research ETF options for long-term investing", icon: "🏦", color: "#059669" },
-    { title: "Build a debt payoff plan", icon: "💰", color: "#16A34A" },
-  ],
-  "planning": [
-    { title: "Break down this project into tasks and milestones", icon: "📋", color: "#0369A1" },
-    { title: "Plan the next sprint with story estimates", icon: "🏃", color: "#0284C7" },
-    { title: "Summarize today's meeting with action items", icon: "🗒️", color: "#64748B" },
-    { title: "Help me decide between these options", icon: "⚖️", color: "#78716C" },
-  ],
-  "health": [
-    { title: "Create a 4-week workout plan for muscle gain", icon: "🏋️", color: "#14B8A6" },
-    { title: "Design a meal plan for 2000 cal/day", icon: "🥗", color: "#D97706" },
-    { title: "Guide me through a 10-minute meditation", icon: "🧘", color: "#7C3AED" },
-    { title: "Plan a 5-day trip to Tokyo", icon: "✈️", color: "#0EA5E9" },
-    { title: "Plan a kitchen renovation with budget", icon: "🏠", color: "#92400E" },
-  ],
-  "fun": [
-    { title: "Roast me based on my bio", icon: "🔥", color: "#EF4444" },
-    { title: "Interpret my weird dream from last night", icon: "🌙", color: "#6D28D9" },
-    { title: "Turn my life into a supervillain origin story", icon: "🦹", color: "#581C87" },
-    { title: "Write my dating app profile", icon: "💘", color: "#E11D48" },
-    { title: "Drop some rap bars about Monday mornings", icon: "🎤", color: "#1E1B4B" },
-    { title: "Write a bedtime story for my kid", icon: "🌟", color: "#7C3AED" },
-    { title: "Write meme captions for my situation", icon: "😂", color: "#EA580C" },
-    { title: "Read my fortune based on my birth date", icon: "🔮", color: "#7E22CE" },
-    { title: "Describe my morning routine as an alien scientist", icon: "👽", color: "#059669" },
-    { title: "Analyze my toxic traits (lovingly)", icon: "☠️", color: "#BE123C" },
-    { title: "Generate a million-dollar startup idea", icon: "💡", color: "#F59E0B" },
-    { title: "Write a song about [topic] in [genre]", icon: "🎵", color: "#DB2777" },
-  ],
-};
+// Quick mission templates
+const MISSION_TEMPLATES = [
+  { title: "Research top competitors in my space", icon: "🔍", color: "#6366F1" },
+  { title: "Roast me based on my LinkedIn bio", icon: "🔥", color: "#EF4444" },
+  { title: "Write a viral LinkedIn post about AI", icon: "💼", color: "#0A66C2" },
+  { title: "Create a 4-week workout plan", icon: "💪", color: "#14B8A6" },
+  { title: "Debug this error in my React app", icon: "🐛", color: "#E11D48" },
+  { title: "Analyze my investment portfolio", icon: "📈", color: "#059669" },
+];
 
 export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAgentId }: CreateTaskModalProps) {
-  const [value, setValue] = useState("");
-  const [activeCategory, setActiveCategory] = useState("for-you");
-  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
-  const [dragPipelineIdx, setDragPipelineIdx] = useState<number | null>(null);
+  const [stage, setStage] = useState<1 | 2 | 3>(1);
+  const [missionTitle, setMissionTitle] = useState("");
+  const [recruitedIds, setRecruitedIds] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [agentSearch, setAgentSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFile, setUploadedFile] = useState<{ filename: string; mimeType: string; textContent: string | null } | null>(null);
@@ -140,69 +68,88 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [agentFormValues, setAgentFormValues] = useState<Record<string, unknown>>({});
+  const [launching, setLaunching] = useState(false);
 
-  // Smart agent suggestions based on what the user types
-  const suggestions = useMemo(() => suggestAgents(value, agents), [value, agents]);
+  // Smart suggestions based on mission description
+  const suggestions = useMemo(() => suggestAgents(missionTitle, agents), [missionTitle, agents]);
 
-  // Agent-specific input config (when exactly 1 agent is selected)
-  const activeAgentSlug = selectedAgentIds.length === 1
-    ? agents.find((a) => a.id === selectedAgentIds[0])?.slug
+  // Agent-specific input config
+  const activeAgentSlug = recruitedIds.length === 1
+    ? agents.find((a) => a.id === recruitedIds[0])?.slug
     : undefined;
   const agentInputConfig = activeAgentSlug ? AGENT_INPUT_CONFIGS[activeAgentSlug] : undefined;
 
   useEffect(() => {
     if (open) {
-      setSelectedAgentIds(preSelectedAgentId ? [preSelectedAgentId] : []);
+      setStage(preSelectedAgentId ? 2 : 1);
+      setRecruitedIds(preSelectedAgentId ? [preSelectedAgentId] : []);
+      setMissionTitle("");
+      setAgentSearch("");
+      setActiveCategory("all");
+      setLaunching(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
-      setSelectedAgentIds([]);
-      setValue("");
-      setActiveCategory("for-you");
+      setStage(1);
+      setRecruitedIds([]);
+      setMissionTitle("");
       setUploadedFile(null);
       setRecording(false);
       setTranscribing(false);
       setAgentFormValues({});
+      setLaunching(false);
     }
   }, [open, preSelectedAgentId]);
 
   useEffect(() => {
     if (!open) return;
     function handleEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (stage > 1) setStage((s) => (s - 1) as 1 | 2 | 3);
+        else onClose();
+      }
     }
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [open, onClose]);
+  }, [open, onClose, stage]);
 
   if (!open) return null;
 
-  function toggleAgent(agentId: string) {
-    setSelectedAgentIds((prev) =>
+  function toggleRecruit(agentId: string) {
+    setRecruitedIds((prev) =>
       prev.includes(agentId)
         ? prev.filter((id) => id !== agentId)
-        : [...prev, agentId]
+        : prev.length < 3 ? [...prev, agentId] : prev
     );
   }
 
-  function handlePipelineDragStart(idx: number) {
-    setDragPipelineIdx(idx);
-  }
+  function handleLaunchMission() {
+    let text = missionTitle.trim();
+    let fileContent = uploadedFile?.textContent
+      ? `[Attached: ${uploadedFile.filename}]\n${uploadedFile.textContent}`
+      : undefined;
 
-  function handlePipelineDragOver(e: React.DragEvent, idx: number) {
-    e.preventDefault();
-    if (dragPipelineIdx === null || dragPipelineIdx === idx) return;
-    // Reorder
-    setSelectedAgentIds((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(dragPipelineIdx, 1);
-      next.splice(idx, 0, moved);
-      return next;
-    });
-    setDragPipelineIdx(idx);
-  }
+    if (agentInputConfig && activeAgentSlug && Object.keys(agentFormValues).length > 0) {
+      if (!text) text = generateTaskTitle(activeAgentSlug, agentFormValues);
+      const formDesc = serializeAgentInput(agentFormValues);
+      const formFile = agentFormValues.file as { filename: string; textContent: string } | null;
+      if (formFile?.textContent) {
+        fileContent = (fileContent ? fileContent + "\n\n" : "") + `[Attached: ${formFile.filename}]\n${formFile.textContent}`;
+      }
+      fileContent = (fileContent ? fileContent + "\n\n" : "") + formDesc;
+    }
 
-  function handlePipelineDragEnd() {
-    setDragPipelineIdx(null);
+    if (!text) return;
+
+    setLaunching(true);
+    setTimeout(() => {
+      onSubmit(text, recruitedIds.length > 0 ? recruitedIds : undefined, fileContent);
+      setMissionTitle("");
+      setRecruitedIds([]);
+      setUploadedFile(null);
+      setAgentFormValues({});
+      setLaunching(false);
+      onClose();
+    }, 600);
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -254,7 +201,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
           audioCtx.close();
           const res = await fetch("/api/speech", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ audio: base64 }) });
           const data = await res.json();
-          if (res.ok && data.text) { setValue((prev) => (prev ? prev + " " : "") + data.text); }
+          if (res.ok && data.text) { setMissionTitle((prev) => (prev ? prev + " " : "") + data.text); }
           else { alert(data.error || "Voice transcription failed"); }
         } catch (err) { alert("Voice processing failed."); console.error(err); }
         finally { setTranscribing(false); }
@@ -266,47 +213,19 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
 
   function stopRecording() { mediaRecorderRef.current?.stop(); setRecording(false); }
 
-  function handleSubmit(title?: string) {
-    // If agent-specific form is active, use form values for title and description
-    let text = (title || value).trim();
-    let fileContent = uploadedFile?.textContent
-      ? `[Attached: ${uploadedFile.filename}]\n${uploadedFile.textContent}`
-      : undefined;
+  const recruitedAgents = recruitedIds.map((id) => agents.find((a) => a.id === id)).filter(Boolean) as Agent[];
 
-    if (agentInputConfig && activeAgentSlug && Object.keys(agentFormValues).length > 0) {
-      // Auto-generate title from form values if user didn't type one
-      if (!text) {
-        text = generateTaskTitle(activeAgentSlug, agentFormValues);
-      }
-      // Serialize form values as structured description
-      const formDesc = serializeAgentInput(agentFormValues);
-      // Merge with any file content from the agent form's file field
-      const formFile = agentFormValues.file as { filename: string; textContent: string } | null;
-      if (formFile?.textContent) {
-        fileContent = (fileContent ? fileContent + "\n\n" : "") + `[Attached: ${formFile.filename}]\n${formFile.textContent}`;
-      }
-      // Append serialized form data to any existing file content
-      fileContent = (fileContent ? fileContent + "\n\n" : "") + formDesc;
-    }
-
-    if (!text) return;
-    onSubmit(text, selectedAgentIds.length > 0 ? selectedAgentIds : undefined, fileContent);
-    setValue("");
-    setSelectedAgentIds([]);
-    setUploadedFile(null);
-    setAgentFormValues({});
-    onClose();
-  }
-
-  const selectedAgents = selectedAgentIds.map((id) => agents.find((a) => a.id === id)).filter(Boolean) as Agent[];
-
-  // Filter agents by category
-  const categoryAgentSlugs = CATEGORY_AGENTS[activeCategory] || [];
-  const filteredAgents = activeCategory === "for-you"
-    ? agents.slice(0, 6)
-    : agents.filter((a) => categoryAgentSlugs.includes(a.slug));
-
-  const templates = TASK_TEMPLATES[activeCategory] || TASK_TEMPLATES["for-you"];
+  // Filter agents for stage 2
+  const categorySlugs = CATEGORY_AGENTS[activeCategory] || [];
+  const filteredAgents = activeCategory === "all"
+    ? agents
+    : agents.filter((a) => categorySlugs.includes(a.slug));
+  const searchFiltered = agentSearch.trim()
+    ? filteredAgents.filter((a) =>
+        a.name.toLowerCase().includes(agentSearch.toLowerCase()) ||
+        (a.description || "").toLowerCase().includes(agentSearch.toLowerCase())
+      )
+    : filteredAgents;
 
   return (
     <div
@@ -314,14 +233,14 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       style={{
         position: "fixed", inset: 0, zIndex: 700,
         display: "flex", justifyContent: "center", alignItems: "flex-start",
-        paddingTop: "5vh",
+        paddingTop: "4vh",
       }}
     >
       {/* Backdrop */}
       <div style={{
         position: "absolute", inset: 0,
-        backgroundColor: "rgba(24,24,27,0.45)",
-        backdropFilter: "blur(8px)",
+        background: "radial-gradient(ellipse at center, rgba(99,102,241,0.08) 0%, rgba(24,24,27,0.5) 100%)",
+        backdropFilter: "blur(12px)",
         animation: "fadeIn 0.2s ease",
       }} />
 
@@ -329,551 +248,737 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "min(820px, 95vw)", maxHeight: "88vh",
-          backgroundColor: P.card, borderRadius: 20,
-          boxShadow: P.shadowFloat, position: "relative",
-          animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
-          display: "flex", overflow: "hidden",
+          width: stage === 2 ? "min(920px, 95vw)" : "min(680px, 95vw)",
+          maxHeight: "90vh",
+          backgroundColor: P.card, borderRadius: 24,
+          boxShadow: "0 25px 80px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.08)",
+          position: "relative",
+          animation: "modalIn 0.35s cubic-bezier(0.16,1,0.3,1)",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+          transition: "width 0.3s cubic-bezier(0.16,1,0.3,1)",
         }}
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute", top: 16, right: 16, zIndex: 10,
-            width: 34, height: 34, borderRadius: 10,
-            border: `1px solid ${P.border}`, backgroundColor: P.card,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: 18, color: P.textTer,
-            transition: "all 0.15s",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
-        >
-          ×
-        </button>
+        {/* Progress bar */}
+        <div style={{
+          height: 3,
+          background: `linear-gradient(90deg, ${P.indigo} ${stage * 33}%, ${P.border} ${stage * 33}%)`,
+          transition: "background 0.4s ease",
+        }} />
 
-        {/* Left sidebar — categories */}
-        <div className="create-modal-sidebar" style={{
-          width: 200, borderRight: `1px solid ${P.border}`,
-          padding: "28px 0", flexShrink: 0,
-          overflowY: "auto",
+        {/* Header */}
+        <div style={{
+          padding: "20px 28px 0",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <h2 style={{
-            fontSize: 24, fontWeight: 800, color: P.text,
-            padding: "0 20px 20px", letterSpacing: "-0.03em",
-            lineHeight: 1.2,
-          }}>
-            Create a task
-          </h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {stage > 1 && (
+              <button
+                onClick={() => setStage((s) => (s - 1) as 1 | 2 | 3)}
+                style={{
+                  width: 32, height: 32, borderRadius: 10,
+                  border: `1px solid ${P.border}`, backgroundColor: P.card,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", fontSize: 16, color: P.textSec,
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
+              >
+                ←
+              </button>
+            )}
+            <div>
+              <h2 style={{
+                fontSize: 20, fontWeight: 800, color: P.text, margin: 0,
+                letterSpacing: "-0.03em",
+              }}>
+                {stage === 1 ? "Describe Your Mission" : stage === 2 ? "Recruit Your Team" : "Launch Mission"}
+              </h2>
+              <div style={{ fontSize: 12, color: P.textTer, marginTop: 2 }}>
+                {stage === 1 ? "What do you need done?" : stage === 2 ? `Select up to 3 agents (${recruitedIds.length}/3)` : "Review and deploy your team"}
+              </div>
+            </div>
+          </div>
 
-          <nav>
-            {CATEGORIES.map((cat) => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <div
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 10,
-                    padding: "9px 20px", cursor: "pointer",
-                    backgroundColor: isActive ? `${P.indigo}08` : "transparent",
-                    borderLeft: isActive ? `3px solid ${P.indigo}` : "3px solid transparent",
-                    color: isActive ? P.indigo : P.textSec,
-                    fontWeight: isActive ? 700 : 500,
-                    fontSize: 14, transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{cat.icon}</span>
-                  <span>{cat.label}</span>
-                </div>
-              );
-            })}
-          </nav>
+          {/* Stage indicators */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {[1, 2, 3].map((s) => (
+              <div key={s} style={{
+                width: s === stage ? 28 : 8, height: 8, borderRadius: 4,
+                backgroundColor: s <= stage ? P.indigo : P.border,
+                transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+              }} />
+            ))}
+            <button
+              onClick={onClose}
+              style={{
+                width: 32, height: 32, borderRadius: 10, marginLeft: 8,
+                border: `1px solid ${P.border}`, backgroundColor: P.card,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", fontSize: 16, color: P.textTer,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
+            >
+              ×
+            </button>
+          </div>
         </div>
 
-        {/* Right content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px 30px 30px" }}>
-          {/* Mobile heading (visible when sidebar hidden) */}
-          <style>{`
-            .create-mobile-heading { display: none; }
-            @media (max-width: 768px) { .create-mobile-heading { display: block !important; } }
-          `}</style>
-          <h2 className="create-mobile-heading" style={{
-            fontSize: 20, fontWeight: 800, color: P.text,
-            marginBottom: 16, letterSpacing: "-0.03em", display: "none",
-          }}>
-            Create a task
-          </h2>
-          {/* Search input */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "12px 16px", borderRadius: 12,
-            border: `2px solid ${P.indigo}30`,
-            backgroundColor: P.card,
-            marginBottom: 24,
-            transition: "border-color 0.2s",
-          }}>
-            <span style={{ fontSize: 18, color: P.textTer }}>&#128269;</span>
-            <input
-              ref={inputRef}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSubmit();
-              }}
-              placeholder="Create a task"
-              style={{
-                flex: 1, border: "none", outline: "none",
-                fontSize: 16, color: P.text, backgroundColor: "transparent",
-                fontWeight: 500, fontFamily: "inherit",
-              }}
-            />
-            {value.trim() && (
-              <button
-                onClick={() => handleSubmit()}
-                style={{
-                  padding: "7px 18px", borderRadius: 9, border: "none",
-                  background: P.coralGrad, color: "#fff",
-                  fontSize: 13, fontWeight: 700, cursor: "pointer",
-                  fontFamily: "inherit",
-                  boxShadow: "0 3px 10px rgba(249,112,102,0.3)",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Create
-              </button>
-            )}
-          </div>
-
-          {/* Voice + File buttons */}
-          <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.csv,.json,.md,.jpg,.jpeg,.png,.gif,.webp" onChange={handleFileUpload} style={{ display: "none" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: -16, marginBottom: 16 }}>
-            <button
-              onClick={recording ? stopRecording : startRecording}
-              disabled={transcribing}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "5px 12px", borderRadius: 8,
-                border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
-                backgroundColor: recording ? "#FEF2F2" : P.card,
-                color: recording ? "#EF4444" : P.textSec,
-                fontSize: 11.5, fontWeight: 600, cursor: "pointer",
-                fontFamily: "inherit", transition: "all 0.15s",
-                opacity: transcribing ? 0.5 : 1,
-                animation: recording ? "pulseGlow 1.5s ease-in-out infinite" : "none",
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                {recording ? <rect x="6" y="6" width="12" height="12" rx="2" /> : (
-                  <>
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="23" />
-                  </>
-                )}
-              </svg>
-              {transcribing ? "Transcribing..." : recording ? "Stop" : "Voice"}
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "5px 12px", borderRadius: 8,
-                border: `1.5px solid ${P.border}`,
-                backgroundColor: P.card, color: P.textSec,
-                fontSize: 11.5, fontWeight: 600, cursor: "pointer",
-                fontFamily: "inherit", transition: "all 0.15s",
-                opacity: uploading ? 0.5 : 1,
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              {uploading ? "Uploading..." : "Attach"}
-            </button>
-            {uploadedFile && (
+        {/* Content area */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 28px 28px" }}>
+          {/* ─── STAGE 1: Describe the Mission ─── */}
+          {stage === 1 && (
+            <div style={{ animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)" }}>
+              {/* Main input */}
               <div style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "4px 10px", borderRadius: 8,
-                backgroundColor: P.indigo + "08", border: `1px solid ${P.indigo}15`,
-                fontSize: 11, fontWeight: 600, color: P.text,
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "14px 18px", borderRadius: 14,
+                border: `2px solid ${P.indigo}25`,
+                backgroundColor: P.sidebar,
+                marginBottom: 16,
+                transition: "border-color 0.2s",
               }}>
-                📄 {uploadedFile.filename}
-                <button onClick={() => setUploadedFile(null)} style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  color: P.textTer, fontSize: 10, padding: "0 2px",
-                }}>✕</button>
+                <span style={{ fontSize: 20 }}>🎯</span>
+                <input
+                  ref={inputRef}
+                  value={missionTitle}
+                  onChange={(e) => setMissionTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && missionTitle.trim()) {
+                      setStage(2);
+                    }
+                  }}
+                  placeholder="What's the mission? e.g. Research AI trends in healthcare"
+                  style={{
+                    flex: 1, border: "none", outline: "none",
+                    fontSize: 16, color: P.text, backgroundColor: "transparent",
+                    fontWeight: 500, fontFamily: "inherit",
+                  }}
+                />
               </div>
-            )}
-            {recording && (
-              <span style={{ fontSize: 10.5, color: "#EF4444", fontWeight: 500 }}>
-                Recording... click Stop when done
-              </span>
-            )}
-          </div>
 
-          {/* Smart agent suggestions — appears as user types */}
-          {suggestions.length > 0 && (
-            <div style={{
-              marginBottom: 20,
-              animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
-            }}>
-              <div style={{
-                fontSize: 13, fontWeight: 700, color: P.indigo,
-                marginBottom: 10, display: "flex", alignItems: "center", gap: 6,
-              }}>
-                <span style={{ fontSize: 14 }}>✨</span>
-                Suggested agents for this task
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {suggestions.map(({ agent, reason }, i) => {
-                  const isSelected = selectedAgentIds.includes(agent.id);
-                  const orderNum = isSelected ? selectedAgentIds.indexOf(agent.id) + 1 : null;
-                  return (
-                    <div
-                      key={agent.id}
-                      onClick={() => toggleAgent(agent.id)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 12,
-                        padding: "12px 14px", borderRadius: 14, cursor: "pointer",
-                        backgroundColor: isSelected ? agent.color + "0a" : P.sidebar,
-                        border: `2px solid ${isSelected ? agent.color + "40" : "transparent"}`,
-                        transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
-                        animation: `fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) ${i * 0.05}s both`,
-                        transform: isSelected ? "scale(1.01)" : "scale(1)",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = agent.color + "08";
-                          e.currentTarget.style.borderColor = agent.color + "20";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = P.sidebar;
-                          e.currentTarget.style.borderColor = "transparent";
-                        }
-                      }}
-                    >
-                      {/* Selection order badge */}
-                      <div style={{
-                        width: 24, height: 24, borderRadius: 8, flexShrink: 0,
-                        border: `2px solid ${isSelected ? agent.color : P.textGhost}`,
-                        backgroundColor: isSelected ? agent.color : "transparent",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        transition: "all 0.2s",
-                        fontSize: 11, fontWeight: 800, color: isSelected ? "#fff" : "transparent",
-                      }}>
-                        {orderNum || ""}
-                      </div>
-                      <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={36} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{agent.name}</div>
-                        <div style={{ fontSize: 12, color: P.textTer, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {reason}
-                        </div>
-                      </div>
-                      <span style={{
-                        fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 7,
-                        color: isSelected ? agent.color : P.textTer,
-                        backgroundColor: isSelected ? agent.color + "15" : P.border + "80",
-                        transition: "all 0.2s",
-                      }}>
-                        {isSelected ? "Added" : "+ Add"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Agent pipeline — drag-and-drop to reorder */}
-          {selectedAgents.length > 0 && (
-            <div style={{
-              marginBottom: 20, padding: "16px 18px", borderRadius: 14,
-              backgroundColor: P.sidebar, border: `1.5px solid ${P.border}`,
-              animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
-            }}>
-              <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                marginBottom: 12,
-              }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 700, color: P.textTer,
-                  letterSpacing: "0.05em",
-                }}>
-                  AGENT PIPELINE
-                </div>
-                <div style={{ fontSize: 10.5, color: P.textGhost }}>
-                  Drag to reorder
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
-                {selectedAgents.map((agent, i) => (
-                  <div key={agent.id} style={{ display: "flex", alignItems: "center" }}>
-                    <div
-                      draggable
-                      onDragStart={() => handlePipelineDragStart(i)}
-                      onDragOver={(e) => handlePipelineDragOver(e, i)}
-                      onDragEnd={handlePipelineDragEnd}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "7px 10px 7px 7px", borderRadius: 22,
-                        backgroundColor: dragPipelineIdx === i ? agent.color + "20" : agent.color + "12",
-                        cursor: "grab",
-                        transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
-                        animation: `popIn 0.3s cubic-bezier(0.22,1,0.36,1) ${i * 0.08}s both`,
-                        border: `2px solid ${dragPipelineIdx === i ? agent.color + "40" : "transparent"}`,
-                        transform: dragPipelineIdx === i ? "scale(1.05)" : "scale(1)",
-                        boxShadow: dragPipelineIdx === i ? `0 4px 12px ${agent.color}20` : "none",
-                        userSelect: "none",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = agent.color + "1a"; }}
-                      onMouseLeave={(e) => { if (dragPipelineIdx !== i) e.currentTarget.style.backgroundColor = agent.color + "12"; }}
-                    >
-                      {/* Drag grip dots */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 1.5, marginRight: 2, opacity: 0.4 }}>
-                        {[0, 1].map((r) => (
-                          <div key={r} style={{ display: "flex", gap: 1.5 }}>
-                            <div style={{ width: 2.5, height: 2.5, borderRadius: "50%", backgroundColor: agent.color }} />
-                            <div style={{ width: 2.5, height: 2.5, borderRadius: "50%", backgroundColor: agent.color }} />
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{
-                        width: 22, height: 22, borderRadius: 7,
-                        background: agent.gradient,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, flexShrink: 0,
-                        boxShadow: `0 2px 6px ${agent.color}25`,
-                      }}>
-                        {agent.icon}
-                      </div>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: agent.color }}>{agent.name}</span>
-                      {/* Step number badge */}
-                      <span style={{
-                        fontSize: 9, fontWeight: 800, color: "#fff",
-                        backgroundColor: agent.color,
-                        width: 18, height: 18, borderRadius: 6,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
-                      }}>
-                        {i + 1}
-                      </span>
-                      {/* Remove button */}
-                      <span
-                        onClick={(e) => { e.stopPropagation(); toggleAgent(agent.id); }}
-                        style={{
-                          fontSize: 10, color: agent.color, opacity: 0.5, cursor: "pointer",
-                          marginLeft: -2, padding: "0 2px",
-                          transition: "opacity 0.15s",
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.5"; }}
-                      >✕</span>
-                    </div>
-                    {i < selectedAgents.length - 1 && (
-                      <div style={{
-                        margin: "0 6px", color: P.textGhost, fontSize: 16, fontWeight: 500,
-                        transition: "all 0.2s",
-                      }}>→</div>
+              {/* Voice + File + Attachment indicator */}
+              <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.csv,.json,.md,.jpg,.jpeg,.png,.gif,.webp" onChange={handleFileUpload} style={{ display: "none" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+                <button
+                  onClick={recording ? stopRecording : startRecording}
+                  disabled={transcribing}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    padding: "6px 14px", borderRadius: 10,
+                    border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
+                    backgroundColor: recording ? "#FEF2F2" : P.card,
+                    color: recording ? "#EF4444" : P.textSec,
+                    fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                    opacity: transcribing ? 0.5 : 1,
+                    animation: recording ? "pulseGlow 1.5s ease-in-out infinite" : "none",
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    {recording ? <rect x="6" y="6" width="12" height="12" rx="2" /> : (
+                      <>
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                      </>
                     )}
+                  </svg>
+                  {transcribing ? "Transcribing..." : recording ? "Stop" : "Voice"}
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    padding: "6px 14px", borderRadius: 10,
+                    border: `1.5px solid ${P.border}`,
+                    backgroundColor: P.card, color: P.textSec,
+                    fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                    opacity: uploading ? 0.5 : 1,
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  {uploading ? "Uploading..." : "Attach"}
+                </button>
+                {uploadedFile && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    padding: "5px 12px", borderRadius: 10,
+                    backgroundColor: P.indigo + "08", border: `1px solid ${P.indigo}15`,
+                    fontSize: 11, fontWeight: 600, color: P.text,
+                  }}>
+                    📄 {uploadedFile.filename}
+                    <button onClick={() => setUploadedFile(null)} style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      color: P.textTer, fontSize: 10, padding: "0 2px",
+                    }}>✕</button>
                   </div>
-                ))}
+                )}
               </div>
-              <div style={{
-                fontSize: 11.5, color: P.textSec, marginTop: 10,
-                lineHeight: 1.5,
-              }}>
-                {selectedAgents.length === 1
-                  ? `${selectedAgents[0].name} will handle this task solo`
-                  : `${selectedAgents.map((a) => a.name).join(" → ")} — each agent builds on the previous output`
-                }
-              </div>
-            </div>
-          )}
 
-          {/* Agent-specific input form */}
-          {agentInputConfig && selectedAgents.length === 1 && (
-            <div style={{
-              marginBottom: 20, padding: "18px 20px", borderRadius: 14,
-              backgroundColor: P.card,
-              border: `1.5px solid ${selectedAgents[0].color}20`,
-              animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
-            }}>
+              {/* Quick missions */}
               <div style={{
-                fontSize: 12, fontWeight: 700, color: selectedAgents[0].color,
-                marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.04em",
-                display: "flex", alignItems: "center", gap: 6,
+                fontSize: 13, fontWeight: 700, color: P.textSec,
+                marginBottom: 12, letterSpacing: "0.02em",
               }}>
-                <span style={{ fontSize: 14 }}>{selectedAgents[0].icon}</span>
-                {selectedAgents[0].name} Details
+                Quick missions
               </div>
-              <AgentInputForm
-                config={agentInputConfig}
-                agentColor={selectedAgents[0].color}
-                values={agentFormValues}
-                onChange={setAgentFormValues}
-              />
-              <button
-                onClick={() => handleSubmit()}
-                style={{
-                  marginTop: 16, width: "100%",
-                  padding: "10px 20px", borderRadius: 10, border: "none",
-                  background: selectedAgents[0].gradient || P.coralGrad,
-                  color: "#fff", fontSize: 14, fontWeight: 700,
-                  cursor: "pointer", fontFamily: "inherit",
-                  boxShadow: `0 4px 14px ${selectedAgents[0].color}30`,
-                  transition: "all 0.15s",
-                }}
-              >
-                Create Task
-              </button>
-            </div>
-          )}
-
-          {/* Quick actions — agent cards */}
-          {filteredAgents.length > 0 && (
-            <>
-              <div style={{
-                fontSize: 16, fontWeight: 700, color: P.text,
-                marginBottom: 14, letterSpacing: "-0.01em",
-              }}>
-                Quick actions
-              </div>
-              <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
-                {filteredAgents.map((agent, i) => (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
+                {MISSION_TEMPLATES.map((tpl, i) => (
                   <div
-                    key={agent.id}
-                    onClick={() => toggleAgent(agent.id)}
+                    key={tpl.title}
+                    onClick={() => { setMissionTitle(tpl.title); setStage(2); }}
                     style={{
-                      display: "flex", flexDirection: "column", alignItems: "center",
-                      gap: 8, cursor: "pointer", width: 80,
-                      animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.05}s both`,
-                      transition: "all 0.2s",
+                      padding: "14px 16px", borderRadius: 14, cursor: "pointer",
+                      backgroundColor: P.sidebar,
+                      border: "1.5px solid transparent",
+                      transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
+                      animation: `fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
+                      display: "flex", alignItems: "center", gap: 12,
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = tpl.color + "08";
+                      e.currentTarget.style.borderColor = tpl.color + "25";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = P.sidebar;
+                      e.currentTarget.style.borderColor = "transparent";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
                   >
-                    <div style={{
-                      width: 52, height: 52, borderRadius: 16,
-                      background: agent.gradient,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 24,
-                      boxShadow: `0 4px 14px ${agent.color}25`,
-                      transition: "all 0.2s",
-                    }}>
-                      {agent.icon}
-                    </div>
                     <span style={{
-                      fontSize: 11.5, fontWeight: 600, color: P.textSec,
-                      textAlign: "center", lineHeight: 1.3,
+                      fontSize: 20, width: 38, height: 38, borderRadius: 10,
+                      backgroundColor: tpl.color + "12",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0,
                     }}>
-                      {agent.description?.split(" ")[0] || agent.name}
+                      {tpl.icon}
+                    </span>
+                    <span style={{ fontSize: 13.5, fontWeight: 550, color: P.text, lineHeight: 1.4 }}>
+                      {tpl.title}
                     </span>
                   </div>
                 ))}
               </div>
-            </>
-          )}
 
-          {/* Category filter pills */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-            {CATEGORIES.slice(0, 8).map((cat) => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    padding: "6px 14px", borderRadius: 20,
-                    border: isActive ? "none" : `1.5px solid ${P.border}`,
-                    backgroundColor: isActive ? P.indigo : P.card,
-                    color: isActive ? "#fff" : P.textSec,
-                    fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-                    fontFamily: "inherit", transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) { e.currentTarget.style.borderColor = P.borderHover; e.currentTarget.style.backgroundColor = P.sidebar; }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.card; }
-                  }}
-                >
-                  <span style={{ fontSize: 13 }}>{cat.icon}</span>
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Suggested templates */}
-          <div style={{
-            fontSize: 16, fontWeight: 700, color: P.text,
-            marginBottom: 14, letterSpacing: "-0.01em",
-          }}>
-            {activeCategory === "for-you" ? "Popular" : CATEGORIES.find((c) => c.id === activeCategory)?.label}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {templates.map((tpl, i) => (
-              <div
-                key={tpl.title}
-                onClick={() => handleSubmit(tpl.title)}
+              {/* Next button */}
+              <button
+                onClick={() => { if (missionTitle.trim()) setStage(2); }}
+                disabled={!missionTitle.trim()}
                 style={{
-                  padding: "16px 18px", borderRadius: 14, cursor: "pointer",
-                  backgroundColor: P.sidebar,
-                  border: `1.5px solid transparent`,
-                  transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
-                  animation: `fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = tpl.color + "08";
-                  e.currentTarget.style.borderColor = tpl.color + "25";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = `0 6px 20px ${tpl.color}10`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = P.sidebar;
-                  e.currentTarget.style.borderColor = "transparent";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
+                  width: "100%", padding: "14px 20px", borderRadius: 14,
+                  border: "none",
+                  background: missionTitle.trim() ? "linear-gradient(135deg, #6366F1, #8B5CF6)" : P.border,
+                  color: missionTitle.trim() ? "#fff" : P.textTer,
+                  fontSize: 15, fontWeight: 700, cursor: missionTitle.trim() ? "pointer" : "default",
+                  fontFamily: "inherit",
+                  boxShadow: missionTitle.trim() ? "0 4px 20px rgba(99,102,241,0.3)" : "none",
+                  transition: "all 0.2s",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <span style={{
-                    fontSize: 20, flexShrink: 0, marginTop: 1,
-                    width: 36, height: 36, borderRadius: 10,
-                    backgroundColor: tpl.color + "12",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    {tpl.icon}
-                  </span>
+                Recruit Your Team
+                <span style={{ fontSize: 18 }}>→</span>
+              </button>
+            </div>
+          )}
+
+          {/* ─── STAGE 2: Recruit Your Team ─── */}
+          {stage === 2 && (
+            <div style={{ animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)" }}>
+              {/* Mission reminder */}
+              <div style={{
+                padding: "10px 14px", borderRadius: 10,
+                backgroundColor: P.indigo + "06", border: `1px solid ${P.indigo}15`,
+                marginBottom: 16, display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span style={{ fontSize: 14 }}>🎯</span>
+                <span style={{ fontSize: 13, color: P.text, fontWeight: 500 }}>{missionTitle}</span>
+              </div>
+
+              {/* AI suggestions */}
+              {suggestions.length > 0 && recruitedIds.length === 0 && (
+                <div style={{ marginBottom: 16 }}>
                   <div style={{
-                    fontSize: 13.5, fontWeight: 550, color: P.text,
-                    lineHeight: 1.45,
+                    fontSize: 12, fontWeight: 700, color: P.indigo,
+                    marginBottom: 8, display: "flex", alignItems: "center", gap: 5,
                   }}>
-                    {tpl.title}
+                    <span>✨</span> Recommended for this mission
+                  </div>
+                  <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+                    {suggestions.slice(0, 4).map(({ agent, reason }, i) => (
+                      <div
+                        key={agent.id}
+                        onClick={() => toggleRecruit(agent.id)}
+                        style={{
+                          minWidth: 140, padding: "12px", borderRadius: 14,
+                          backgroundColor: P.sidebar, border: `2px solid ${P.indigo}15`,
+                          cursor: "pointer", textAlign: "center",
+                          transition: "all 0.2s",
+                          animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.08}s both`,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = agent.color + "40";
+                          e.currentTarget.style.transform = "translateY(-3px)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = P.indigo + "15";
+                          e.currentTarget.style.transform = "translateY(0)";
+                        }}
+                      >
+                        {/* Avatar */}
+                        {AGENT_AVATAR_MAP[agent.slug] ? (
+                          <div style={{
+                            width: 52, height: 52, borderRadius: 16, margin: "0 auto 8px",
+                            overflow: "hidden", border: `2px solid ${agent.color}20`,
+                          }}>
+                            <img
+                              src={AGENT_AVATAR_MAP[agent.slug]}
+                              alt={agent.name}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          </div>
+                        ) : (
+                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
+                        )}
+                        <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2 }}>{agent.name}</div>
+                        <div style={{ fontSize: 10, color: P.textTer, lineHeight: 1.3 }}>{reason}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              )}
+
+              {/* Search + Category filter */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                <div style={{
+                  flex: 1, display: "flex", alignItems: "center", gap: 8,
+                  padding: "8px 12px", borderRadius: 10,
+                  border: `1.5px solid ${P.border}`, backgroundColor: P.card,
+                }}>
+                  <span style={{ fontSize: 14, color: P.textTer }}>🔍</span>
+                  <input
+                    value={agentSearch}
+                    onChange={(e) => setAgentSearch(e.target.value)}
+                    placeholder="Search agents..."
+                    style={{
+                      flex: 1, border: "none", outline: "none",
+                      fontSize: 13, color: P.text, backgroundColor: "transparent",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
+
+              {/* Category pills */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+                {CATEGORIES.map((cat) => {
+                  const isActive = activeCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 4,
+                        padding: "5px 12px", borderRadius: 20,
+                        border: isActive ? "none" : `1.5px solid ${P.border}`,
+                        backgroundColor: isActive ? P.indigo : P.card,
+                        color: isActive ? "#fff" : P.textSec,
+                        fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+                        fontFamily: "inherit", transition: "all 0.15s",
+                      }}
+                    >
+                      <span style={{ fontSize: 12 }}>{cat.icon}</span>
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Agent grid */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                gap: 10, maxHeight: 320, overflowY: "auto",
+                paddingRight: 4,
+              }}>
+                {searchFiltered.map((agent, i) => {
+                  const isRecruited = recruitedIds.includes(agent.id);
+                  const avatarImg = AGENT_AVATAR_MAP[agent.slug];
+                  return (
+                    <div
+                      key={agent.id}
+                      onClick={() => toggleRecruit(agent.id)}
+                      style={{
+                        padding: "14px 12px", borderRadius: 16, cursor: "pointer",
+                        backgroundColor: isRecruited ? agent.color + "0a" : P.sidebar,
+                        border: `2px solid ${isRecruited ? agent.color + "50" : "transparent"}`,
+                        transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
+                        animation: `popIn 0.35s cubic-bezier(0.16,1,0.3,1) ${Math.min(i * 0.02, 0.3)}s both`,
+                        textAlign: "center",
+                        position: "relative",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isRecruited) {
+                          e.currentTarget.style.backgroundColor = agent.color + "08";
+                          e.currentTarget.style.borderColor = agent.color + "25";
+                          e.currentTarget.style.transform = "translateY(-3px)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isRecruited) {
+                          e.currentTarget.style.backgroundColor = P.sidebar;
+                          e.currentTarget.style.borderColor = "transparent";
+                          e.currentTarget.style.transform = "translateY(0)";
+                        }
+                      }}
+                    >
+                      {/* Recruited badge */}
+                      {isRecruited && (
+                        <div style={{
+                          position: "absolute", top: 8, right: 8,
+                          width: 22, height: 22, borderRadius: 7,
+                          backgroundColor: agent.color, color: "#fff",
+                          fontSize: 11, fontWeight: 800,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          animation: "popIn 0.3s cubic-bezier(0.16,1,0.3,1)",
+                          boxShadow: `0 2px 8px ${agent.color}40`,
+                        }}>
+                          {recruitedIds.indexOf(agent.id) + 1}
+                        </div>
+                      )}
+
+                      {/* Avatar */}
+                      {avatarImg ? (
+                        <div style={{
+                          width: 52, height: 52, borderRadius: 16, margin: "0 auto 8px",
+                          overflow: "hidden",
+                          border: `2px solid ${isRecruited ? agent.color + "40" : agent.color + "15"}`,
+                          transition: "all 0.2s",
+                        }}>
+                          <img
+                            src={avatarImg}
+                            alt={agent.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ margin: "0 auto 8px" }}>
+                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
+                        </div>
+                      )}
+
+                      <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2 }}>
+                        {agent.name}
+                      </div>
+                      <div style={{
+                        fontSize: 10, color: P.textTer, lineHeight: 1.3,
+                        overflow: "hidden", textOverflow: "ellipsis",
+                        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
+                      }}>
+                        {agent.description || "AI specialist"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Recruited team bar + next button */}
+              <div style={{
+                marginTop: 20, display: "flex", alignItems: "center", gap: 14,
+              }}>
+                {/* Team preview */}
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+                  {recruitedAgents.length === 0 ? (
+                    <span style={{ fontSize: 13, color: P.textTer }}>Select agents to build your team</span>
+                  ) : (
+                    <>
+                      <div style={{ display: "flex", marginLeft: 4 }}>
+                        {recruitedAgents.map((agent, i) => {
+                          const avatarImg = AGENT_AVATAR_MAP[agent.slug];
+                          return (
+                            <div key={agent.id} style={{
+                              width: 36, height: 36, borderRadius: 12,
+                              overflow: "hidden", border: `2px solid ${P.card}`,
+                              marginLeft: i > 0 ? -10 : 0,
+                              zIndex: 10 - i,
+                              animation: `popIn 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 0.1}s both`,
+                            }}>
+                              {avatarImg ? (
+                                <img src={avatarImg} alt={agent.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              ) : (
+                                <div style={{
+                                  width: "100%", height: "100%",
+                                  background: agent.gradient,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontSize: 16,
+                                }}>
+                                  {agent.icon}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: P.text }}>
+                          {recruitedAgents.map((a) => a.name).join(" → ")}
+                        </div>
+                        <div style={{ fontSize: 10, color: P.textTer }}>
+                          {recruitedAgents.length === 1 ? "Solo mission" : `Team of ${recruitedAgents.length} — each builds on the previous`}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (recruitedIds.length > 0) setStage(3);
+                    else if (missionTitle.trim()) handleLaunchMission();
+                  }}
+                  disabled={!missionTitle.trim() && recruitedIds.length === 0}
+                  style={{
+                    padding: "12px 24px", borderRadius: 12,
+                    border: "none",
+                    background: recruitedIds.length > 0
+                      ? "linear-gradient(135deg, #6366F1, #8B5CF6)"
+                      : missionTitle.trim()
+                      ? P.coralGrad
+                      : P.border,
+                    color: recruitedIds.length > 0 || missionTitle.trim() ? "#fff" : P.textTer,
+                    fontSize: 14, fontWeight: 700, cursor: "pointer",
+                    fontFamily: "inherit",
+                    boxShadow: recruitedIds.length > 0 ? "0 4px 16px rgba(99,102,241,0.3)" : "none",
+                    transition: "all 0.2s",
+                    display: "flex", alignItems: "center", gap: 6,
+                    flexShrink: 0,
+                  }}
+                >
+                  {recruitedIds.length > 0 ? "Review Mission" : "Create Task"}
+                  <span style={{ fontSize: 16 }}>→</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ─── STAGE 3: Launch Mission ─── */}
+          {stage === 3 && (
+            <div style={{ animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)" }}>
+              {/* Mission briefing card */}
+              <div style={{
+                padding: "24px", borderRadius: 18,
+                background: "linear-gradient(135deg, #6366F108, #8B5CF608)",
+                border: `1px solid ${P.indigo}15`,
+                marginBottom: 24,
+              }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: P.indigo,
+                  letterSpacing: "0.06em", marginBottom: 12,
+                  textTransform: "uppercase" as const,
+                }}>
+                  Mission Briefing
+                </div>
+
+                {/* Mission title */}
+                <div style={{
+                  fontSize: 18, fontWeight: 700, color: P.text,
+                  marginBottom: 20, lineHeight: 1.4,
+                }}>
+                  {missionTitle}
+                </div>
+
+                {/* Attached file */}
+                {uploadedFile && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "6px 12px", borderRadius: 8,
+                    backgroundColor: P.card, border: `1px solid ${P.border}`,
+                    marginBottom: 16, width: "fit-content",
+                    fontSize: 12, fontWeight: 500, color: P.textSec,
+                  }}>
+                    📄 {uploadedFile.filename}
+                  </div>
+                )}
+
+                {/* Team lineup */}
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: P.textTer,
+                  letterSpacing: "0.06em", marginBottom: 12,
+                  textTransform: "uppercase" as const,
+                }}>
+                  Team ({recruitedAgents.length})
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {recruitedAgents.map((agent, i) => {
+                    const avatarImg = AGENT_AVATAR_MAP[agent.slug];
+                    return (
+                      <div
+                        key={agent.id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 14,
+                          padding: "14px 16px", borderRadius: 14,
+                          backgroundColor: P.card,
+                          border: `1px solid ${agent.color}15`,
+                          animation: `fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.1}s both`,
+                        }}
+                      >
+                        {/* Order badge */}
+                        <div style={{
+                          width: 24, height: 24, borderRadius: 8,
+                          backgroundColor: agent.color, color: "#fff",
+                          fontSize: 12, fontWeight: 800,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                        }}>
+                          {i + 1}
+                        </div>
+
+                        {/* Avatar */}
+                        {avatarImg ? (
+                          <div style={{
+                            width: 42, height: 42, borderRadius: 12,
+                            overflow: "hidden", border: `2px solid ${agent.color}20`,
+                            flexShrink: 0,
+                          }}>
+                            <img src={avatarImg} alt={agent.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          </div>
+                        ) : (
+                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={42} />
+                        )}
+
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{agent.name}</div>
+                          <div style={{ fontSize: 11, color: P.textTer }}>{agent.description || "AI specialist"}</div>
+                        </div>
+
+                        {/* Role label */}
+                        <div style={{
+                          fontSize: 10, fontWeight: 700, color: agent.color,
+                          padding: "3px 10px", borderRadius: 6,
+                          backgroundColor: agent.color + "10",
+                        }}>
+                          {i === 0 ? "Lead" : i === recruitedAgents.length - 1 ? "Closer" : "Support"}
+                        </div>
+
+                        {/* Remove */}
+                        <button
+                          onClick={() => toggleRecruit(agent.id)}
+                          style={{
+                            background: "none", border: "none", cursor: "pointer",
+                            color: P.textTer, fontSize: 14, padding: "0 4px",
+                            transition: "color 0.15s",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = "#EF4444"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = P.textTer; }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Pipeline flow */}
+                {recruitedAgents.length > 1 && (
+                  <div style={{
+                    marginTop: 16, padding: "10px 14px", borderRadius: 10,
+                    backgroundColor: P.sidebar,
+                    fontSize: 12, color: P.textSec, lineHeight: 1.5,
+                  }}>
+                    <span style={{ fontWeight: 700 }}>Execution:</span>{" "}
+                    {recruitedAgents.map((a) => a.name).join(" → ")}
+                    {" — each agent receives the previous agent's output as context."}
+                  </div>
+                )}
+              </div>
+
+              {/* Agent-specific input form (if single agent selected) */}
+              {agentInputConfig && recruitedAgents.length === 1 && (
+                <div style={{
+                  marginBottom: 20, padding: "18px 20px", borderRadius: 14,
+                  backgroundColor: P.card,
+                  border: `1.5px solid ${recruitedAgents[0].color}20`,
+                  animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
+                }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700, color: recruitedAgents[0].color,
+                    marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.04em",
+                    display: "flex", alignItems: "center", gap: 6,
+                  }}>
+                    <span style={{ fontSize: 14 }}>{recruitedAgents[0].icon}</span>
+                    {recruitedAgents[0].name} Details
+                  </div>
+                  <AgentInputForm
+                    config={agentInputConfig}
+                    agentColor={recruitedAgents[0].color}
+                    values={agentFormValues}
+                    onChange={setAgentFormValues}
+                  />
+                </div>
+              )}
+
+              {/* Launch button */}
+              <button
+                onClick={handleLaunchMission}
+                disabled={launching}
+                style={{
+                  width: "100%", padding: "16px 20px", borderRadius: 16,
+                  border: "none",
+                  background: launching
+                    ? "linear-gradient(135deg, #10B981, #34D399)"
+                    : "linear-gradient(135deg, #6366F1, #8B5CF6, #A855F7)",
+                  color: "#fff",
+                  fontSize: 16, fontWeight: 800, cursor: launching ? "default" : "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: launching
+                    ? "0 4px 20px rgba(16,185,129,0.4)"
+                    : "0 4px 24px rgba(99,102,241,0.35)",
+                  transition: "all 0.3s",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  letterSpacing: "-0.01em",
+                  animation: launching ? "none" : "none",
+                }}
+              >
+                {launching ? (
+                  <>
+                    <span style={{
+                      display: "inline-block",
+                      animation: "spin 0.8s linear infinite",
+                    }}>🚀</span>
+                    Deploying Team...
+                  </>
+                ) : (
+                  <>
+                    🚀 Launch Mission
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+          .create-modal-sidebar { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

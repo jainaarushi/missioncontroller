@@ -47,6 +47,17 @@ export async function POST(
     return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
   }
 
+  // Parse optional team from request body
+  let teamAgentIds: string[] = [];
+  try {
+    const body = await _request.json();
+    if (body.team && Array.isArray(body.team)) {
+      teamAgentIds = body.team;
+    }
+  } catch {
+    // No body or invalid JSON — single agent mode
+  }
+
   // Get task and agent
   let taskTitle: string;
   let taskDescription: string | null;
@@ -78,27 +89,78 @@ export async function POST(
     agentSystemPrompt = agent.system_prompt;
   }
 
-  // Get the pipeline for this agent
-  const pipeline = getPipeline(agentSlug);
+  // Resolve team agents (additional agents beyond the primary)
+  interface TeamMember { name: string; slug: string; systemPrompt: string }
+  const teamMembers: TeamMember[] = [];
+  for (const tid of teamAgentIds) {
+    let member: TeamMember | null = null;
+    if (isSupabaseEnabled()) {
+      const a = await getAgentById(user.id, tid);
+      if (a) member = { name: a.name, slug: a.slug, systemPrompt: a.system_prompt };
+    } else {
+      const a = getAgent(tid);
+      if (a) member = { name: a.name, slug: a.slug, systemPrompt: a.system_prompt };
+    }
+    if (member) teamMembers.push(member);
+  }
 
-  // Create steps from pipeline
-  const steps: TaskStep[] = pipeline.map((step, i) => ({
-    id: `s-${id}-${i + 1}`,
-    task_id: id,
-    step_number: i + 1,
-    description: step.description,
-    status: i === 0 ? "working" as const : "pending" as const,
-    started_at: i === 0 ? new Date().toISOString() : null,
-    completed_at: null,
-    tokens_used: 0,
-  }));
+  // Build combined pipeline for multi-agent execution
+  const primaryPipeline = getPipeline(agentSlug);
+
+  // For multi-agent: primary agent runs first, then each team member gets a handoff step
+  const allSteps: { pipeline: PipelineStep[]; agentName: string; agentSlug: string; systemPrompt: string }[] = [
+    { pipeline: primaryPipeline, agentName, agentSlug, systemPrompt: agentSystemPrompt },
+  ];
+  for (const member of teamMembers) {
+    allSteps.push({
+      pipeline: getPipeline(member.slug),
+      agentName: member.name,
+      agentSlug: member.slug,
+      systemPrompt: member.systemPrompt,
+    });
+  }
+
+  // Create steps from all pipelines
+  let stepCounter = 0;
+  const steps: TaskStep[] = [];
+  for (const agentBlock of allSteps) {
+    // Add handoff step between agents (except before the first)
+    if (stepCounter > 0) {
+      steps.push({
+        id: `s-${id}-${stepCounter + 1}`,
+        task_id: id,
+        step_number: stepCounter + 1,
+        description: `Handing off to ${agentBlock.agentName}...`,
+        status: "pending",
+        started_at: null,
+        completed_at: null,
+        tokens_used: 0,
+      });
+      stepCounter++;
+    }
+    for (const step of agentBlock.pipeline) {
+      steps.push({
+        id: `s-${id}-${stepCounter + 1}`,
+        task_id: id,
+        step_number: stepCounter + 1,
+        description: `[${agentBlock.agentName}] ${step.description}`,
+        status: stepCounter === 0 ? "working" : "pending",
+        started_at: stepCounter === 0 ? new Date().toISOString() : null,
+        completed_at: null,
+        tokens_used: 0,
+      });
+      stepCounter++;
+    }
+  }
   mockSteps.set(id, steps);
 
   await persistTaskUpdate(user.id, id, {
     status: "working",
     progress: 5,
     started_at: new Date().toISOString(),
-    current_step: pipeline[0].description,
+    current_step: teamMembers.length > 0
+      ? `${agentName} starting (team of ${allSteps.length})`
+      : primaryPipeline[0].description,
   });
 
   // Get AI config
@@ -113,15 +175,21 @@ export async function POST(
     return NextResponse.json({ error: "Add an API key in Settings to run agents", needsKey: true }, { status: 402 });
   }
 
-  // Check required tool keys
-  const requiredToolKeys = getRequiredToolKeys(agentSlug);
+  // Check required tool keys across all agents
+  const allSlugs = [agentSlug, ...teamMembers.map(m => m.slug)];
+  const allPipelines = allSteps.map(a => a.pipeline);
   let toolKeys: UserToolKeys = {};
 
-  if (requiredToolKeys.length > 0 || pipeline.some(s => s.tools?.length)) {
+  const allRequiredKeys = new Set<string>();
+  for (const slug of allSlugs) {
+    for (const key of getRequiredToolKeys(slug)) allRequiredKeys.add(key);
+  }
+  const anyToolsNeeded = allPipelines.some(p => p.some(s => s.tools?.length));
+
+  if (allRequiredKeys.size > 0 || anyToolsNeeded) {
     toolKeys = await getUserToolKeys(user.id);
 
-    // Check if required keys are present
-    for (const key of requiredToolKeys) {
+    for (const key of allRequiredKeys) {
       if (!toolKeys[key as keyof UserToolKeys]) {
         await persistTaskUpdate(user.id, id, {
           status: "todo",
@@ -143,10 +211,17 @@ export async function POST(
   const configuredServerTypes = mcpServers.filter(s => s.enabled).map(s => s.serverType);
   const mcpRecommendation = getAgentMCPRecommendation(agentSlug, configuredServerTypes);
 
-  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSlug, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey, toolKeys, mcpServers, mcpRecommendation?.settingsHint || null);
+  // Run multi-agent pipeline with context passing
+  runMultiAgentPipeline(
+    user.id, id, taskTitle, taskDescription,
+    allSteps, steps,
+    aiConfig.provider, aiConfig.apiKey, toolKeys,
+    mcpServers, mcpRecommendation?.settingsHint || null,
+  );
 
   return NextResponse.json({
     status: "started",
+    teamSize: allSteps.length,
     ...(mcpRecommendation ? {
       mcpRecommendation: {
         message: mcpRecommendation.message,
@@ -157,17 +232,21 @@ export async function POST(
   });
 }
 
-// ── Pipeline Execution ───────────────────────────────────────
+// ── Multi-Agent Pipeline Execution ───────────────────────────
 
-async function runPipeline(
+interface AgentBlock {
+  pipeline: PipelineStep[];
+  agentName: string;
+  agentSlug: string;
+  systemPrompt: string;
+}
+
+async function runMultiAgentPipeline(
   userId: string,
   taskId: string,
   title: string,
   description: string | null,
-  agentName: string,
-  agentSlug: string,
-  systemPrompt: string,
-  pipeline: PipelineStep[],
+  agentBlocks: AgentBlock[],
   steps: TaskStep[],
   provider: "openai" | "gemini" | "anthropic",
   apiKey: string,
@@ -186,16 +265,12 @@ async function runPipeline(
     ? createUserGemini(apiKey)(modelId)
     : createUserAnthropic(apiKey)(modelId);
 
-  let draftOutput = "";
   let totalTokensIn = 0;
   let totalTokensOut = 0;
-  let finalOutput = "";
 
-  // Connect to MCP servers for this agent (if any configured)
-  // If MCP is recommended but not configured, inject awareness into system prompt
-  if (mcpHint) {
-    systemPrompt += `\n\nIMPORTANT: You do NOT currently have access to external tools (like GitHub, Jira, databases, etc.) that would make your output much more useful. At the START of your response, add this notice:\n\n> **Tip:** ${mcpHint}\n\nThen do your best with the information provided, but clearly state when you're giving generic advice that would be more specific with real data access.`;
-  }
+  // Accumulated context passed between agents
+  const agentOutputs: { agentName: string; output: string }[] = [];
+  let finalOutput = "";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mcpTools: Record<string, any> = {};
@@ -203,7 +278,7 @@ async function runPipeline(
 
   if (mcpServers.length > 0) {
     try {
-      const mcpResult = await getMCPToolsForAgent(mcpServers, agentSlug);
+      const mcpResult = await getMCPToolsForAgent(mcpServers, agentBlocks[0].agentSlug);
       mcpTools = mcpResult.tools;
       mcpClosers = mcpResult.closers;
 
@@ -221,19 +296,17 @@ async function runPipeline(
     }
   }
 
-  // Parse file data if any step needs it
-  let parsedFileData: ParsedFileData | null = null;
-  if (pipeline.some(s => s.requiresFileData) && description) {
-    parsedFileData = parseFileDataFromDescription(description);
-  }
-
   // Detect if user wants image output
   const combined = (title + " " + (description || "")).toLowerCase();
   const wantsImage = /\b(generate|create|make|draw|design|sketch|render|produce)\b.*\b(image|picture|photo|illustration|graphic|logo|icon|banner|poster|thumbnail|art|artwork|visual|diagram)\b/i.test(combined)
     || /\b(image|picture|photo|illustration|graphic|logo|icon|banner|poster|thumbnail)\b.*\b(of|for|about|showing|with)\b/i.test(combined);
 
+  // Track global step index across all agent blocks
+  let globalStepIdx = 0;
+  const totalSteps = steps.length;
+
   try {
-    // Image generation path (unchanged)
+    // Image generation path
     if (wantsImage && provider === "openai") {
       await persistTaskUpdate(userId, taskId, { progress: 30, current_step: "Generating image..." });
 
@@ -260,95 +333,143 @@ async function runPipeline(
       }
     }
 
-    if (wantsImage && provider !== "openai") {
-      systemPrompt += "\n\nNote: The user wants a visual/image output. Since image generation is not available with this provider, provide a detailed text description of what the image would look like, and create the best text-based output you can (ASCII art, detailed visual description, or structured layout).";
+    // ── Execute each agent block sequentially ──────────────────
+    for (let blockIdx = 0; blockIdx < agentBlocks.length; blockIdx++) {
+      const block = agentBlocks[blockIdx];
+      let blockSystemPrompt = block.systemPrompt;
+
+      // Inject MCP hint for first agent
+      if (blockIdx === 0 && mcpHint) {
+        blockSystemPrompt += `\n\nIMPORTANT: You do NOT currently have access to external tools (like GitHub, Jira, databases, etc.) that would make your output much more useful. At the START of your response, add this notice:\n\n> **Tip:** ${mcpHint}\n\nThen do your best with the information provided, but clearly state when you're giving generic advice that would be more specific with real data access.`;
+      }
+
+      if (wantsImage && provider !== "openai") {
+        blockSystemPrompt += "\n\nNote: The user wants a visual/image output. Since image generation is not available with this provider, provide a detailed text description of what the image would look like, and create the best text-based output you can (ASCII art, detailed visual description, or structured layout).";
+      }
+
+      // Build context from previous agents' outputs
+      let teamContext = "";
+      if (agentOutputs.length > 0) {
+        teamContext = "\n\n--- CONTEXT FROM TEAM MEMBERS ---\n" +
+          agentOutputs.map(o => `\n## ${o.agentName}'s Analysis:\n${o.output}`).join("\n") +
+          "\n--- END TEAM CONTEXT ---\n\nBuild on your teammates' work above. Add your unique expertise, don't repeat what they've already covered.";
+      }
+
+      // Handle handoff step (visual only, between agents)
+      if (blockIdx > 0) {
+        steps[globalStepIdx].status = "working";
+        steps[globalStepIdx].started_at = new Date().toISOString();
+        await persistTaskUpdate(userId, taskId, {
+          progress: Math.min(Math.round((globalStepIdx / totalSteps) * 100), 95),
+          current_step: `Handing off to ${block.agentName}...`,
+        });
+        await delay(800);
+        steps[globalStepIdx].status = "done";
+        steps[globalStepIdx].completed_at = new Date().toISOString();
+        globalStepIdx++;
+      }
+
+      // Parse file data if this agent's pipeline needs it
+      let parsedFileData: ParsedFileData | null = null;
+      if (block.pipeline.some(s => s.requiresFileData) && description) {
+        parsedFileData = parseFileDataFromDescription(description);
+      }
+
+      let draftOutput = "";
+
+      // Execute this agent's pipeline steps
+      for (let i = 0; i < block.pipeline.length; i++) {
+        const step = block.pipeline[i];
+        const progress = Math.round(((globalStepIdx + 0.5) / totalSteps) * 100);
+
+        steps[globalStepIdx].status = "working";
+        steps[globalStepIdx].started_at = new Date().toISOString();
+        await persistTaskUpdate(userId, taskId, {
+          progress: Math.min(progress, 95),
+          current_step: `[${block.agentName}] ${step.description}`,
+        });
+
+        if (step.isCore) {
+          const userMessage = description
+            ? `Task: ${title}\n\nDetails: ${description}${teamContext}\n\nToday's date: ${today}`
+            : `Task: ${title}${teamContext}\n\nToday's date: ${today}`;
+
+          const builtInTools = buildToolsForStep(step, toolKeys, parsedFileData);
+          const stepTools = { ...builtInTools, ...mcpTools };
+          const hasTools = Object.keys(stepTools).length > 0;
+
+          let coreSystem = step.toolContext
+            ? blockSystemPrompt + "\n\n" + step.toolContext
+            : blockSystemPrompt;
+
+          if (Object.keys(mcpTools).length > 0) {
+            const mcpToolNames = Object.keys(mcpTools).join(", ");
+            coreSystem += `\n\nYou also have access to external MCP tools: ${mcpToolNames}. Use them when relevant to the task.`;
+          }
+
+          const result = await generateText({
+            model: aiModel,
+            system: coreSystem,
+            prompt: userMessage,
+            ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
+          });
+
+          draftOutput = result.text;
+          finalOutput = result.text;
+
+          const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+          totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
+          totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
+
+          const toolCallCount = result.steps?.reduce((acc, s) => acc + (s.toolCalls?.length || 0), 0) || 0;
+          if (toolCallCount > 0) {
+            await persistTaskUpdate(userId, taskId, {
+              current_step: `[${block.agentName}] ${step.description} (${toolCallCount} tool calls)`,
+            });
+          }
+
+          steps[globalStepIdx].status = "done";
+          steps[globalStepIdx].completed_at = new Date().toISOString();
+          steps[globalStepIdx].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
+
+        } else if (step.isCore2 && draftOutput) {
+          const refinePrompt = (step.core2Prompt || "Improve and polish this output:\n\n") + draftOutput;
+
+          const result = await generateText({
+            model: aiModel,
+            system: blockSystemPrompt,
+            prompt: refinePrompt,
+          });
+
+          finalOutput = result.text;
+          const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+          totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
+          totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
+
+          steps[globalStepIdx].status = "done";
+          steps[globalStepIdx].completed_at = new Date().toISOString();
+          steps[globalStepIdx].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
+
+        } else {
+          await delay(step.duration);
+          steps[globalStepIdx].status = "done";
+          steps[globalStepIdx].completed_at = new Date().toISOString();
+        }
+
+        globalStepIdx++;
+      }
+
+      // Store this agent's output for the next agent
+      if (finalOutput) {
+        agentOutputs.push({ agentName: block.agentName, output: finalOutput });
+      }
     }
 
-    // ── Step execution loop ──────────────────────────────────
-    for (let i = 0; i < pipeline.length; i++) {
-      const step = pipeline[i];
-      const progress = Math.round(((i + 0.5) / pipeline.length) * 100);
-
-      steps[i].status = "working";
-      steps[i].started_at = new Date().toISOString();
-      await persistTaskUpdate(userId, taskId, {
-        progress: Math.min(progress, 95),
-        current_step: step.description,
-      });
-
-      if (step.isCore) {
-        // FIRST real API call — with optional tool support
-        const userMessage = description
-          ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
-          : `Task: ${title}\n\nToday's date: ${today}`;
-
-        const builtInTools = buildToolsForStep(step, toolKeys, parsedFileData);
-        // Merge built-in tools with MCP tools (MCP tools available on all core steps)
-        const stepTools = { ...builtInTools, ...mcpTools };
-        const hasTools = Object.keys(stepTools).length > 0;
-
-        // If MCP tools are present, add context about them
-        let coreSystem = step.toolContext
-          ? systemPrompt + "\n\n" + step.toolContext
-          : systemPrompt;
-
-        if (Object.keys(mcpTools).length > 0) {
-          const mcpToolNames = Object.keys(mcpTools).join(", ");
-          coreSystem += `\n\nYou also have access to external MCP tools: ${mcpToolNames}. Use them when relevant to the task.`;
-        }
-
-        const result = await generateText({
-          model: aiModel,
-          system: coreSystem,
-          prompt: userMessage,
-          ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
-        });
-
-        draftOutput = result.text;
-        finalOutput = result.text;
-
-        // Aggregate tokens from all steps (tool calls can produce multiple rounds)
-        const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
-        totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
-        totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
-
-        // Update step with tool call info
-        const toolCallCount = result.steps?.reduce((acc, s) => acc + (s.toolCalls?.length || 0), 0) || 0;
-        if (toolCallCount > 0) {
-          await persistTaskUpdate(userId, taskId, {
-            current_step: `${step.description} (${toolCallCount} tool calls)`,
-          });
-        }
-
-        steps[i].status = "done";
-        steps[i].completed_at = new Date().toISOString();
-        steps[i].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
-
-      } else if (step.isCore2 && draftOutput) {
-        // SECOND real API call — refine/synthesize the draft
-        const refinePrompt = (step.core2Prompt || "Improve and polish this output:\n\n") + draftOutput;
-
-        const result = await generateText({
-          model: aiModel,
-          system: systemPrompt,
-          prompt: refinePrompt,
-        });
-
-        finalOutput = result.text;
-        const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
-        totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
-        totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
-
-        steps[i].status = "done";
-        steps[i].completed_at = new Date().toISOString();
-        steps[i].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
-
-      } else {
-        // Visual step — wait for UX
-        await delay(step.duration);
-        steps[i].status = "done";
-        steps[i].completed_at = new Date().toISOString();
-      }
+    // Combine all agent outputs if multi-agent
+    if (agentOutputs.length > 1) {
+      finalOutput = agentOutputs
+        .map(o => `## ${o.agentName}\n\n${o.output}`)
+        .join("\n\n---\n\n");
     }
 
     // All done
@@ -363,7 +484,9 @@ async function runPipeline(
       tokens_in: totalTokensIn,
       tokens_out: totalTokensOut,
       duration_seconds: duration,
-      current_step: "Complete — ready for your review",
+      current_step: agentBlocks.length > 1
+        ? `Team of ${agentBlocks.length} complete — ready for debrief`
+        : "Complete — ready for your review",
     });
   } catch (error) {
     console.error("Agent execution failed:", error);
@@ -371,14 +494,21 @@ async function runPipeline(
       if (s.status === "working" || s.status === "pending") s.status = "failed";
     });
 
+    const failedAgent = agentBlocks[Math.min(
+      agentBlocks.findIndex((_, idx) => {
+        const blockStart = agentBlocks.slice(0, idx).reduce((sum, b) => sum + b.pipeline.length + (idx > 0 ? 1 : 0), 0);
+        return globalStepIdx <= blockStart + agentBlocks[idx].pipeline.length;
+      }),
+      agentBlocks.length - 1
+    )];
+
     await persistTaskUpdate(userId, taskId, {
       status: "failed",
       progress: 0,
       current_step: `Failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      output: `## Error\n\n${agentName} encountered an error.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key in Settings and try again.`,
+      output: `## Error\n\n${failedAgent?.agentName || "Agent"} encountered an error.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key in Settings and try again.`,
     });
   } finally {
-    // Always close MCP connections
     if (mcpClosers.length > 0) {
       await closeMCPConnections(mcpClosers);
     }

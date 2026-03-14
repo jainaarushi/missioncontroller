@@ -113,7 +113,7 @@ export function TaskSection({
           textAlign: "center",
           transition: "all 0.2s",
         }}>
-          {dragOver ? "Drop here to run agent" : "No tasks"}
+          {dragOver ? "Drop here to deploy agent" : "No tasks"}
         </div>
       )}
     </div>
