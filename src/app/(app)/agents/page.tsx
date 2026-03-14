@@ -11,12 +11,30 @@ import { getAgentPersona } from "@/lib/agent-personas";
 import { Avatar3D } from "@/components/agents/avatar-3d";
 
 // Add agent slugs here as you drop .glb files into public/avatars/
-// e.g. public/avatars/fullstack-developer.glb → add "fullstack-developer"
 const AVATARS_3D = new Set<string>([
-  // "fullstack-developer",
-  // "roast-master",
-  // ... add slugs as you create models
+  // add slugs when you have .glb models
 ]);
+
+// Map agent slugs to PNG avatar images (from split character sheets)
+// Batch 1 prompt order: Data Analyst, Music Producer(?), Software Dev, Marketing, Strategy, Fitness
+// Batch 2 prompt order: same second sheet
+// Update these mappings as you generate more batches
+const AVATAR_IMAGES: Record<string, string> = {
+  // Batch 1 — matches the first prompt you pasted into Gemini
+  "data-analyst": "/avatars/batch1-1.png",
+  "music-generator": "/avatars/batch1-2.png",
+  "fullstack-developer": "/avatars/batch1-3.png",
+  "content-creator": "/avatars/batch1-4.png",
+  "strategy-advisor": "/avatars/batch1-5.png",
+  "fitness-coach": "/avatars/batch1-6.png",
+  // Batch 2 — second sheet (same 6 characters, different sheet)
+  "deep-research": "/avatars/batch2-1.png",
+  "linkedin-post": "/avatars/batch2-2.png",
+  "debugger": "/avatars/batch2-3.png",
+  "social-media": "/avatars/batch2-4.png",
+  "competitor-intel": "/avatars/batch2-5.png",
+  "mental-wellbeing": "/avatars/batch2-6.png",
+};
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -563,6 +581,7 @@ function ResumeCard({
   const slug = agent.slug || "";
   const glbUrl = `/avatars/${slug}.glb`;
   const hasGlb = AVATARS_3D.has(slug);
+  const avatarImg = AVATAR_IMAGES[slug] || null;
   // Light pastel background derived from accent
   const cardBg = accentColor + "0C";
   const cardBgHover = accentColor + "14";
@@ -631,6 +650,18 @@ function ResumeCard({
               modelUrl={glbUrl}
               size={66}
               hovered={isHovered}
+            />
+          ) : avatarImg ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={avatarImg}
+              alt={persona.humanName}
+              style={{
+                width: 66, height: 66, borderRadius: "50%",
+                objectFit: "cover",
+                border: `2px solid ${accentColor}30`,
+                backgroundColor: accentColor + "10",
+              }}
             />
           ) : (
             <div style={{
