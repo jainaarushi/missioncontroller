@@ -15,6 +15,7 @@ import { P } from "@/lib/palette";
 import { ChevronRight } from "lucide-react";
 import { useAvatars } from "@/lib/hooks/use-avatars";
 import { AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
+import { AGENT_AVATAR_MAP } from "@/lib/agent-avatars";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
 // Canva-style: only 4 pastel colors that rotate
@@ -411,7 +412,8 @@ export default function TodayPage() {
             })().map((agent, i) => {
               const catId = AGENT_CATEGORY_MAP[agent.slug];
               const avatarUrl = catId ? userAvatars[catId] : undefined;
-              const thumb = avatarUrl || AGENT_THUMBNAILS[agent.slug];
+              const chibiAvatar = AGENT_AVATAR_MAP[agent.slug];
+              const thumb = avatarUrl || chibiAvatar || AGENT_THUMBNAILS[agent.slug];
               const pastelBg = CANVA_PASTELS[i % CANVA_PASTELS.length];
               const col = Math.floor(i / 2);
               const row = i % 2;
@@ -432,7 +434,7 @@ export default function TodayPage() {
                   }}
                 >
                   {thumb ? (
-                    /* Full image card — user avatar or preset thumbnail */
+                    /* Full image card — chibi avatar, user avatar, or preset thumbnail */
                     <div style={{ position: "relative", width: "100%", height: "100%" }}>
                       <img
                         src={thumb}
@@ -441,21 +443,28 @@ export default function TodayPage() {
                         style={{
                           width: "100%", height: "100%",
                           objectFit: "cover", display: "block",
-                          transform: avatarUrl ? "scale(1)" : "scale(1.15)",
+                          transform: (avatarUrl || chibiAvatar) ? "scale(1)" : "scale(1.15)",
                         }}
                       />
-                      {avatarUrl && (
+                      {(avatarUrl || chibiAvatar) && (
                         <div style={{
                           position: "absolute", bottom: 0, left: 0, right: 0,
-                          padding: "16px 10px 8px",
-                          background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)",
+                          padding: "20px 10px 8px",
+                          background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
                         }}>
                           <div style={{
-                            fontSize: 11, fontWeight: 700, color: "#fff",
-                            textShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                            fontSize: 11.5, fontWeight: 800, color: "#fff",
+                            textShadow: "0 1px 3px rgba(0,0,0,0.4)",
                             lineHeight: 1.2,
                           }}>
                             {agent.name}
+                          </div>
+                          <div style={{
+                            fontSize: 9.5, fontWeight: 500, color: "rgba(255,255,255,0.8)",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.3)",
+                            marginTop: 1,
+                          }}>
+                            {agent.description}
                           </div>
                         </div>
                       )}

@@ -3,31 +3,10 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
-import { useTasks } from "@/lib/hooks/use-tasks";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
-import { getAgentPersona } from "@/lib/agent-personas";
-// Map agent slugs to PNG avatar images (from split character sheets)
-// Batch 1 prompt order: Data Analyst, Music Producer(?), Software Dev, Marketing, Strategy, Fitness
-// Batch 2 prompt order: same second sheet
-// Update these mappings as you generate more batches
-const AVATAR_IMAGES: Record<string, string> = {
-  // Batch 1 — matches the first prompt you pasted into Gemini
-  "data-analyst": "/avatars/batch1-1.png",
-  "music-generator": "/avatars/batch1-2.png",
-  "fullstack-developer": "/avatars/batch1-3.png",
-  "content-creator": "/avatars/batch1-4.png",
-  "strategy-advisor": "/avatars/batch1-5.png",
-  "fitness-coach": "/avatars/batch1-6.png",
-  // Batch 2 — second sheet (same 6 characters, different sheet)
-  "deep-research": "/avatars/batch2-1.png",
-  "linkedin-post": "/avatars/batch2-2.png",
-  "debugger": "/avatars/batch2-3.png",
-  "social-media": "/avatars/batch2-4.png",
-  "competitor-intel": "/avatars/batch2-5.png",
-  "mental-wellbeing": "/avatars/batch2-6.png",
-};
+import { AGENT_AVATAR_MAP } from "@/lib/agent-avatars";
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -41,7 +20,6 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 export default function AgentsPage() {
   const { agents, mutate } = useAgents();
-  const { tasks } = useTasks();
   const [showCreate, setShowCreate] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -106,6 +84,8 @@ export default function AgentsPage() {
         @keyframes popIn { 0%{opacity:0;transform:scale(0.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)} }
         @keyframes fadeUp { 0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)} }
+        @keyframes gentleFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
+        @keyframes imgScale { 0%,100%{transform:scale(1.05)}50%{transform:scale(1.12)} }
       `}</style>
 
       {/* Header */}
@@ -228,7 +208,7 @@ export default function AgentsPage() {
                 key={agent.id}
                 agent={agent}
                 index={i}
-                tasks={tasks}
+
                 hoveredId={hoveredId}
                 setHoveredId={setHoveredId}
                 onDelete={handleDelete}
@@ -286,7 +266,7 @@ export default function AgentsPage() {
                   key={agent.id}
                   agent={agent}
                   index={i}
-                  tasks={tasks}
+  
                   hoveredId={hoveredId}
                   setHoveredId={setHoveredId}
                   onDelete={handleDelete}
@@ -340,7 +320,7 @@ export default function AgentsPage() {
                 key={agent.id}
                 agent={agent}
                 index={i}
-                tasks={tasks}
+
                 hoveredId={hoveredId}
                 setHoveredId={setHoveredId}
                 onDelete={handleDelete}
@@ -410,8 +390,6 @@ interface AgentCardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   agent: any;
   index: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tasks: any[];
   hoveredId: string | null;
   setHoveredId: (id: string | null) => void;
   onDelete: (id: string) => void;
@@ -419,158 +397,11 @@ interface AgentCardProps {
   router: any;
 }
 
-function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, router }: AgentCardProps) {
-  const done = tasks.filter((t: { agent_id: string; status: string }) => t.agent_id === agent.id && t.status === "done").length;
+function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: AgentCardProps) {
   const isHovered = hoveredId === agent.id;
-  const totalDone = (agent.tasks_completed || 0) + done;
   const slug = agent.slug || "";
-  const catId = AGENT_CATEGORY_MAP[slug];
-  const category = catId ? AGENT_CATEGORIES.find(c => c.id === catId) : null;
-  const persona = agent.is_preset ? getAgentPersona(slug) : null;
-
   const accentColor = agent.color || "#6366F1";
-
-  // For resume cards (preset agents with persona)
-  if (persona) {
-    return (
-      <ResumeCard
-        agent={agent}
-        persona={persona}
-        index={index}
-        isHovered={isHovered}
-        accentColor={accentColor}
-        category={category}
-        setHoveredId={setHoveredId}
-        router={router}
-      />
-    );
-  }
-
-  // Fallback for custom agents — simple card with emoji
-  return (
-    <div
-      onClick={() => router.push(`/today?agent=${agent.id}`)}
-      onMouseEnter={() => setHoveredId(agent.id)}
-      onMouseLeave={() => setHoveredId(null)}
-      style={{
-        position: "relative",
-        padding: "18px 16px 16px",
-        backgroundColor: "#FAFAF8",
-        borderRadius: 18, cursor: "pointer",
-        overflow: "hidden", minHeight: 200,
-        display: "flex", flexDirection: "column",
-        border: `1.5px solid ${P.border}`,
-        animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${index * 0.04}s both`,
-        transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        transform: isHovered ? "translateY(-6px)" : "translateY(0)",
-        boxShadow: isHovered
-          ? `0 20px 40px ${accentColor}12, 0 6px 12px ${accentColor}08`
-          : P.shadow,
-      }}
-    >
-      {/* Delete for custom */}
-      {!agent.is_preset && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(agent.id); }}
-          style={{
-            position: "absolute", top: 8, right: 8, zIndex: 10,
-            width: 22, height: 22, borderRadius: 6,
-            border: "none",
-            backgroundColor: "rgba(0,0,0,0.05)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: 9, color: P.textTer,
-            transition: "all 0.2s",
-            opacity: isHovered ? 1 : 0,
-          }}
-        >
-          x
-        </button>
-      )}
-
-      <div style={{
-        width: 44, height: 44, borderRadius: 12,
-        background: agent.gradient || accentColor,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 22, marginBottom: 12,
-      }}>
-        {agent.icon}
-      </div>
-
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: P.text, marginBottom: 2, letterSpacing: "-0.02em" }}>
-          {agent.name}
-        </div>
-        <div style={{ fontSize: 11, color: accentColor, fontWeight: 650, marginBottom: 6 }}>
-          {agent.description}
-        </div>
-        <div style={{
-          fontSize: 10.5, color: P.textSec, lineHeight: 1.5,
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
-        }}>
-          {agent.long_description}
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 5, marginTop: 10, flexWrap: "wrap" as const }}>
-        <span style={{
-          fontSize: 8.5, fontWeight: 700, color: "#F97066",
-          backgroundColor: "#FEF3F2", padding: "2px 7px", borderRadius: 5,
-        }}>Custom</span>
-        {totalDone > 0 && (
-          <span style={{
-            fontSize: 8.5, fontWeight: 600, color: P.textSec,
-            backgroundColor: "#F5F5F5", padding: "2px 7px", borderRadius: 5,
-          }}>{totalDone} done</span>
-        )}
-      </div>
-
-      {/* Hover CTA */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0,
-        padding: "8px 16px 12px",
-        background: `linear-gradient(to top, #FAFAF8 60%, transparent)`,
-        opacity: isHovered ? 1 : 0,
-        transform: isHovered ? "translateY(0)" : "translateY(6px)",
-        transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-        zIndex: 5, display: "flex", justifyContent: "center",
-      }}>
-        <span style={{
-          fontSize: 11, fontWeight: 700, color: "#fff",
-          background: agent.gradient || accentColor,
-          padding: "5px 16px", borderRadius: 8,
-          boxShadow: `0 4px 12px ${accentColor}30`,
-        }}>
-          Use {agent.name} &rarr;
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ── Full-bleed image card (Sintra-style) ────────────────────
-
-function ResumeCard({
-  agent,
-  persona,
-  index,
-  isHovered,
-  accentColor,
-  setHoveredId,
-  router,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  agent: any;
-  persona: { humanName: string; title: string; animal: string; specialties: string[]; about: string; tasksLabel: string };
-  index: number;
-  isHovered: boolean;
-  accentColor: string;
-  category: { name: string; color: string } | null | undefined;
-  setHoveredId: (id: string | null) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router: any;
-}) {
-  const slug = agent.slug || "";
-  const avatarImg = AVATAR_IMAGES[slug] || null;
+  const avatarImg = AGENT_AVATAR_MAP[slug] || null;
 
   return (
     <div
@@ -586,12 +417,31 @@ function ResumeCard({
         transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
         transform: isHovered ? "translateY(-6px) scale(1.02)" : "translateY(0) scale(1)",
         boxShadow: isHovered
-          ? `0 20px 40px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.1)`
+          ? `0 20px 40px rgba(0,0,0,0.18), 0 8px 16px rgba(0,0,0,0.1)`
           : `0 2px 8px rgba(0,0,0,0.06)`,
         backgroundColor: accentColor + "20",
       }}
     >
-      {/* Full-bleed image */}
+      {/* Delete for custom */}
+      {!agent.is_preset && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(agent.id); }}
+          style={{
+            position: "absolute", top: 8, right: 8, zIndex: 10,
+            width: 24, height: 24, borderRadius: 8,
+            border: "none",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: 10, color: "#fff",
+            transition: "all 0.2s", backdropFilter: "blur(4px)",
+            opacity: isHovered ? 1 : 0,
+          }}
+        >
+          x
+        </button>
+      )}
+
+      {/* Full-bleed image with gentle breathing animation */}
       {avatarImg ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
@@ -602,6 +452,9 @@ function ResumeCard({
             inset: 0,
             width: "100%", height: "100%",
             objectFit: "cover",
+            animation: isHovered ? "imgScale 3s ease-in-out infinite" : "none",
+            transform: isHovered ? undefined : "scale(1.05)",
+            transition: "transform 0.5s ease",
           }}
         />
       ) : (
@@ -611,8 +464,9 @@ function ResumeCard({
           background: `linear-gradient(160deg, ${accentColor}30, ${accentColor}10)`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 64,
+          animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
         }}>
-          {persona.animal}
+          {agent.icon || ""}
         </div>
       )}
 
@@ -621,21 +475,40 @@ function ResumeCard({
         position: "absolute",
         bottom: 0, left: 0, right: 0,
         padding: "40px 14px 14px",
-        background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
+        background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 50%, transparent 100%)",
+        transition: "padding 0.3s ease",
       }}>
         <div style={{
           fontSize: 16, fontWeight: 800, color: "#fff",
           letterSpacing: "-0.02em", lineHeight: 1.2,
-          textShadow: "0 1px 3px rgba(0,0,0,0.3)",
+          textShadow: "0 1px 4px rgba(0,0,0,0.4)",
         }}>
           {agent.name}
         </div>
         <div style={{
-          fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.8)",
+          fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.85)",
           marginTop: 2,
-          textShadow: "0 1px 2px rgba(0,0,0,0.3)",
+          textShadow: "0 1px 3px rgba(0,0,0,0.4)",
         }}>
           {agent.description}
+        </div>
+
+        {/* Hover CTA */}
+        <div style={{
+          marginTop: 8,
+          opacity: isHovered ? 1 : 0,
+          transform: isHovered ? "translateY(0)" : "translateY(8px)",
+          transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+        }}>
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: "#fff",
+            background: "rgba(255,255,255,0.2)",
+            backdropFilter: "blur(8px)",
+            padding: "5px 14px", borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.25)",
+          }}>
+            Hire &rarr;
+          </span>
         </div>
       </div>
     </div>
