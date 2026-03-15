@@ -6,6 +6,7 @@ import { useTask } from "@/lib/hooks/use-task";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { P } from "@/lib/palette";
 import { getPipeline } from "@/lib/ai/pipelines";
+import { PipelineBuilder } from "@/components/pipeline/pipeline-builder";
 import { AGENT_OUTPUT_RENDERERS } from "@/lib/agent-ui/output-registry";
 import type { TaskWithAgent } from "@/lib/types/task";
 
@@ -47,12 +48,16 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [mcpBanner, setMcpBanner] = useState<{ message: string; serverNames: string[]; settingsHint: string } | null>(null);
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [rerunStepIndex, setRerunStepIndex] = useState<number | null>(null);
+  const [rerunFeedback, setRerunFeedback] = useState("");
+  const [rerunLoading, setRerunLoading] = useState(false);
 
   const task = fullTask || initialTask;
 
   // Reset user input when modal opens with a new task
   useEffect(() => {
-    if (open) { setUserInput(""); setUploadedFile(null); setShowFeedback(false); setFeedback(""); setLoginPrompt(false); setLoginPromptMsg(""); }
+    if (open) { setUserInput(""); setUploadedFile(null); setShowFeedback(false); setFeedback(""); setLoginPrompt(false); setLoginPromptMsg(""); setExpandedStep(null); setRerunStepIndex(null); setRerunFeedback(""); }
   }, [open, initialTask?.id]);
 
   // Auto-refresh while task is working
@@ -977,6 +982,129 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
               </div>
             </div>
           )}
+
+          {/* Pipeline steps with per-step outputs */}
+          {(() => {
+            const taskSteps = (task as { steps?: { status: string; output?: string }[] }).steps;
+            if (!taskSteps || taskSteps.length === 0) return null;
+            const agentSlug = fullAgent?.slug;
+            const pipelineSteps = agentSlug ? getPipeline(agentSlug) : [];
+            if (pipelineSteps.length === 0) return null;
+
+            const stepStatuses: Record<number, "pending" | "working" | "done" | "failed"> = {};
+            const stepOutputs: Record<number, string> = {};
+            taskSteps.forEach((s, i) => {
+              stepStatuses[i] = s.status as "pending" | "working" | "done" | "failed";
+              if (s.output) stepOutputs[i] = s.output;
+            });
+
+            const hasAnyOutput = Object.keys(stepOutputs).length > 0;
+
+            async function handleRerunFrom(stepIndex: number) {
+              if (rerunStepIndex === stepIndex) {
+                // Submit the rerun
+                setRerunLoading(true);
+                try {
+                  const res = await fetch(`/api/tasks/${task!.id}/rerun-from`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fromStep: stepIndex, feedback: rerunFeedback }),
+                  });
+                  if (res.status === 401) {
+                    setLoginPrompt(true);
+                    setLoginPromptMsg("Sign in to re-run agents");
+                    return;
+                  }
+                  if (res.status === 402) {
+                    setLoginPrompt(true);
+                    setLoginPromptMsg("Add an API key to run agents");
+                    return;
+                  }
+                  setRerunStepIndex(null);
+                  setRerunFeedback("");
+                  mutateTask();
+                  onUpdate();
+                } catch (err) {
+                  console.error("Rerun failed:", err);
+                } finally {
+                  setRerunLoading(false);
+                }
+              } else {
+                setRerunStepIndex(stepIndex);
+                setRerunFeedback("");
+              }
+            }
+
+            return (
+              <div style={{ marginBottom: 20, animation: "fadeUp 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+                <PipelineBuilder
+                  steps={pipelineSteps}
+                  agentColor={agent?.color || P.indigo}
+                  agentGradient={agent?.gradient || "linear-gradient(135deg, #4F46E5, #7C3AED)"}
+                  editable={false}
+                  stepStatuses={stepStatuses}
+                  stepOutputs={hasAnyOutput ? stepOutputs : undefined}
+                  onRerunFrom={(isReview || task.status === "done") ? handleRerunFrom : undefined}
+                  expandedStep={expandedStep}
+                  onExpandStep={setExpandedStep}
+                  renderMarkdown={renderMarkdown}
+                />
+
+                {/* Inline rerun feedback */}
+                {rerunStepIndex !== null && (
+                  <div style={{
+                    marginTop: 8, padding: "12px 14px", borderRadius: 10,
+                    backgroundColor: P.sidebar, border: `1.5px solid ${agent?.color || P.indigo}25`,
+                    animation: "fadeUp 0.2s cubic-bezier(0.16,1,0.3,1)",
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: P.textSec, marginBottom: 6 }}>
+                      Re-run from step {rerunStepIndex + 1} — optional feedback:
+                    </div>
+                    <textarea
+                      value={rerunFeedback}
+                      onChange={(e) => setRerunFeedback(e.target.value)}
+                      placeholder="e.g. Focus more on pricing, add more examples..."
+                      style={{
+                        width: "100%", minHeight: 50, padding: "8px 10px",
+                        borderRadius: 8, border: `1px solid ${P.border}`,
+                        backgroundColor: "#fff", color: P.text,
+                        fontSize: 13, fontFamily: "inherit", resize: "vertical",
+                        outline: "none", lineHeight: 1.4,
+                      }}
+                    />
+                    <div style={{ display: "flex", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
+                      <button
+                        onClick={() => { setRerunStepIndex(null); setRerunFeedback(""); }}
+                        style={{
+                          padding: "6px 14px", borderRadius: 7,
+                          border: `1px solid ${P.border}`, backgroundColor: "#fff",
+                          color: P.textSec, fontSize: 12, fontWeight: 600,
+                          cursor: "pointer", fontFamily: "inherit",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleRerunFrom(rerunStepIndex)}
+                        disabled={rerunLoading}
+                        style={{
+                          padding: "6px 16px", borderRadius: 7,
+                          border: "none",
+                          background: agent?.gradient || "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                          color: "#fff", fontSize: 12, fontWeight: 700,
+                          cursor: rerunLoading ? "default" : "pointer",
+                          fontFamily: "inherit",
+                          opacity: rerunLoading ? 0.7 : 1,
+                        }}
+                      >
+                        {rerunLoading ? "Re-running..." : "Re-run"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Output — rendered as formatted markdown */}
           {task.output && (

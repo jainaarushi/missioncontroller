@@ -5,14 +5,15 @@ import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { AgentInputForm } from "@/components/agents/agent-input-form";
 import { suggestAgents } from "@/lib/utils/agent-suggest";
 import { AGENT_INPUT_CONFIGS, serializeAgentInput, generateTaskTitle } from "@/lib/agent-ui/input-registry";
-import { getPipeline } from "@/lib/ai/pipelines";
+import { getPipeline, type PipelineStep } from "@/lib/ai/pipelines";
+import { PipelineBuilder } from "@/components/pipeline/pipeline-builder";
 import { P } from "@/lib/palette";
 import type { Agent } from "@/lib/types/agent";
 
 interface CreateTaskModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (title: string, agentIds?: string[], fileContent?: string) => void;
+  onSubmit: (title: string, agentIds?: string[], fileContent?: string, customPipeline?: PipelineStep[]) => void;
   agents: Agent[];
   preSelectedAgentId?: string;
 }
@@ -69,6 +70,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   const audioChunksRef = useRef<Blob[]>([]);
   const [agentFormValues, setAgentFormValues] = useState<Record<string, unknown>>({});
   const [launching, setLaunching] = useState(false);
+  const [customPipeline, setCustomPipeline] = useState<PipelineStep[] | null>(null);
 
   // Smart suggestions based on mission description
   const suggestions = useMemo(() => suggestAgents(missionTitle, agents), [missionTitle, agents]);
@@ -97,6 +99,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       setTranscribing(false);
       setAgentFormValues({});
       setLaunching(false);
+      setCustomPipeline(null);
     }
   }, [open, preSelectedAgentId]);
 
@@ -142,11 +145,12 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
 
     setLaunching(true);
     setTimeout(() => {
-      onSubmit(text, recruitedIds.length > 0 ? recruitedIds : undefined, fileContent);
+      onSubmit(text, recruitedIds.length > 0 ? recruitedIds : undefined, fileContent, customPipeline || undefined);
       setMissionTitle("");
       setRecruitedIds([]);
       setUploadedFile(null);
       setAgentFormValues({});
+      setCustomPipeline(null);
       setLaunching(false);
       onClose();
     }, 600);
@@ -841,56 +845,29 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                   })}
                 </div>
 
-                {/* Pipeline steps preview */}
+                {/* Pipeline steps preview — draggable builder */}
                 {recruitedAgents.length > 0 && (() => {
                   const leadSlug = recruitedAgents[0]?.slug || "";
-                  const steps = getPipeline(leadSlug);
+                  const pipelineSteps = customPipeline || getPipeline(leadSlug);
                   return (
                     <div style={{ marginTop: 16 }}>
-                      <div style={{
-                        fontSize: 11, fontWeight: 700, color: P.textTer,
-                        letterSpacing: "0.06em", marginBottom: 10,
-                        textTransform: "uppercase" as const,
-                      }}>
-                        Pipeline ({steps.length} steps)
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                        {steps.map((step, i) => (
-                          <div key={i} style={{ display: "flex", gap: 0 }}>
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 24, flexShrink: 0 }}>
-                              <div style={{
-                                width: 10, height: 10, borderRadius: "50%", flexShrink: 0, marginTop: 4,
-                                background: step.isCore || step.isCore2
-                                  ? recruitedAgents[0].gradient
-                                  : P.border,
-                                boxShadow: step.isCore || step.isCore2 ? `0 0 8px ${recruitedAgents[0].color}30` : "none",
-                              }} />
-                              {i < steps.length - 1 && (
-                                <div style={{
-                                  width: 1.5, flexGrow: 1, minHeight: 12, borderRadius: 1,
-                                  backgroundColor: P.border,
-                                }} />
-                              )}
-                            </div>
-                            <div style={{
-                              fontSize: 12, paddingBottom: 8, paddingLeft: 8, lineHeight: 1.4,
-                              color: step.isCore || step.isCore2 ? P.text : P.textTer,
-                              fontWeight: step.isCore || step.isCore2 ? 600 : 400,
-                            }}>
-                              {step.description}
-                              {step.tools && step.tools.length > 0 && (
-                                <span style={{
-                                  fontSize: 10, color: P.indigo, fontWeight: 600,
-                                  marginLeft: 6, padding: "1px 6px", borderRadius: 4,
-                                  backgroundColor: P.indigoLight,
-                                }}>
-                                  {step.tools.join(" + ")}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <PipelineBuilder
+                        steps={pipelineSteps}
+                        agentColor={recruitedAgents[0].color}
+                        agentGradient={recruitedAgents[0].gradient}
+                        editable={true}
+                        onReorder={(newSteps) => setCustomPipeline(newSteps)}
+                        onAddStep={(afterIdx, step) => {
+                          const current = [...(customPipeline || getPipeline(leadSlug))];
+                          current.splice(afterIdx + 1, 0, step);
+                          setCustomPipeline(current);
+                        }}
+                        onRemoveStep={(idx) => {
+                          const current = [...(customPipeline || getPipeline(leadSlug))];
+                          current.splice(idx, 1);
+                          setCustomPipeline(current);
+                        }}
+                      />
                       {recruitedAgents.length > 1 && (
                         <div style={{
                           marginTop: 8, padding: "8px 12px", borderRadius: 8,

@@ -44,4 +44,5 @@ export interface TaskStep {
   started_at: string | null;
   completed_at: string | null;
   tokens_used: number;
+  output?: string;  // Per-step output (in-memory only, not in DB)
 }

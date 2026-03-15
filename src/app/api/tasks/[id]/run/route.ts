@@ -47,12 +47,20 @@ export async function POST(
     return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
   }
 
-  // Parse optional team from request body
+  // Parse optional team and custom pipeline from request body
   let teamAgentIds: string[] = [];
+  let customPipeline: PipelineStep[] | null = null;
   try {
     const body = await _request.json();
     if (body.team && Array.isArray(body.team)) {
       teamAgentIds = body.team;
+    }
+    if (body.customPipeline && Array.isArray(body.customPipeline)) {
+      // Validate: must have at least one core step
+      const hasCore = body.customPipeline.some((s: PipelineStep) => s.isCore || s.isCore2);
+      if (hasCore) {
+        customPipeline = body.customPipeline;
+      }
     }
   } catch {
     // No body or invalid JSON — single agent mode
@@ -105,7 +113,7 @@ export async function POST(
   }
 
   // Build combined pipeline for multi-agent execution
-  const primaryPipeline = getPipeline(agentSlug);
+  const primaryPipeline = customPipeline || getPipeline(agentSlug);
 
   // For multi-agent: primary agent runs first, then each team member gets a handoff step
   const allSteps: { pipeline: PipelineStep[]; agentName: string; agentSlug: string; systemPrompt: string }[] = [
@@ -241,7 +249,7 @@ interface AgentBlock {
   systemPrompt: string;
 }
 
-async function runMultiAgentPipeline(
+export async function runMultiAgentPipeline(
   userId: string,
   taskId: string,
   title: string,
@@ -253,6 +261,8 @@ async function runMultiAgentPipeline(
   toolKeys: UserToolKeys,
   mcpServers: MCPServerConfig[],
   mcpHint: string | null,
+  startFromStep: number = 0,
+  priorContext: string = "",
 ) {
   const startTime = Date.now();
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -304,6 +314,12 @@ async function runMultiAgentPipeline(
   // Track global step index across all agent blocks
   let globalStepIdx = 0;
   const totalSteps = steps.length;
+
+  // If starting from a specific step, use prior context as draft
+  let skipToStep = startFromStep;
+  if (priorContext) {
+    finalOutput = priorContext;
+  }
 
   try {
     // Image generation path
@@ -357,16 +373,20 @@ async function runMultiAgentPipeline(
 
       // Handle handoff step (visual only, between agents)
       if (blockIdx > 0) {
-        steps[globalStepIdx].status = "working";
-        steps[globalStepIdx].started_at = new Date().toISOString();
-        await persistTaskUpdate(userId, taskId, {
-          progress: Math.min(Math.round((globalStepIdx / totalSteps) * 100), 95),
-          current_step: `Handing off to ${block.agentName}...`,
-        });
-        await delay(800);
-        steps[globalStepIdx].status = "done";
-        steps[globalStepIdx].completed_at = new Date().toISOString();
-        globalStepIdx++;
+        if (globalStepIdx < skipToStep) {
+          globalStepIdx++;
+        } else {
+          steps[globalStepIdx].status = "working";
+          steps[globalStepIdx].started_at = new Date().toISOString();
+          await persistTaskUpdate(userId, taskId, {
+            progress: Math.min(Math.round((globalStepIdx / totalSteps) * 100), 95),
+            current_step: `Handing off to ${block.agentName}...`,
+          });
+          await delay(800);
+          steps[globalStepIdx].status = "done";
+          steps[globalStepIdx].completed_at = new Date().toISOString();
+          globalStepIdx++;
+        }
       }
 
       // Parse file data if this agent's pipeline needs it
@@ -375,12 +395,22 @@ async function runMultiAgentPipeline(
         parsedFileData = parseFileDataFromDescription(description);
       }
 
-      let draftOutput = "";
+      let draftOutput = priorContext || "";
 
       // Execute this agent's pipeline steps
       for (let i = 0; i < block.pipeline.length; i++) {
         const step = block.pipeline[i];
         const progress = Math.round(((globalStepIdx + 0.5) / totalSteps) * 100);
+
+        // Skip steps before startFromStep (they were already completed)
+        if (globalStepIdx < skipToStep) {
+          // Preserve existing output as draft context
+          if (steps[globalStepIdx].output) {
+            draftOutput = steps[globalStepIdx].output || "";
+          }
+          globalStepIdx++;
+          continue;
+        }
 
         steps[globalStepIdx].status = "working";
         steps[globalStepIdx].started_at = new Date().toISOString();
@@ -431,6 +461,7 @@ async function runMultiAgentPipeline(
           steps[globalStepIdx].status = "done";
           steps[globalStepIdx].completed_at = new Date().toISOString();
           steps[globalStepIdx].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
+          steps[globalStepIdx].output = result.text;
 
         } else if (step.isCore2 && draftOutput) {
           const refinePrompt = (step.core2Prompt || "Improve and polish this output:\n\n") + draftOutput;
@@ -449,6 +480,7 @@ async function runMultiAgentPipeline(
           steps[globalStepIdx].status = "done";
           steps[globalStepIdx].completed_at = new Date().toISOString();
           steps[globalStepIdx].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
+          steps[globalStepIdx].output = result.text;
 
         } else {
           await delay(step.duration);

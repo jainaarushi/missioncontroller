@@ -14,6 +14,7 @@ import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
 import { ChevronRight } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
+import type { PipelineStep } from "@/lib/ai/pipelines";
 
 // Rich color palette — cycles so adjacent cards never share colors
 const CARD_GRADIENTS = [
@@ -185,7 +186,7 @@ export default function TodayPage() {
     }
   }
 
-  async function handleCreateTask(title: string, agentIds?: string[], fileContent?: string) {
+  async function handleCreateTask(title: string, agentIds?: string[], fileContent?: string, customPipeline?: PipelineStep[]) {
     const firstAgent = agentIds?.[0] ? agents.find((a) => a.id === agentIds[0]) : null;
     const teamSize = agentIds?.length || 0;
     const optimisticTask: TaskWithAgent = {
@@ -247,7 +248,10 @@ export default function TodayPage() {
         const runRes = await fetch(`/api/tasks/${task.id}/run`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ team: teamIds }),
+          body: JSON.stringify({
+            team: teamIds,
+            ...(customPipeline ? { customPipeline } : {}),
+          }),
         });
 
         if (runRes.status === 401) {
@@ -682,7 +686,7 @@ export default function TodayPage() {
                 fontSize: 24, fontWeight: 900, color: P.text, margin: "0 0 6px",
                 letterSpacing: "-0.03em",
               }}>
-                Life Utility Templates
+                Templates for Tasks
               </h2>
               <p style={{ fontSize: 14, color: P.textSec, margin: 0, lineHeight: 1.5 }}>
                 Real-world AI agents for everyday tasks — jobs, bills, leases, health, and more
