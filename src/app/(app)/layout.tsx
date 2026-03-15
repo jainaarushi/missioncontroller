@@ -68,7 +68,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         @keyframes scrollPulse { 0%,100%{transform:translateY(-50%) scale(1);box-shadow:0 2px 12px rgba(0,0,0,0.1)}50%{transform:translateY(-50%) scale(1.05);box-shadow:0 4px 20px rgba(0,0,0,0.14)} }
         .agent-card { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1); }
         .agent-card:hover { transform: translateY(-2px) !important; }
-        .agent-card:hover .agent-thumb-img { transform: translate(4px, -4px) rotate(2deg) scale(1.05) !important; }
+        .agent-card:hover .agent-thumb-img { transform: scale(1.05) !important; }
         .agent-card:active { transform: scale(0.97) !important; transition-duration: 0.1s; }
         .agent-thumb-img { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
         @keyframes scaleIn { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }

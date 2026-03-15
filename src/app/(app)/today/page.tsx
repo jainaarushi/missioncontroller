@@ -386,8 +386,8 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* AI Agents — 2-row Canva-style grid with horizontal scroll — full width */}
-      <div className="agent-scroller-bleed" style={{ marginBottom: 28, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
+      {/* AI Agents — single-row horizontal scroll */}
+      <div className="agent-scroller-bleed" style={{ marginBottom: 20, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ position: "relative" }}>
           <div
             ref={scrollRef}
@@ -400,8 +400,8 @@ export default function TodayPage() {
               display: "grid",
               gridTemplateRows: "1fr",
               gridAutoFlow: "column",
-              gridAutoColumns: "170px",
-              gap: 10,
+              gridAutoColumns: "140px",
+              gap: 8,
               overflowX: "auto",
               paddingLeft: 24,
               paddingRight: 0,
@@ -437,17 +437,17 @@ export default function TodayPage() {
                   className="agent-card"
                   onClick={() => setPreviewAgent(agent)}
                   style={{
-                    borderRadius: 16, cursor: "pointer",
+                    borderRadius: 14, cursor: "pointer",
                     overflow: "hidden",
                     scrollSnapAlign: "start",
                     animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
                     backgroundColor: thumb ? "transparent" : pastelBg,
                     position: "relative",
-                    minHeight: 0,
+                    height: 160,
                   }}
                 >
                   {thumb ? (
-                    /* Full image card — chibi avatar, user avatar, or preset thumbnail */
+                    /* Full image card with color gradient overlay */
                     <div style={{ position: "relative", width: "100%", height: "100%" }}>
                       <img
                         src={thumb}
@@ -456,55 +456,63 @@ export default function TodayPage() {
                         style={{
                           width: "100%", height: "100%",
                           objectFit: "cover", display: "block",
-                          transform: (avatarUrl || chibiAvatar) ? "scale(1)" : "scale(1.15)",
                         }}
                       />
-                      {(avatarUrl || chibiAvatar) && (
+                      {/* Color gradient overlay at bottom */}
+                      <div style={{
+                        position: "absolute", bottom: 0, left: 0, right: 0,
+                        padding: "32px 10px 10px",
+                        background: `linear-gradient(to top, ${agent.color}e0 0%, ${agent.color}90 35%, transparent 100%)`,
+                        borderRadius: "0 0 16px 16px",
+                      }}>
                         <div style={{
-                          position: "absolute", bottom: 0, left: 0, right: 0,
-                          padding: "20px 10px 8px",
-                          background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
+                          fontSize: 14, fontWeight: 800, color: "#fff",
+                          textShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                          lineHeight: 1.2,
                         }}>
-                          <div style={{
-                            fontSize: 11.5, fontWeight: 800, color: "#fff",
-                            textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-                            lineHeight: 1.2,
-                          }}>
-                            {agent.name}
-                          </div>
-                          <div style={{
-                            fontSize: 9.5, fontWeight: 500, color: "rgba(255,255,255,0.8)",
-                            textShadow: "0 1px 2px rgba(0,0,0,0.3)",
-                            marginTop: 1,
-                          }}>
-                            {agent.description}
-                          </div>
+                          {agent.name}
                         </div>
-                      )}
+                        <div style={{
+                          fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.85)",
+                          textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                          marginTop: 2, lineHeight: 1.3,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
+                        }}>
+                          {agent.description}
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    /* Fallback — pastel card with icon */
+                    /* Fallback — pastel card with gradient bottom */
                     <div style={{
-                      padding: "14px 14px 12px",
-                      display: "flex", flexDirection: "column",
-                      justifyContent: "space-between",
+                      position: "relative",
                       height: "100%",
+                      display: "flex", flexDirection: "column",
+                      justifyContent: "center", alignItems: "center",
+                      padding: "16px 10px 36px",
                     }}>
                       <div style={{
-                        fontSize: 12.5, fontWeight: 700, color: P.text,
-                        lineHeight: 1.3, maxWidth: "65%",
-                      }}>
-                        {agent.name}
-                      </div>
-                      <div className="agent-thumb-img" style={{
-                        position: "absolute", bottom: 6, right: 6,
-                        width: 48, height: 48, borderRadius: 12,
+                        width: 44, height: 44, borderRadius: 12,
                         background: agent.gradient,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 22,
                         boxShadow: `0 4px 12px ${agent.color}20`,
                       }}>
                         {agent.icon}
+                      </div>
+                      <div style={{
+                        position: "absolute", bottom: 0, left: 0, right: 0,
+                        padding: "20px 10px 10px",
+                        background: `linear-gradient(to top, ${agent.color}e0 0%, ${agent.color}90 40%, transparent 100%)`,
+                        borderRadius: "0 0 16px 16px",
+                      }}>
+                        <div style={{
+                          fontSize: 13, fontWeight: 800, color: "#fff",
+                          textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                          lineHeight: 1.2,
+                        }}>
+                          {agent.name}
+                        </div>
                       </div>
                     </div>
                   )}
