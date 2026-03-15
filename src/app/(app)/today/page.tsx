@@ -701,7 +701,7 @@ export default function TodayPage() {
                 {/* Template cards grid */}
                 <div style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
                   gap: 12,
                 }}>
                   {cat.slugs.map((slug) => {
@@ -718,84 +718,64 @@ export default function TodayPage() {
                         style={{
                           position: "relative",
                           borderRadius: 16,
-                          padding: "20px 20px 18px",
+                          height: 160,
                           cursor: "pointer",
                           overflow: "hidden",
-                          background: "#fff",
-                          border: `1.5px solid ${cat.color}18`,
+                          background: agent.gradient || cat.gradient,
                           transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-                          boxShadow: `0 1px 3px ${cat.color}08`,
+                          boxShadow: `0 2px 8px ${cat.color}20`,
                         }}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          el.style.transform = "translateY(-3px)";
-                          el.style.boxShadow = `0 12px 32px ${cat.color}18, 0 4px 12px ${cat.color}10`;
-                          el.style.borderColor = `${cat.color}40`;
+                          el.style.transform = "translateY(-4px) scale(1.02)";
+                          el.style.boxShadow = `0 16px 40px ${cat.color}30, 0 4px 12px ${cat.color}20`;
                         }}
                         onMouseLeave={(e) => {
                           const el = e.currentTarget;
-                          el.style.transform = "translateY(0)";
-                          el.style.boxShadow = `0 1px 3px ${cat.color}08`;
-                          el.style.borderColor = `${cat.color}18`;
+                          el.style.transform = "translateY(0) scale(1)";
+                          el.style.boxShadow = `0 2px 8px ${cat.color}20`;
                         }}
                       >
-                        {/* Accent stripe */}
                         <div style={{
-                          position: "absolute", top: 0, left: 0, right: 0, height: 3,
-                          background: cat.gradient,
-                          borderRadius: "16px 16px 0 0",
-                        }} />
-
-                        {/* Icon + name row */}
-                        <div style={{
-                          display: "flex", alignItems: "center", gap: 12,
-                          marginBottom: 8,
+                          position: "relative",
+                          height: "100%",
+                          display: "flex", flexDirection: "column",
+                          justifyContent: "space-between",
+                          padding: "16px 16px 14px",
                         }}>
+                          {/* Icon */}
                           <div style={{
                             width: 42, height: 42, borderRadius: 12,
-                            background: `${cat.color}10`,
+                            backgroundColor: "rgba(255,255,255,0.2)",
+                            backdropFilter: "blur(8px)",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 22, flexShrink: 0,
+                            fontSize: 21,
                           }}>
                             {agent.icon}
                           </div>
-                          <div style={{ minWidth: 0 }}>
+
+                          {/* Name + description */}
+                          <div>
                             <div style={{
-                              fontSize: 15, fontWeight: 800, color: P.text,
-                              letterSpacing: "-0.02em", lineHeight: 1.2,
+                              fontSize: 17, fontWeight: 900, color: "#fff",
+                              textShadow: "0 1px 6px rgba(0,0,0,0.25)",
+                              lineHeight: 1.15, letterSpacing: "-0.02em",
+                              marginBottom: 4,
                             }}>
                               {agent.name}
                             </div>
                             <div style={{
-                              fontSize: 12, fontWeight: 600, color: cat.color,
-                              marginTop: 2,
+                              fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.82)",
+                              textShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                              lineHeight: 1.35,
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical" as const,
+                              overflow: "hidden",
                             }}>
-                              {agent.description}
+                              {agent.long_description || agent.description}
                             </div>
                           </div>
-                        </div>
-
-                        {/* Long description */}
-                        <p style={{
-                          fontSize: 13, color: P.textSec, margin: 0,
-                          lineHeight: 1.5,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical" as const,
-                          overflow: "hidden",
-                        }}>
-                          {agent.long_description || agent.description}
-                        </p>
-
-                        {/* Use arrow */}
-                        <div style={{
-                          position: "absolute", bottom: 16, right: 16,
-                          width: 28, height: 28, borderRadius: 8,
-                          background: `${cat.color}08`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          transition: "all 0.2s",
-                        }}>
-                          <ChevronRight size={16} color={cat.color} strokeWidth={2.5} />
                         </div>
                       </div>
                     );
