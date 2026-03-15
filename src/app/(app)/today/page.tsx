@@ -13,63 +13,12 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
 import { ChevronRight } from "lucide-react";
-import { useAvatars } from "@/lib/hooks/use-avatars";
-import { AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
-import { AGENT_AVATAR_MAP } from "@/lib/agent-avatars";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
-// Canva-style: only 4 pastel colors that rotate
-const CANVA_PASTELS = ["#F5D5E0", "#E8D5F5", "#F5E6D5", "#FFF5CC"];
-
-
-const AGENT_THUMBNAILS: Record<string, string> = {
-  // Creative
-  "roast-master": "/agents/roast-master.png",
-  "song-lyrics": "/agents/song-lyrics.png",
-  "linkedin-post": "/agents/linkedin-post.png",
-  "cover-letter": "/agents/cover-letter.png",
-  "startup-idea-gen": "/agents/startup-idea-gen.png",
-  // Professional agents
-  "product-launch": "/agents/product-launch.png",
-  "deep-research": "/agents/deep-research.png",
-  "content-creator": "/agents/content-creator.png",
-  "data-analyst": "/agents/data-analyst.png",
-  "system-architect": "/agents/system-architect.png",
-  "sales-rep": "/agents/sales-rep.png",
-  "investment-analyst": "/agents/investment-analyst.png",
-  "fitness-coach": "/agents/fitness-coach.png",
-  "blog-to-podcast": "/agents/blog-to-podcast.png",
-  "web-intel": "/agents/web-intel.png",
-  "general-assistant": "/agents/general-assistant.png",
-  "fact-checker": "/agents/fact-checker.png",
-  "startup-trends": "/agents/startup-trends.png",
-  "academic-researcher": "/agents/academic-researcher.png",
-  "technical-writer": "/agents/technical-writer.png",
-  "editor": "/agents/editor.png",
-  "visualization-expert": "/agents/visualization-expert.png",
-  "email-drafter": "/agents/email-drafter.png",
-  "personal-finance": "/agents/personal-finance.png",
-  "python-expert": "/agents/python-expert.png",
-  "fullstack-developer": "/agents/fullstack-developer.png",
-  "debugger": "/agents/debugger.png",
-  "project-planner": "/agents/project-planner.png",
-  "sprint-planner": "/agents/sprint-planner.png",
-  "meeting-notes": "/agents/meeting-notes.png",
-  "decision-helper": "/agents/decision-helper.png",
-  "recipe-planner": "/agents/recipe-planner.png",
-  "ux-designer": "/agents/ux-designer.png",
-  "journalist": "/agents/journalist.png",
-  "customer-support": "/agents/customer-support.png",
-  "strategy-advisor": "/agents/strategy_advisor.png",
-  "travel-planner": "/agents/Travel_planner.png",
-  "code-reviewer": "/agents/code_reviewer.png",
-  "mental-wellbeing": "/agents/wellbeing.png",
-};
 
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
   const { agents } = useAgents();
-  const { avatars: userAvatars } = useAvatars();
   const [selectedTask, setSelectedTask] = useState<TaskWithAgent | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -408,11 +357,6 @@ export default function TodayPage() {
               });
               return sorted;
             })().map((agent, i) => {
-              const catId = AGENT_CATEGORY_MAP[agent.slug];
-              const avatarUrl = catId ? userAvatars[catId] : undefined;
-              const chibiAvatar = AGENT_AVATAR_MAP[agent.slug];
-              const thumb = avatarUrl || chibiAvatar || AGENT_THUMBNAILS[agent.slug];
-              const pastelBg = CANVA_PASTELS[i % CANVA_PASTELS.length];
               const delay = i * 0.04;
               return (
                 <div
@@ -424,81 +368,49 @@ export default function TodayPage() {
                     overflow: "hidden",
                     scrollSnapAlign: "start",
                     animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
-                    backgroundColor: thumb ? "transparent" : pastelBg,
                     position: "relative",
                     height: 160,
+                    background: agent.gradient,
                   }}
                 >
-                  {thumb ? (
-                    /* Full image card with color gradient overlay */
-                    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                      <img
-                        src={thumb}
-                        alt={agent.name}
-                        className="agent-thumb-img"
-                        style={{
-                          width: "100%", height: "100%",
-                          objectFit: "cover", display: "block",
-                        }}
-                      />
-                      {/* Color gradient overlay at bottom */}
-                      <div style={{
-                        position: "absolute", bottom: 0, left: 0, right: 0,
-                        padding: "32px 10px 10px",
-                        background: `linear-gradient(to top, ${agent.color}e0 0%, ${agent.color}90 35%, transparent 100%)`,
-                        borderRadius: "0 0 16px 16px",
-                      }}>
-                        <div style={{
-                          fontSize: 14, fontWeight: 800, color: "#fff",
-                          textShadow: "0 1px 4px rgba(0,0,0,0.3)",
-                          lineHeight: 1.2,
-                        }}>
-                          {agent.name}
-                        </div>
-                        <div style={{
-                          fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.85)",
-                          textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                          marginTop: 2, lineHeight: 1.3,
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
-                        }}>
-                          {agent.description}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Fallback — pastel card with gradient bottom */
+                  <div style={{
+                    position: "relative",
+                    height: "100%",
+                    display: "flex", flexDirection: "column",
+                    justifyContent: "space-between",
+                    padding: "14px 12px 12px",
+                  }}>
+                    {/* Icon */}
                     <div style={{
-                      position: "relative",
-                      height: "100%",
-                      display: "flex", flexDirection: "column",
-                      justifyContent: "center", alignItems: "center",
-                      padding: "16px 10px 36px",
+                      width: 40, height: 40, borderRadius: 12,
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                      backdropFilter: "blur(8px)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 20,
                     }}>
+                      {agent.icon}
+                    </div>
+
+                    {/* Name + description */}
+                    <div>
                       <div style={{
-                        width: 44, height: 44, borderRadius: 12,
-                        background: agent.gradient,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 22,
-                        boxShadow: `0 4px 12px ${agent.color}20`,
+                        fontSize: 16, fontWeight: 900, color: "#fff",
+                        textShadow: "0 1px 6px rgba(0,0,0,0.25)",
+                        lineHeight: 1.15, letterSpacing: "-0.02em",
+                        marginBottom: 3,
                       }}>
-                        {agent.icon}
+                        {agent.name}
                       </div>
                       <div style={{
-                        position: "absolute", bottom: 0, left: 0, right: 0,
-                        padding: "20px 10px 10px",
-                        background: `linear-gradient(to top, ${agent.color}e0 0%, ${agent.color}90 40%, transparent 100%)`,
-                        borderRadius: "0 0 16px 16px",
+                        fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.8)",
+                        textShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                        lineHeight: 1.3,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
                       }}>
-                        <div style={{
-                          fontSize: 13, fontWeight: 800, color: "#fff",
-                          textShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                          lineHeight: 1.2,
-                        }}>
-                          {agent.name}
-                        </div>
+                        {agent.description}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
