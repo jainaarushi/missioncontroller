@@ -5,7 +5,7 @@ import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { AgentInputForm } from "@/components/agents/agent-input-form";
 import { suggestAgents } from "@/lib/utils/agent-suggest";
 import { AGENT_INPUT_CONFIGS, serializeAgentInput, generateTaskTitle } from "@/lib/agent-ui/input-registry";
-import { AGENT_AVATAR_MAP } from "@/lib/agent-avatars";
+import { getPipeline } from "@/lib/ai/pipelines";
 import { P } from "@/lib/palette";
 import type { Agent } from "@/lib/types/agent";
 
@@ -34,13 +34,13 @@ const CATEGORY_AGENTS: Record<string, string[]> = {
   "all": [],
   "research": ["deep-research", "fact-checker", "startup-trends", "academic-researcher", "web-intel", "competitor-intel", "market-sizing", "vc-due-diligence"],
   "writing": ["content-creator", "technical-writer", "editor", "blog-to-podcast", "email-drafter", "journalist", "newsletter-agent", "video-script"],
-  "code": ["system-architect", "python-expert", "fullstack-developer", "code-reviewer", "debugger", "devops-agent", "game-design"],
+  "code": ["system-architect", "python-expert", "fullstack-developer", "code-reviewer", "debugger", "devops-agent"],
   "data": ["data-analyst", "visualization-expert"],
   "business": ["strategy-advisor", "sales-rep", "product-launch", "customer-support", "pricing-strategist", "proposal-writer", "ad-copy", "seo-agent", "social-media"],
-  "finance": ["investment-analyst", "personal-finance", "real-estate-analyst"],
-  "planning": ["project-planner", "sprint-planner", "meeting-notes", "decision-helper", "startup-idea-gen", "ux-designer", "ui-ux-feedback"],
-  "health": ["fitness-coach", "recipe-planner", "mental-wellbeing", "travel-planner", "home-renovation", "life-coach", "baby-name"],
-  "fun": ["roast-master", "dream-interpreter", "villain-origin", "rap-battle", "meme-caption", "fortune-teller", "alien-anthropologist", "toxic-trait", "dating-profile", "bedtime-story", "song-lyrics", "excuse-generator", "movie-plot", "linkedin-post", "future-coach", "debate-champion", "cover-letter", "apology-writer", "music-generator"],
+  "finance": ["investment-analyst", "personal-finance"],
+  "planning": ["project-planner", "sprint-planner", "meeting-notes", "decision-helper", "startup-idea-gen", "ux-designer"],
+  "health": ["fitness-coach", "recipe-planner", "mental-wellbeing", "travel-planner"],
+  "fun": ["roast-master", "song-lyrics", "linkedin-post", "cover-letter"],
 };
 
 // Quick mission templates
@@ -535,21 +535,8 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                         }}
                       >
                         {/* Avatar */}
-                        {AGENT_AVATAR_MAP[agent.slug] ? (
-                          <div style={{
-                            width: 52, height: 52, borderRadius: 16, margin: "0 auto 8px",
-                            overflow: "hidden", border: `2px solid ${agent.color}20`,
-                          }}>
-                            <img
-                              src={AGENT_AVATAR_MAP[agent.slug]}
-                              alt={agent.name}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                          </div>
-                        ) : (
-                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
-                        )}
-                        <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2 }}>{agent.name}</div>
+                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
+                        <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2, marginTop: 8 }}>{agent.name}</div>
                         <div style={{ fontSize: 10, color: P.textTer, lineHeight: 1.3 }}>{reason}</div>
                       </div>
                     ))}
@@ -612,7 +599,6 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
               }}>
                 {searchFiltered.map((agent, i) => {
                   const isRecruited = recruitedIds.includes(agent.id);
-                  const avatarImg = AGENT_AVATAR_MAP[agent.slug];
                   return (
                     <div
                       key={agent.id}
@@ -656,25 +642,9 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                         </div>
                       )}
 
-                      {/* Avatar */}
-                      {avatarImg ? (
-                        <div style={{
-                          width: 52, height: 52, borderRadius: 16, margin: "0 auto 8px",
-                          overflow: "hidden",
-                          border: `2px solid ${isRecruited ? agent.color + "40" : agent.color + "15"}`,
-                          transition: "all 0.2s",
-                        }}>
-                          <img
-                            src={avatarImg}
-                            alt={agent.name}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          />
-                        </div>
-                      ) : (
-                        <div style={{ margin: "0 auto 8px" }}>
-                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
-                        </div>
-                      )}
+                      <div style={{ margin: "0 auto 8px" }}>
+                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
+                      </div>
 
                       <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2 }}>
                         {agent.name}
@@ -703,7 +673,6 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                     <>
                       <div style={{ display: "flex", marginLeft: 4 }}>
                         {recruitedAgents.map((agent, i) => {
-                          const avatarImg = AGENT_AVATAR_MAP[agent.slug];
                           return (
                             <div key={agent.id} style={{
                               width: 36, height: 36, borderRadius: 12,
@@ -712,18 +681,14 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                               zIndex: 10 - i,
                               animation: `popIn 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 0.1}s both`,
                             }}>
-                              {avatarImg ? (
-                                <img src={avatarImg} alt={agent.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                              ) : (
-                                <div style={{
-                                  width: "100%", height: "100%",
-                                  background: agent.gradient,
-                                  display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 16,
-                                }}>
-                                  {agent.icon}
-                                </div>
-                              )}
+                              <div style={{
+                                width: "100%", height: "100%",
+                                background: agent.gradient,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 16,
+                              }}>
+                                {agent.icon}
+                              </div>
                             </div>
                           );
                         })}
@@ -820,7 +785,6 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {recruitedAgents.map((agent, i) => {
-                    const avatarImg = AGENT_AVATAR_MAP[agent.slug];
                     return (
                       <div
                         key={agent.id}
@@ -843,18 +807,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                           {i + 1}
                         </div>
 
-                        {/* Avatar */}
-                        {avatarImg ? (
-                          <div style={{
-                            width: 42, height: 42, borderRadius: 12,
-                            overflow: "hidden", border: `2px solid ${agent.color}20`,
-                            flexShrink: 0,
-                          }}>
-                            <img src={avatarImg} alt={agent.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          </div>
-                        ) : (
-                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={42} />
-                        )}
+                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={42} />
 
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{agent.name}</div>
@@ -888,18 +841,70 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                   })}
                 </div>
 
-                {/* Pipeline flow */}
-                {recruitedAgents.length > 1 && (
-                  <div style={{
-                    marginTop: 16, padding: "10px 14px", borderRadius: 10,
-                    backgroundColor: P.sidebar,
-                    fontSize: 12, color: P.textSec, lineHeight: 1.5,
-                  }}>
-                    <span style={{ fontWeight: 700 }}>Execution:</span>{" "}
-                    {recruitedAgents.map((a) => a.name).join(" → ")}
-                    {" — each agent receives the previous agent's output as context."}
-                  </div>
-                )}
+                {/* Pipeline steps preview */}
+                {recruitedAgents.length > 0 && (() => {
+                  const leadSlug = recruitedAgents[0]?.slug || "";
+                  const steps = getPipeline(leadSlug);
+                  return (
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 700, color: P.textTer,
+                        letterSpacing: "0.06em", marginBottom: 10,
+                        textTransform: "uppercase" as const,
+                      }}>
+                        Pipeline ({steps.length} steps)
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                        {steps.map((step, i) => (
+                          <div key={i} style={{ display: "flex", gap: 0 }}>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 24, flexShrink: 0 }}>
+                              <div style={{
+                                width: 10, height: 10, borderRadius: "50%", flexShrink: 0, marginTop: 4,
+                                background: step.isCore || step.isCore2
+                                  ? recruitedAgents[0].gradient
+                                  : P.border,
+                                boxShadow: step.isCore || step.isCore2 ? `0 0 8px ${recruitedAgents[0].color}30` : "none",
+                              }} />
+                              {i < steps.length - 1 && (
+                                <div style={{
+                                  width: 1.5, flexGrow: 1, minHeight: 12, borderRadius: 1,
+                                  backgroundColor: P.border,
+                                }} />
+                              )}
+                            </div>
+                            <div style={{
+                              fontSize: 12, paddingBottom: 8, paddingLeft: 8, lineHeight: 1.4,
+                              color: step.isCore || step.isCore2 ? P.text : P.textTer,
+                              fontWeight: step.isCore || step.isCore2 ? 600 : 400,
+                            }}>
+                              {step.description}
+                              {step.tools && step.tools.length > 0 && (
+                                <span style={{
+                                  fontSize: 10, color: P.indigo, fontWeight: 600,
+                                  marginLeft: 6, padding: "1px 6px", borderRadius: 4,
+                                  backgroundColor: P.indigoLight,
+                                }}>
+                                  {step.tools.join(" + ")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {recruitedAgents.length > 1 && (
+                        <div style={{
+                          marginTop: 8, padding: "8px 12px", borderRadius: 8,
+                          backgroundColor: P.sidebar,
+                          fontSize: 11, color: P.textSec, lineHeight: 1.5,
+                        }}>
+                          <span style={{ fontWeight: 700 }}>Team flow:</span>{" "}
+                          {recruitedAgents.map((a) => a.name).join(" → ")}
+                          {" — each agent builds on the previous output."}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Agent-specific input form (if single agent selected) */}

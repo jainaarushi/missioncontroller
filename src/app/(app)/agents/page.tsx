@@ -6,7 +6,7 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
-import { AGENT_AVATAR_MAP } from "@/lib/agent-avatars";
+
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -401,7 +401,6 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
   const isHovered = hoveredId === agent.id;
   const slug = agent.slug || "";
   const accentColor = agent.color || "#6366F1";
-  const avatarImg = AGENT_AVATAR_MAP[slug] || null;
 
   return (
     <div
@@ -419,7 +418,7 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
         boxShadow: isHovered
           ? `0 20px 40px rgba(0,0,0,0.18), 0 8px 16px rgba(0,0,0,0.1)`
           : `0 2px 8px rgba(0,0,0,0.06)`,
-        backgroundColor: accentColor + "20",
+        background: agent.gradient || `linear-gradient(160deg, ${accentColor}, ${accentColor}90)`,
       }}
     >
       {/* Delete for custom */}
@@ -441,34 +440,16 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
         </button>
       )}
 
-      {/* Full-bleed image with gentle breathing animation */}
-      {avatarImg ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={avatarImg}
-          alt={agent.name}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            animation: isHovered ? "imgScale 3s ease-in-out infinite" : "none",
-            transform: isHovered ? undefined : "scale(1.05)",
-            transition: "transform 0.5s ease",
-          }}
-        />
-      ) : (
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(160deg, ${accentColor}30, ${accentColor}10)`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 64,
-          animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
-        }}>
-          {agent.icon || ""}
-        </div>
-      )}
+      {/* Icon centered */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 64,
+        animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
+      }}>
+        {agent.icon || ""}
+      </div>
 
       {/* Bottom gradient overlay with name + role */}
       <div style={{
