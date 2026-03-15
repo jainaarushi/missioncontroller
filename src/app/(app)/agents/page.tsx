@@ -4,9 +4,11 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
-import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
+import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP, SPECIALIST_CATEGORY_IDS, isTemplateAgent } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
 
+
+const SPECIALIST_CATEGORIES = AGENT_CATEGORIES.filter(c => SPECIALIST_CATEGORY_IDS.includes(c.id));
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -16,6 +18,24 @@ const CATEGORY_ICONS: Record<string, string> = {
   gear: "\u{2699}\uFE0F",
   heart: "\u{1F496}",
   sparkle: "\u{2728}",
+  briefcase: "\u{1F4BC}",
+  wallet: "\u{1F4B0}",
+  shield: "\u{1F6E1}\uFE0F",
+  home: "\u{1F3E0}",
+  stethoscope: "\u{1FA7A}",
+  graduation: "\u{1F393}",
+  tag: "\u{1F3F7}\uFE0F",
+  zap: "\u{26A1}",
+  wrench: "\u{1F527}",
+  palette: "\u{1F3A8}",
+  flask: "\u{1F9EA}",
+  target: "\u{1F3AF}",
+  clipboard: "\u{1F4CB}",
+  lifebuoy: "\u{1F6DF}",
+  gamepad: "\u{1F3AE}",
+  cube: "\u{1F4E6}",
+  book: "\u{1F4DA}",
+  star: "\u{2B50}",
 };
 
 export default function AgentsPage() {
@@ -27,10 +47,10 @@ export default function AgentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  // Group agents by category
+  // Group agents by specialist category only
   const categorizedAgents = useMemo(() => {
     const groups: Record<string, typeof agents> = {};
-    for (const cat of AGENT_CATEGORIES) {
+    for (const cat of SPECIALIST_CATEGORIES) {
       groups[cat.id] = [];
     }
     groups["custom"] = [];
@@ -39,11 +59,11 @@ export default function AgentsPage() {
       const slug = agent.slug || "";
       if (!agent.is_preset) {
         groups["custom"].push(agent);
-      } else {
+      } else if (!isTemplateAgent(slug)) {
         const catId = AGENT_CATEGORY_MAP[slug] || "creative";
         if (groups[catId]) {
           groups[catId].push(agent);
-        } else {
+        } else if (groups["creative"]) {
           groups["creative"].push(agent);
         }
       }
@@ -51,14 +71,15 @@ export default function AgentsPage() {
     return groups;
   }, [agents]);
 
-  // Filter by search
+  // Filter by search (exclude template agents)
   const filteredAgents = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();
     return agents.filter(a =>
-      a.name.toLowerCase().includes(q) ||
+      !isTemplateAgent(a.slug || "") &&
+      (a.name.toLowerCase().includes(q) ||
       (a.description || "").toLowerCase().includes(q) ||
-      (a.long_description || "").toLowerCase().includes(q)
+      (a.long_description || "").toLowerCase().includes(q))
     );
   }, [agents, searchQuery]);
 
@@ -74,8 +95,8 @@ export default function AgentsPage() {
   }
 
   const visibleCategories = activeCategory
-    ? AGENT_CATEGORIES.filter(c => c.id === activeCategory)
-    : AGENT_CATEGORIES;
+    ? SPECIALIST_CATEGORIES.filter(c => c.id === activeCategory)
+    : SPECIALIST_CATEGORIES;
 
   return (
     <>
@@ -96,10 +117,10 @@ export default function AgentsPage() {
               fontSize: 28, fontWeight: 800, color: P.text, margin: "0 0 6px",
               letterSpacing: "-0.03em",
             }}>
-              Agent Gallery
+              AI Agency
             </h1>
             <p style={{ fontSize: 14, color: P.textSec, lineHeight: 1.5 }}>
-              {agents.length} AI specialists across {AGENT_CATEGORIES.length} categories. From idea to revenue.
+              AI specialists across {SPECIALIST_CATEGORIES.length} categories. From idea to revenue.
             </p>
           </div>
           <button
@@ -159,9 +180,9 @@ export default function AgentsPage() {
             border: activeCategory ? `1.5px solid ${P.border}` : "none",
           }}
         >
-          All ({agents.length})
+          All
         </button>
-        {AGENT_CATEGORIES.map((cat) => {
+        {SPECIALIST_CATEGORIES.map((cat) => {
           const count = categorizedAgents[cat.id]?.length || 0;
           const isActive = activeCategory === cat.id;
           return (

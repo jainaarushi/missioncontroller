@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { P } from "@/lib/palette";
-import { Home, Layers, BarChart3, CheckCircle2, Settings } from "lucide-react";
+import { Home, Layers, FileText, BarChart3, CheckCircle2, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface SidebarNavProps {
@@ -14,6 +14,7 @@ interface SidebarNavProps {
 const NAV_ITEMS: { href: string; icon: LucideIcon; label: string }[] = [
   { href: "/today", icon: Home, label: "Home" },
   { href: "/agents", icon: Layers, label: "Agents" },
+  { href: "/templates", icon: FileText, label: "Templates" },
   { href: "/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/completed", icon: CheckCircle2, label: "Completed" },
   { href: "/settings", icon: Settings, label: "Settings" },

@@ -22,8 +22,9 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
     }}>
       {[
         { href: "/today", icon: "🏠", label: "Today" },
-        { href: "/agents", icon: "🤖", label: "Agents" },
-        { href: "/analytics", icon: "📊", label: "Analytics" },
+        { href: "/agents", icon: "\u{1F916}", label: "Agents" },
+        { href: "/templates", icon: "\u{1F4CB}", label: "Templates" },
+        { href: "/analytics", icon: "\u{1F4CA}", label: "Analytics" },
         { href: "/settings", icon: "⚙️", label: "Settings" },
       ].map((item) => (
         <a key={item.href} href={item.href} style={{

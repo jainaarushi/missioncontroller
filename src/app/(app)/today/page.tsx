@@ -617,205 +617,43 @@ export default function TodayPage() {
         loading={bulkLoading}
       />
 
-      {/* ── Life Utility Templates ─────────────────────────── */}
-      {(() => {
-        const TEMPLATE_CATEGORIES = [
-          {
-            title: "Career & Job Search",
-            icon: "💼",
-            gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
-            color: "#2563EB",
-            slugs: ["job-hunter", "auto-applier", "resume-optimizer", "interview-coach", "salary-negotiator"],
-          },
-          {
-            title: "Money & Bills",
-            icon: "💵",
-            gradient: "linear-gradient(135deg, #059669, #34D399)",
-            color: "#059669",
-            slugs: ["subscription-killer", "bill-negotiator", "tax-deduction-finder", "credit-score-coach", "deal-spotter"],
-          },
-          {
-            title: "Legal & Rights",
-            icon: "⚖️",
-            gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-            color: "#7C3AED",
-            slugs: ["dispute-fighter", "benefits-finder", "lease-reviewer", "immigration-helper", "small-claims-advisor"],
-          },
-          {
-            title: "Housing & Moving",
-            icon: "🏠",
-            gradient: "linear-gradient(135deg, #D97706, #FBBF24)",
-            color: "#D97706",
-            slugs: ["apartment-scout", "moving-coordinator", "utility-optimizer", "roommate-matcher"],
-          },
-          {
-            title: "Health & Medical",
-            icon: "🩺",
-            gradient: "linear-gradient(135deg, #DC2626, #F87171)",
-            color: "#DC2626",
-            slugs: ["medical-bill-auditor", "insurance-comparer", "symptom-researcher", "prescription-saver"],
-          },
-          {
-            title: "Education",
-            icon: "🎓",
-            gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
-            color: "#0891B2",
-            slugs: ["scholarship-hunter", "college-advisor"],
-          },
-          {
-            title: "Smart Shopping",
-            icon: "🛍️",
-            gradient: "linear-gradient(135deg, #C026D3, #E879F9)",
-            color: "#C026D3",
-            slugs: ["return-assistant", "car-buy-negotiator"],
-          },
-          {
-            title: "Freelance & Side Income",
-            icon: "⚡",
-            gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
-            color: "#EA580C",
-            slugs: ["freelance-bid-writer", "side-hustle-matcher", "contract-reviewer"],
-          },
-        ];
-
-        return (
-          <div style={{ marginTop: 48, marginBottom: 32 }}>
-            {/* Section header */}
-            <div style={{ marginBottom: 28 }}>
-              <h2 style={{
-                fontSize: 24, fontWeight: 900, color: P.text, margin: "0 0 6px",
-                letterSpacing: "-0.03em",
-              }}>
-                Templates for Tasks
-              </h2>
-              <p style={{ fontSize: 14, color: P.textSec, margin: 0, lineHeight: 1.5 }}>
-                Real-world AI agents for everyday tasks — jobs, bills, leases, health, and more
-              </p>
-            </div>
-
-            {/* Category groups */}
-            {TEMPLATE_CATEGORIES.map((cat) => (
-              <div key={cat.title} style={{ marginBottom: 32 }}>
-                {/* Category header */}
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  marginBottom: 14,
-                }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 10,
-                    background: cat.gradient,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16,
-                    boxShadow: `0 4px 12px ${cat.color}25`,
-                  }}>
-                    {cat.icon}
-                  </div>
-                  <span style={{
-                    fontSize: 15, fontWeight: 800, color: P.text,
-                    letterSpacing: "-0.02em",
-                  }}>
-                    {cat.title}
-                  </span>
-                </div>
-
-                {/* Template cards grid */}
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                  gap: 14,
-                }}>
-                  {cat.slugs.map((slug, j) => {
-                    const agent = agents.find((a) => a.slug === slug);
-                    if (!agent) return null;
-                    // Offset by category index so adjacent categories don't start on same color
-                    const catOffset = TEMPLATE_CATEGORIES.indexOf(cat) * 3;
-                    const bg = CARD_GRADIENTS[(j + catOffset) % CARD_GRADIENTS.length];
-                    return (
-                      <div
-                        key={slug}
-                        className="template-card"
-                        onClick={() => {
-                          setCreateAgentId(agent.id);
-                          setShowCreateModal(true);
-                        }}
-                        style={{
-                          position: "relative",
-                          borderRadius: 22,
-                          height: 200,
-                          cursor: "pointer",
-                          overflow: "hidden",
-                          background: bg,
-                          transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-                          boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                        }}
-                        onMouseEnter={(e) => {
-                          const el = e.currentTarget;
-                          el.style.transform = "translateY(-4px) scale(1.02)";
-                          el.style.boxShadow = "0 20px 50px rgba(0,0,0,0.18)";
-                        }}
-                        onMouseLeave={(e) => {
-                          const el = e.currentTarget;
-                          el.style.transform = "translateY(0) scale(1)";
-                          el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)";
-                        }}
-                      >
-                        <div style={{
-                          position: "relative",
-                          height: "100%",
-                          display: "flex", flexDirection: "column",
-                          justifyContent: "space-between",
-                          padding: "20px 20px 18px",
-                        }}>
-                          {/* Icon */}
-                          <div style={{
-                            width: 48, height: 48, borderRadius: 16,
-                            backgroundColor: "rgba(255,255,255,0.22)",
-                            backdropFilter: "blur(8px)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 24,
-                          }}>
-                            {agent.icon}
-                          </div>
-
-                          {/* Name + tagline + description */}
-                          <div>
-                            <div style={{
-                              fontSize: 20, fontWeight: 900, color: "#fff",
-                              textShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                              lineHeight: 1.15, letterSpacing: "-0.03em",
-                              marginBottom: 3,
-                            }}>
-                              {agent.name}
-                            </div>
-                            <div style={{
-                              fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.9)",
-                              letterSpacing: "0.02em",
-                              textTransform: "uppercase" as const,
-                              marginBottom: 4,
-                            }}>
-                              {agent.description}
-                            </div>
-                            <div style={{
-                              fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.72)",
-                              lineHeight: 1.4,
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical" as const,
-                              overflow: "hidden",
-                            }}>
-                              {agent.long_description || ""}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+      {/* ── Browse Templates Link ─────────────────────────── */}
+      <a
+        href="/templates"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginTop: 48, marginBottom: 32, padding: "18px 24px",
+          borderRadius: 18,
+          background: "linear-gradient(135deg, #6366F108, #8B5CF608)",
+          border: `1.5px solid ${P.border}`,
+          textDecoration: "none",
+          cursor: "pointer",
+          transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "#6366F140";
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "0 8px 24px rgba(99,102,241,0.08)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = P.border;
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      >
+        <div>
+          <div style={{
+            fontSize: 16, fontWeight: 800, color: P.text,
+            letterSpacing: "-0.02em", marginBottom: 4,
+          }}>
+            Browse Task Templates
           </div>
-        );
-      })()}
+          <div style={{ fontSize: 13, color: P.textSec }}>
+            Real-world AI agents for jobs, bills, leases, health, and more
+          </div>
+        </div>
+        <ChevronRight size={20} color={P.textTer} />
+      </a>
 
       {/* Agent preview modal */}
       {previewAgent && (
