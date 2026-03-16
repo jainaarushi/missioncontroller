@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { TaskSection } from "@/components/tasks/task-section";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
@@ -12,37 +12,62 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
-import { isTemplateAgent } from "@/lib/agent-categories";
-import { ChevronRight } from "lucide-react";
+import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
+import { Search, SlidersHorizontal, Star } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
 
-// Template slugs shown in the scroller — curated mix across categories
-const FEATURED_TEMPLATE_SLUGS = [
-  "job-hunter", "budget-builder", "meal-prep-planner", "flight-deal-hunter",
-  "wedding-planner", "resume-optimizer", "debt-snowball", "apartment-scout",
-  "interview-coach", "lease-reviewer", "study-plan-maker", "deal-spotter",
-  "career-pivoter", "tax-deduction-finder", "habit-tracker", "road-trip-planner",
-  "baby-name-picker", "freelance-bid-writer", "sleep-optimizer", "gift-finder",
-  "scholarship-hunter", "dispute-fighter", "morning-routine", "party-planner",
-  "grocery-optimizer", "skill-roadmap", "retirement-planner", "pet-care-advisor",
-  "dating-profile", "invoice-generator",
+// Category metadata for template cards
+const CATEGORY_META: Record<string, { label: string; color: string; gradient: string }> = {
+  career: { label: "Career", color: "#2563EB", gradient: "linear-gradient(135deg, #2563EB, #60A5FA)" },
+  finance_personal: { label: "Finance", color: "#059669", gradient: "linear-gradient(135deg, #059669, #34D399)" },
+  legal_personal: { label: "Legal", color: "#7C3AED", gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)" },
+  housing: { label: "Housing", color: "#D97706", gradient: "linear-gradient(135deg, #D97706, #FBBF24)" },
+  health_personal: { label: "Health", color: "#DC2626", gradient: "linear-gradient(135deg, #DC2626, #F87171)" },
+  education: { label: "Education", color: "#0891B2", gradient: "linear-gradient(135deg, #0891B2, #22D3EE)" },
+  shopping: { label: "Shopping", color: "#C026D3", gradient: "linear-gradient(135deg, #C026D3, #E879F9)" },
+  freelance: { label: "Freelance", color: "#EA580C", gradient: "linear-gradient(135deg, #EA580C, #FB923C)" },
+  parenting: { label: "Parenting", color: "#8B5CF6", gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)" },
+  travel_events: { label: "Travel", color: "#0891B2", gradient: "linear-gradient(135deg, #0891B2, #22D3EE)" },
+  personal_growth: { label: "Wellness", color: "#F59E0B", gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)" },
+};
+
+// Recommended templates — curated 6 for the grid
+const RECOMMENDED_SLUGS = [
+  "resume-optimizer", "budget-builder", "lease-reviewer",
+  "study-plan-maker", "meal-prep-planner", "freelance-bid-writer",
 ];
 
-// Rich color palette — cycles so adjacent cards never share colors
-const CARD_GRADIENTS = [
-  "linear-gradient(135deg, #8B5CF6, #C084FC)", // purple
-  "linear-gradient(135deg, #D97706, #FBBF24)", // gold
-  "linear-gradient(135deg, #2563EB, #60A5FA)", // blue
-  "linear-gradient(135deg, #E11D48, #FB7185)", // rose
-  "linear-gradient(135deg, #0891B2, #22D3EE)", // teal
-  "linear-gradient(135deg, #EA580C, #FB923C)", // orange
-  "linear-gradient(135deg, #7C3AED, #A78BFA)", // violet
-  "linear-gradient(135deg, #059669, #34D399)", // emerald
-  "linear-gradient(135deg, #BE185D, #F472B6)", // pink
-  "linear-gradient(135deg, #1D4ED8, #93C5FD)", // sky
-  "linear-gradient(135deg, #B45309, #FCD34D)", // amber
-  "linear-gradient(135deg, #6D28D9, #C4B5FD)", // indigo
+// Use cases per template slug
+const TEMPLATE_USE_CASES: Record<string, string[]> = {
+  "resume-optimizer": ["Resume Rewrite", "ATS Optimization"],
+  "budget-builder": ["Monthly Budget", "Savings Plan"],
+  "lease-reviewer": ["Lease Audit", "Red Flag Check"],
+  "study-plan-maker": ["Exam Prep", "Study Schedule"],
+  "meal-prep-planner": ["Weekly Meals", "Grocery Lists"],
+  "freelance-bid-writer": ["Bid Writing", "Client Pitches"],
+};
+
+// Ratings per template
+const TEMPLATE_RATINGS: Record<string, number> = {
+  "resume-optimizer": 4.8,
+  "budget-builder": 4.7,
+  "lease-reviewer": 4.9,
+  "study-plan-maker": 4.6,
+  "meal-prep-planner": 4.8,
+  "freelance-bid-writer": 4.7,
+};
+
+// Specialist agents displayed in the "Hire a Specialist" section — slug to human persona
+const SPECIALIST_PERSONAS: { slug: string; name: string; title: string; rating: number; skills: string[] }[] = [
+  { slug: "deep-research", name: "Dr. Evelyn Reed", title: "Research Strategist", rating: 5.0, skills: ["Deep Research", "Data Analysis"] },
+  { slug: "fullstack-developer", name: "Liam Chen", title: "Full-Stack AI Dev", rating: 4.9, skills: ["Full-Stack AI", "Stack Architecture"] },
+  { slug: "ux-designer", name: "Sofia Patel", title: "UX/UI Designer", rating: 4.8, skills: ["UX Design", "UI Prototyping"] },
+  { slug: "data-analyst", name: "Noah Smith", title: "Data Scientist", rating: 5.0, skills: ["Data Science", "ML Analytics"] },
+  { slug: "content-creator", name: "Maya Johnson", title: "Content Strategist", rating: 4.7, skills: ["SEO Content", "Brand Voice"] },
+  { slug: "strategy-advisor", name: "James Park", title: "Strategy Consultant", rating: 4.9, skills: ["Business Strategy", "Growth Plans"] },
+  { slug: "code-reviewer", name: "Priya Sharma", title: "Code Quality Lead", rating: 4.8, skills: ["Code Review", "Code Analysis"] },
+  { slug: "sales-coach", name: "Marcus Lee", title: "Sales Director", rating: 4.7, skills: ["Sales Strategy", "Negotiation"] },
 ];
 
 
@@ -61,8 +86,6 @@ export default function TodayPage() {
   const [authCountdown, setAuthCountdown] = useState(10);
 
   useRealtimeTasks(mutate);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showScrollBtn, setShowScrollBtn] = useState(true);
   const searchParams = useSearchParams();
 
   // Open create modal with pre-selected agent from URL param (from agents page)
@@ -282,246 +305,324 @@ export default function TodayPage() {
     <>
       <Confetti show={showConfetti} />
 
-      {/* Section header + coming soon */}
-      <div className="header-row" style={{
-        marginBottom: 14, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
-        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+      {/* Page title bar */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        marginBottom: 28, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
       }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <h2 style={{
-              fontSize: 32, fontWeight: 900, margin: 0, letterSpacing: "-0.04em",
-              background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #FF3399 100%)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}>
-              Task Templates
-            </h2>
-            <span style={{
-              fontSize: 10, fontWeight: 700, color: "#fff",
-              background: P.purpleGrad, padding: "4px 10px", borderRadius: 20,
-              letterSpacing: "0.04em",
-              boxShadow: `0 2px 8px ${P.purple}30`,
-            }}>
-              {agents.filter(a => isTemplateAgent(a.slug || "")).length}+ TEMPLATES
-            </span>
-          </div>
-          {tasks.length === 0 && (
-            <p style={{ fontSize: 13, color: P.textTer, margin: "6px 0 0", lineHeight: 1.4 }}>
-              Pick a template, customize your task, and let AI handle the rest
-            </p>
-          )}
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.03em" }}>
+          Templates
+        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
+            style={{
+              padding: "10px 22px", borderRadius: 12, border: "none",
+              background: "linear-gradient(135deg, #8B3DFF, #D946EF)",
+              color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
+              fontFamily: "inherit", transition: "all 0.2s",
+              boxShadow: `0 4px 14px ${P.purple}30`,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 6px 20px ${P.purple}40`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 14px ${P.purple}30`; }}
+          >
+            New project
+          </button>
         </div>
+      </div>
 
-        {/* Team collaboration — coming soon */}
-        <div className="team-badge" style={{
-          padding: "10px 16px", borderRadius: 14,
-          background: "linear-gradient(135deg, rgba(139,61,255,0.06), rgba(209,70,239,0.06))",
-          border: "1px solid rgba(139,61,255,0.12)",
-          animation: "fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both",
-          display: "flex", alignItems: "center", gap: 10,
-          cursor: "default",
-        }}>
+      {/* Big heading */}
+      <h2 style={{
+        fontSize: 36, fontWeight: 900, color: P.text, margin: "0 0 24px",
+        letterSpacing: "-0.04em", lineHeight: 1.1,
+        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both",
+      }}>
+        What would you like to build today?
+      </h2>
+
+      {/* Search bar + Filters */}
+      <div style={{
+        display: "flex", gap: 12, marginBottom: 36,
+        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both",
+      }}>
+        <div
+          className="create-bar"
+          onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
+          style={{
+            flex: 1, padding: "14px 20px", borderRadius: 50,
+            backgroundColor: "#fff",
+            border: `1.5px solid ${P.border}`,
+            cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            display: "flex", alignItems: "center", gap: 12,
+            boxShadow: P.shadow,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139,61,255,0.12), 0 8px 24px rgba(0,0,0,0.06)";
+            e.currentTarget.style.borderColor = P.purple + "40";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = P.shadow;
+            e.currentTarget.style.borderColor = P.border;
+          }}
+        >
+          <Search size={18} color={P.textTer} />
+          <span style={{ flex: 1, color: P.textTer, fontWeight: 500, fontSize: 15 }}>
+            Search for templates, agents, or tasks...
+          </span>
           <div style={{
-            width: 28, height: 28, borderRadius: 8,
+            width: 36, height: 36, borderRadius: "50%",
             background: "linear-gradient(135deg, #8B3DFF, #D946EF)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 13,
-            animation: "floatY 3s ease-in-out infinite",
           }}>
-            👥
+            <Search size={16} color="#fff" />
           </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: P.text, letterSpacing: "-0.01em" }}>
-              Team Collaboration
-            </div>
-            <div style={{ fontSize: 10, color: P.textTer, fontWeight: 500 }}>
-              Coming soon
-            </div>
-          </div>
-          <span style={{
-            fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
-            background: "linear-gradient(90deg, #8B3DFF, #D946EF, #FF3399, #D946EF, #8B3DFF)",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 3s linear infinite",
-            color: "#fff", letterSpacing: "0.05em",
-            marginLeft: 2,
-          }}>
-            SOON
-          </span>
         </div>
+        <button style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "14px 20px", borderRadius: 50,
+          backgroundColor: "#fff", border: `1.5px solid ${P.border}`,
+          fontSize: 14, fontWeight: 600, color: P.text,
+          cursor: "pointer", fontFamily: "inherit",
+          boxShadow: P.shadow, transition: "all 0.2s",
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = P.purple + "40"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; }}
+        >
+          <SlidersHorizontal size={16} color={P.textSec} />
+          Filters
+        </button>
       </div>
 
-      {/* Task Templates — single-row horizontal scroll */}
-      <div className="agent-scroller-bleed" style={{ marginBottom: 20, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
-        <div style={{ position: "relative" }}>
-          <div
-            ref={scrollRef}
-            className="agent-scroll agent-scroller-inner"
-            onScroll={() => {
-              const el = scrollRef.current;
-              if (el) setShowScrollBtn(el.scrollLeft < el.scrollWidth - el.clientWidth - 20);
-            }}
-            style={{
-              display: "grid",
-              gridTemplateRows: "1fr",
-              gridAutoFlow: "column",
-              gridAutoColumns: "155px",
-              gap: 8,
-              overflowX: "auto",
-              paddingLeft: 24,
-              paddingRight: 0,
-              paddingBottom: 8,
-              scrollSnapType: "x mandatory",
-              scrollBehavior: "smooth",
-              msOverflowStyle: "none",
-              scrollbarWidth: "none",
-            }}
-          >
-            <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
-            {FEATURED_TEMPLATE_SLUGS.map((slug, i) => {
-              const agent = agents.find((a) => a.slug === slug);
-              if (!agent) return null;
-              const delay = i * 0.04;
-              const bg = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
-              return (
-                <div
-                  key={agent.id}
-                  className="agent-card"
-                  onClick={() => {
-                    setCreateAgentId(agent.id);
-                    setPreviewAgent(null);
-                    setShowCreateModal(true);
-                  }}
-                  style={{
-                    borderRadius: 22, cursor: "pointer",
-                    overflow: "hidden",
-                    scrollSnapAlign: "start",
-                    animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
-                    position: "relative",
-                    height: 170,
-                    background: bg,
-                  }}
-                >
-                  <div style={{
-                    position: "relative",
-                    height: "100%",
-                    display: "flex", flexDirection: "column",
-                    justifyContent: "space-between",
-                    padding: "16px 14px 14px",
-                  }}>
-                    {/* Icon */}
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 14,
-                      backgroundColor: "rgba(255,255,255,0.22)",
-                      backdropFilter: "blur(8px)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 22,
-                    }}>
-                      {agent.icon}
-                    </div>
+      {/* Recommended Templates heading */}
+      <h3 style={{
+        fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 16px",
+        letterSpacing: "-0.02em",
+        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both",
+      }}>
+        Recommended Templates
+      </h3>
 
-                    {/* Name + description */}
-                    <div>
-                      <div style={{
-                        fontSize: 18, fontWeight: 900, color: "#fff",
-                        textShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        lineHeight: 1.15, letterSpacing: "-0.03em",
-                        marginBottom: 3,
-                      }}>
-                        {agent.name}
-                      </div>
-                      <div style={{
-                        fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.75)",
-                        lineHeight: 1.3,
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
-                      }}>
-                        {agent.description}
-                      </div>
-                    </div>
+      {/* Template cards grid — 3 columns, 2 rows */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16,
+        marginBottom: 40,
+        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both",
+      }}>
+        {RECOMMENDED_SLUGS.map((slug, i) => {
+          const agent = agents.find(a => a.slug === slug);
+          if (!agent) return null;
+          const catId = AGENT_CATEGORY_MAP[slug] || "career";
+          const cat = CATEGORY_META[catId] || CATEGORY_META.career;
+          const rating = TEMPLATE_RATINGS[slug] || 4.7;
+          const useCases = TEMPLATE_USE_CASES[slug] || [agent.name];
+
+          return (
+            <div
+              key={slug}
+              onClick={() => {
+                setCreateAgentId(agent.id);
+                setPreviewAgent(null);
+                setShowCreateModal(true);
+              }}
+              style={{
+                backgroundColor: "#fff", borderRadius: 16, overflow: "hidden",
+                border: `1.5px solid ${P.border}`,
+                boxShadow: P.shadow, cursor: "pointer",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${0.2 + i * 0.06}s both`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = P.shadowHover;
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.borderColor = cat.color + "40";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = P.shadow;
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderColor = P.border;
+              }}
+            >
+              {/* Gradient accent bar */}
+              <div style={{ height: 4, background: cat.gradient }} />
+
+              <div style={{ padding: "18px 20px 20px" }}>
+                {/* Category badge */}
+                <span style={{
+                  display: "inline-block", fontSize: 11, fontWeight: 700,
+                  color: cat.color, backgroundColor: cat.color + "12",
+                  padding: "4px 12px", borderRadius: 6, marginBottom: 14,
+                  letterSpacing: "0.02em",
+                }}>
+                  {cat.label}
+                </span>
+
+                {/* Icon + rating row */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: cat.gradient,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 24,
+                  }}>
+                    {agent.icon}
+                  </div>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    fontSize: 13, fontWeight: 700, color: P.text,
+                  }}>
+                    <Star size={14} fill="#FBBF24" color="#FBBF24" />
+                    {rating}
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Right fade + scroll arrow */}
-          {showScrollBtn && (
-            <>
-              <div style={{
-                position: "absolute", right: 0, top: 0, bottom: 8,
-                width: 80, pointerEvents: "none",
-                background: "linear-gradient(to right, transparent, #F8F9FC)",
-              }} />
-              <button
-                onClick={() => {
-                  scrollRef.current?.scrollBy({ left: 380, behavior: "smooth" });
-                }}
-                style={{
-                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                  width: 42, height: 42, borderRadius: "50%",
-                  backgroundColor: "#fff",
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer",
-                  zIndex: 5,
-                  animation: "scrollPulse 2.5s ease-in-out infinite",
-                  transition: "background-color 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.animationPlayState = "paused";
-                  e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
-                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.14)";
-                  e.currentTarget.style.backgroundColor = "#F5F5F3";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.animationPlayState = "running";
-                  e.currentTarget.style.transform = "";
-                  e.currentTarget.style.boxShadow = "";
-                  e.currentTarget.style.backgroundColor = "#fff";
-                }}
-              >
-                <ChevronRight size={20} color={P.textSec} strokeWidth={2.5} />
-              </button>
-            </>
-          )}
-        </div>
+                {/* Name */}
+                <div style={{
+                  fontSize: 16, fontWeight: 800, color: P.text,
+                  letterSpacing: "-0.02em", marginBottom: 6,
+                }}>
+                  {agent.name}
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  fontSize: 13, color: P.textSec, lineHeight: 1.5,
+                  marginBottom: 14,
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
+                  overflow: "hidden",
+                }}>
+                  {agent.description}
+                </div>
+
+                {/* Use cases */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: P.textTer, marginBottom: 4, letterSpacing: "0.02em" }}>
+                    Use Cases
+                  </div>
+                  <div style={{ fontSize: 12, color: P.textSec, fontWeight: 500 }}>
+                    {useCases.join(", ")}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Create task — Canva-style search bar */}
-      <div
-        className="create-bar"
-        onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139,61,255,0.15), 0 8px 24px rgba(0,0,0,0.06)";
-          e.currentTarget.style.transform = "translateY(-1px)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = P.shadow;
-          e.currentTarget.style.transform = "translateY(0)";
-        }}
-        style={{
-          marginBottom: 28, padding: "18px 24px", borderRadius: 16,
-          backgroundColor: "#fff",
-          border: `2px solid ${P.border}`,
-          fontSize: 15, color: P.text,
-          cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          display: "flex", alignItems: "center", gap: 14,
-          boxShadow: P.shadow,
-        }}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={P.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <span style={{ flex: 1, color: P.textTer, fontWeight: 500 }}>Create a task</span>
-        <kbd style={{
-          fontSize: 10, padding: "3px 8px", borderRadius: 6,
-          backgroundColor: "#F5F5F3",
-          color: P.textTer,
-          fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
-          border: "1px solid #EBEBEB",
-        }}>⌘N</kbd>
+      {/* Hire a Specialist heading */}
+      <h3 style={{
+        fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 16px",
+        letterSpacing: "-0.02em",
+        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.3s both",
+      }}>
+        Hire a Specialist
+      </h3>
+
+      {/* Specialist cards — horizontal scroll */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16,
+        marginBottom: 40,
+        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.35s both",
+      }}>
+        {SPECIALIST_PERSONAS.map((persona, i) => {
+          const agent = agents.find(a => a.slug === persona.slug);
+          if (!agent) return null;
+
+          return (
+            <div
+              key={persona.slug}
+              onClick={() => setPreviewAgent(agent)}
+              style={{
+                backgroundColor: "#fff", borderRadius: 16, padding: "20px",
+                border: `1.5px solid ${P.border}`,
+                boxShadow: P.shadow, cursor: "pointer",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${0.35 + i * 0.06}s both`,
+                display: "flex", flexDirection: "column", alignItems: "center",
+                textAlign: "center",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = P.shadowHover;
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.borderColor = agent.color + "40";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = P.shadow;
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderColor = P.border;
+              }}
+            >
+              {/* Avatar + rating */}
+              <div style={{ position: "relative", marginBottom: 12 }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: "50%",
+                  background: agent.gradient,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 28,
+                  boxShadow: `0 4px 16px ${agent.color}25`,
+                }}>
+                  {agent.icon}
+                </div>
+                <div style={{
+                  position: "absolute", top: -2, right: -8,
+                  display: "flex", alignItems: "center", gap: 2,
+                  backgroundColor: "#fff", borderRadius: 20,
+                  padding: "2px 8px", fontSize: 11, fontWeight: 700, color: P.text,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  border: `1px solid ${P.border}`,
+                }}>
+                  <Star size={10} fill="#FBBF24" color="#FBBF24" />
+                  {persona.rating}
+                </div>
+              </div>
+
+              {/* Name */}
+              <div style={{ fontSize: 15, fontWeight: 800, color: P.text, letterSpacing: "-0.01em", marginBottom: 2 }}>
+                {persona.name}
+              </div>
+
+              {/* Title */}
+              <div style={{ fontSize: 12, color: P.textSec, fontWeight: 500, marginBottom: 12 }}>
+                {persona.title}
+              </div>
+
+              {/* Skills */}
+              <div style={{ marginBottom: 14, width: "100%" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: P.textTer, marginBottom: 4, letterSpacing: "0.04em" }}>
+                  Key Skills
+                </div>
+                <div style={{
+                  fontSize: 11.5, color: P.textSec, fontWeight: 500,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
+                }}>
+                  {persona.skills.join(", ")}
+                </div>
+              </div>
+
+              {/* View Profile button */}
+              <button
+                style={{
+                  width: "100%", padding: "9px 0", borderRadius: 10,
+                  border: `1.5px solid ${P.border}`,
+                  backgroundColor: "#fff", color: P.text,
+                  fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "inherit", transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = agent.color + "08";
+                  e.currentTarget.style.borderColor = agent.color + "40";
+                  e.currentTarget.style.color = agent.color;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#fff";
+                  e.currentTarget.style.borderColor = P.border;
+                  e.currentTarget.style.color = P.text;
+                }}
+              >
+                View Profile
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Usage panel — cost & tokens */}
@@ -628,72 +729,6 @@ export default function TodayPage() {
         loading={bulkLoading}
       />
 
-      {/* ── Browse All Links ─────────────────────────── */}
-      <div style={{ display: "flex", gap: 12, marginTop: 48, marginBottom: 32 }}>
-        <a
-          href="/templates"
-          style={{
-            flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "18px 24px", borderRadius: 18,
-            background: `linear-gradient(135deg, ${P.purple}08, ${P.pink}08)`,
-            border: `1.5px solid ${P.border}`,
-            textDecoration: "none", cursor: "pointer",
-            transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = P.purple + "40";
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = `0 8px 24px ${P.purple}15`;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = P.border;
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: P.text, letterSpacing: "-0.02em", marginBottom: 4 }}>
-              All Templates
-            </div>
-            <div style={{ fontSize: 13, color: P.textSec }}>
-              Browse by category — jobs, bills, health, and more
-            </div>
-          </div>
-          <ChevronRight size={20} color={P.textTer} />
-        </a>
-        <a
-          href="/agents"
-          style={{
-            flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "18px 24px", borderRadius: 18,
-            background: `linear-gradient(135deg, ${P.cyan}08, ${P.emerald}08)`,
-            border: `1.5px solid ${P.border}`,
-            textDecoration: "none", cursor: "pointer",
-            transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = P.cyan + "40";
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = `0 8px 24px ${P.cyan}15`;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = P.border;
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: P.text, letterSpacing: "-0.02em", marginBottom: 4 }}>
-              All Agents
-            </div>
-            <div style={{ fontSize: 13, color: P.textSec }}>
-              Specialist AI agents for any task
-            </div>
-          </div>
-          <ChevronRight size={20} color={P.textTer} />
-        </a>
-      </div>
-
       {/* Agent preview modal */}
       {previewAgent && (
         <div
@@ -783,7 +818,7 @@ export default function TodayPage() {
                     fontSize: 14, fontWeight: 600, cursor: "pointer",
                     fontFamily: "inherit", transition: "all 0.15s",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.bg; }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
                 >
                   Close

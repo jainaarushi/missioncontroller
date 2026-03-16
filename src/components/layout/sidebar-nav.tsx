@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Layers, FileText, BarChart3, CheckCircle2, Settings } from "lucide-react";
+import { LayoutDashboard, FolderOpen, FileText, Users, Zap, Settings, HelpCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface SidebarNavProps {
@@ -10,13 +10,14 @@ interface SidebarNavProps {
   doneTasks?: number;
 }
 
-const NAV_ITEMS: { href: string; icon: LucideIcon; label: string }[] = [
-  { href: "/today", icon: Home, label: "Home" },
-  { href: "/agents", icon: Layers, label: "Agents" },
+const NAV_ITEMS: { href: string; icon: LucideIcon; label: string; disabled?: boolean }[] = [
+  { href: "/today", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/analytics", icon: FolderOpen, label: "My Projects" },
   { href: "/templates", icon: FileText, label: "Templates" },
-  { href: "/analytics", icon: BarChart3, label: "Analytics" },
-  { href: "/completed", icon: CheckCircle2, label: "Completed" },
+  { href: "/agents", icon: Users, label: "Specialists" },
+  { href: "/completed", icon: Zap, label: "Automation", disabled: true },
   { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/support", icon: HelpCircle, label: "Support", disabled: true },
 ];
 
 export function SidebarNav({ reviewCount }: SidebarNavProps) {
@@ -26,8 +27,34 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
     <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" }}>
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
-        const showBadge = item.href === "/today" && reviewCount > 0;
+        const showBadge = item.href === "/analytics" && reviewCount > 0;
         const Icon = item.icon;
+
+        if (item.disabled) {
+          return (
+            <div
+              key={item.href}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 4,
+                padding: "10px 6px 8px",
+                borderRadius: 12,
+                cursor: "default",
+                color: "rgba(255,255,255,0.2)",
+                width: "100%",
+                position: "relative",
+                opacity: 0.5,
+              }}
+            >
+              <Icon size={20} strokeWidth={1.6} />
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.02em" }}>
+                {item.label}
+              </span>
+            </div>
+          );
+        }
 
         return (
           <Link
