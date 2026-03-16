@@ -47,6 +47,44 @@ const TEMPLATE_RATINGS: Record<string, number> = {
   "freelance-bid-writer": 4.7,
 };
 
+// Pipeline agent preview data per template — matches reference TemplateCard
+const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; color: string }[]> = {
+  "resume-optimizer": [
+    { icon: "🔍", label: "ATS Scanner", color: "#fb923c" },
+    { icon: "🏷️", label: "Keyword Analyzer", color: "#c084fc" },
+    { icon: "✏️", label: "Bullet Rewriter", color: "#22d3ee" },
+    { icon: "⭐", label: "Scorer", color: "#4ade80" },
+  ],
+  "budget-builder": [
+    { icon: "📊", label: "Income Analyzer", color: "#60a5fa" },
+    { icon: "💳", label: "Expense Tracker", color: "#f472b6" },
+    { icon: "🎯", label: "Budget Planner", color: "#4ade80" },
+    { icon: "📈", label: "Savings Optimizer", color: "#f5a623" },
+  ],
+  "lease-reviewer": [
+    { icon: "📋", label: "Clause Parser", color: "#60a5fa" },
+    { icon: "🔒", label: "Risk Analyzer", color: "#ef4444" },
+    { icon: "⚖️", label: "Legal Checker", color: "#c084fc" },
+    { icon: "📝", label: "Report Writer", color: "#4ade80" },
+  ],
+  "study-plan-maker": [
+    { icon: "📚", label: "Syllabus Analyzer", color: "#22d3ee" },
+    { icon: "🧠", label: "Knowledge Mapper", color: "#7c6fef" },
+    { icon: "📅", label: "Schedule Builder", color: "#fb923c" },
+    { icon: "✅", label: "Progress Tracker", color: "#4ade80" },
+  ],
+};
+
+// Runs count per template
+const TEMPLATE_RUNS: Record<string, string> = {
+  "resume-optimizer": "6.1k",
+  "budget-builder": "3.4k",
+  "lease-reviewer": "2.8k",
+  "study-plan-maker": "4.5k",
+  "meal-prep-planner": "1.9k",
+  "freelance-bid-writer": "2.2k",
+};
+
 // Specialist agents displayed in the "Hire a Specialist" section
 const SPECIALIST_PERSONAS: {
   slug: string; emoji: string; role: string; xp: string;
@@ -530,12 +568,17 @@ export default function TodayPage() {
               const cat = CATEGORY_META[catId] || CATEGORY_META.career;
               const rating = TEMPLATE_RATINGS[slug] || 4.7;
 
+              const pipeline = TEMPLATE_PIPELINES[slug] || [];
+              const runs = TEMPLATE_RUNS[slug] || "1.0k";
+
               return (
                 <TemplateCard
                   key={slug}
                   agent={agent}
                   cat={cat}
                   rating={rating}
+                  runs={runs}
+                  pipeline={pipeline}
                   onUse={() => {
                     setCreateAgentId(agent.id);
                     setPreviewAgent(null);
@@ -897,10 +940,12 @@ export default function TodayPage() {
 
 
 /* ─── Template Card ─── */
-function TemplateCard({ agent, cat, rating, onUse }: {
+function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
   agent: { id: string; icon: string; name: string; description: string | null; slug?: string };
   cat: { label: string; color: string; catBg: string };
   rating: number;
+  runs: string;
+  pipeline: { icon: string; label: string; color: string }[];
   onUse: () => void;
 }) {
   const [hov, setHov] = useState(false);
@@ -923,6 +968,7 @@ function TemplateCard({ agent, cat, rating, onUse }: {
       <div style={{ height: 3, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}44)` }} />
 
       <div style={{ padding: "13px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Header: icon + name + category pill + rating */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <div style={{
@@ -939,16 +985,49 @@ function TemplateCard({ agent, cat, rating, onUse }: {
           <span style={{ fontSize: 11, color: P.amber, fontWeight: 700 }}>★ {rating}</span>
         </div>
 
+        {/* Description */}
         <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
           {agent.description}
         </div>
 
+        {/* Pipeline agent preview */}
+        {pipeline.length > 0 && (
+          <div style={{
+            padding: "9px 11px", background: P.bg3,
+            borderRadius: 8, border: `1px solid ${P.border}`, marginBottom: 10,
+          }}>
+            <div style={{
+              fontSize: 9, textTransform: "uppercase" as const,
+              letterSpacing: "0.08em", color: P.textTer, marginBottom: 6,
+            }}>
+              {pipeline.length} agents
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+              {pipeline.map((step, i) => (
+                <span key={step.label}>
+                  <span style={{
+                    fontSize: 9, padding: "2px 6px", borderRadius: 4,
+                    background: P.bg4, border: `1px solid ${step.color}33`,
+                    color: step.color, fontFamily: F, fontWeight: 600,
+                  }}>
+                    {step.icon} {step.label}
+                  </span>
+                  {i < pipeline.length - 1 && (
+                    <span style={{ color: P.textTer, fontSize: 9, margin: "0 1px" }}>›</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Footer: runs + Use Template button */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginTop: "auto", paddingTop: 9,
           borderTop: `1px solid ${P.border}`,
         }}>
-          <span style={{ fontSize: 10, color: P.textTer }}>AI-powered</span>
+          <span style={{ fontSize: 10, color: P.textTer }}>{runs} runs</span>
           <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
             fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
             background: P.lime, color: "#0b0b0e", border: "none",
