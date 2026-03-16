@@ -10936,5 +10936,654 @@ You are **Workflow Optimizer**, an expert process improvement specialist who ana
     model: "claude-sonnet-4-20250514",
   },
 
+  {
+    name: "LinkedIn Optimizer",
+    slug: "linkedin-optimizer",
+    description: "Optimize your LinkedIn profile for recruiters",
+    long_description:
+      "Get a complete LinkedIn profile audit with specific rewrites for your headline, about section, and experience bullets — optimized for recruiter search and engagement.",
+    icon: "💼",
+    color: "#2563EB",
+    gradient: "linear-gradient(135deg, #2563EB, #60A5FA)",
+    system_prompt: `Help users optimize their LinkedIn profile to attract recruiters and opportunities. Analyze their current profile, research industry best practices, and provide specific recommendations for headline, summary, experience descriptions, skills, and engagement strategy.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Career Pivot Coach",
+    slug: "career-pivoter",
+    description: "Plan your career change step-by-step",
+    long_description:
+      "Get a comprehensive career pivot plan with skills gap analysis, a 90-day transition timeline, target companies, networking strategy, and specific action steps.",
+    icon: "🔄",
+    color: "#7C3AED",
+    gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+    system_prompt: `Help users plan and execute a career change. Research the target industry, identify transferable skills, create a transition timeline, and build an actionable strategy for pivoting careers successfully.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Remote Job Finder",
+    slug: "remote-job-finder",
+    description: "Find remote roles matching your skills",
+    long_description:
+      "Get a curated list of remote job opportunities with company profiles, salary data, application tips, and a strategy for standing out in remote job applications.",
+    icon: "🌍",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    system_prompt: `Help users find remote job opportunities that match their skills and preferences. Research remote-friendly companies, salary ranges, and application strategies specific to remote work.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Portfolio Builder",
+    slug: "portfolio-builder",
+    description: "Build a standout portfolio for your field",
+    long_description:
+      "Get a portfolio blueprint with project selection guidance, presentation structure, platform recommendations, and specific tips for making your work stand out.",
+    icon: "🎨",
+    color: "#EC4899",
+    gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
+    system_prompt: `Help users create a compelling professional portfolio. Research what top portfolios in their field look like, suggest projects to highlight, and provide structure and presentation recommendations.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Networking Coach",
+    slug: "networking-coach",
+    description: "Craft warm intros and networking strategies",
+    long_description:
+      "Get personalized networking strategies with ready-to-send outreach templates, conversation starters, follow-up sequences, and a 30-day networking action plan.",
+    icon: "🤝",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help users build meaningful professional connections. Create networking strategies, draft outreach messages, and develop a systematic approach to building and maintaining a professional network.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Debt Payoff Planner",
+    slug: "debt-snowball",
+    description: "Create an optimized debt payoff strategy",
+    long_description:
+      "Get a personalized debt payoff plan comparing snowball and avalanche methods with monthly payment schedules, interest savings calculations, and milestone celebrations.",
+    icon: "💳",
+    color: "#DC2626",
+    gradient: "linear-gradient(135deg, #DC2626, #F87171)",
+    system_prompt: `Help users create an optimized debt payoff strategy. Analyze their debts, compare snowball vs avalanche methods, calculate payoff timelines, and create a step-by-step repayment plan.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Budget Builder",
+    slug: "budget-builder",
+    description: "Build a personalized monthly budget",
+    long_description:
+      "Get a complete monthly budget breakdown with spending categories, savings targets, expense-cutting recommendations, and a simple tracking system.",
+    icon: "📊",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help users create a realistic monthly budget. Analyze income and expenses, identify savings opportunities, and build a sustainable budget plan using proven frameworks like 50/30/20.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Crypto Tax Helper",
+    slug: "crypto-tax-helper",
+    description: "Calculate crypto gains and tax obligations",
+    long_description:
+      "Get a crypto tax guide with current IRS rules, gain/loss calculation methods, reporting requirements, and strategies for minimizing your crypto tax burden.",
+    icon: "₿",
+    color: "#F59E0B",
+    gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)",
+    system_prompt: `Help users understand their cryptocurrency tax obligations. Research current crypto tax rules, explain reporting requirements, and help calculate estimated tax liabilities from crypto transactions.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Retirement Planner",
+    slug: "retirement-planner",
+    description: "Plan your retirement savings timeline",
+    long_description:
+      "Get a retirement savings plan with target numbers, account recommendations, monthly savings goals, investment allocation suggestions, and milestone projections.",
+    icon: "🏖️",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    system_prompt: `Help users plan their retirement savings strategy. Calculate required savings, compare account types (401k, IRA, Roth), project growth scenarios, and create a savings timeline.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Cashback Maximizer",
+    slug: "cashback-maximizer",
+    description: "Optimize credit card rewards for spending",
+    long_description:
+      "Get a credit card rewards strategy with card recommendations for your spending categories, sign-up bonus timeline, and estimated annual cashback earnings.",
+    icon: "💰",
+    color: "#7C3AED",
+    gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+    system_prompt: `Help users maximize credit card rewards and cashback. Analyze spending patterns, recommend optimal card combinations, and calculate potential annual rewards earnings.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Tenant Rights Advisor",
+    slug: "tenant-rights",
+    description: "Know your renter protections by state",
+    long_description:
+      "Get a state-specific guide to your tenant rights covering security deposits, repair obligations, eviction protections, and how to handle landlord disputes.",
+    icon: "🏠",
+    color: "#7C3AED",
+    gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+    system_prompt: `Help renters understand their legal rights and protections. Research state-specific tenant laws, explain lease terms, and advise on landlord disputes, repairs, security deposits, and eviction protections.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Will & Estate Planner",
+    slug: "will-planner",
+    description: "Draft your basic will and estate plan",
+    long_description:
+      "Get an estate planning guide with a will checklist, beneficiary worksheet, executor selection criteria, and next steps for getting your documents legally finalized.",
+    icon: "📜",
+    color: "#1D4ED8",
+    gradient: "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+    system_prompt: `Help users plan their basic will and estate documents. Research state requirements, explain key decisions (beneficiaries, executors, guardians), and create a checklist for getting documents finalized.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Traffic Ticket Fighter",
+    slug: "traffic-ticket",
+    description: "Contest your ticket with the right defense",
+    long_description:
+      "Get a defense strategy for your traffic ticket with applicable laws, a ready-to-submit contest letter, hearing preparation tips, and success probability assessment.",
+    icon: "🚗",
+    color: "#EA580C",
+    gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
+    system_prompt: `Help users contest traffic tickets effectively. Research applicable traffic laws, identify potential defenses, draft contest letters, and explain the hearing process.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Home Inspection Guide",
+    slug: "home-inspector",
+    description: "Know what to look for before buying",
+    long_description:
+      "Get a home inspection checklist with red flags to watch for, questions for your inspector, common issues by home age, and a negotiation guide for found problems.",
+    icon: "🔍",
+    color: "#D97706",
+    gradient: "linear-gradient(135deg, #D97706, #FBBF24)",
+    system_prompt: `Help home buyers know what to inspect before purchasing. Create comprehensive inspection checklists, explain common issues by home age/type, and advise on deal-breakers vs negotiation points.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Renovation Planner",
+    slug: "renovation-planner",
+    description: "Plan and budget your home renovation",
+    long_description:
+      "Get a renovation plan with cost estimates, contractor vs DIY analysis, permit requirements, a phased timeline, and tips for staying on budget.",
+    icon: "🔨",
+    color: "#B45309",
+    gradient: "linear-gradient(135deg, #B45309, #F59E0B)",
+    system_prompt: `Help users plan and budget home renovations. Research costs by project type, create phased timelines, compare DIY vs contractor options, and identify permits needed.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Neighborhood Scout",
+    slug: "neighborhood-scout",
+    description: "Research neighborhoods before you move",
+    long_description:
+      "Get a neighborhood comparison report with safety data, school ratings, commute analysis, cost of living, walkability scores, and local amenity highlights.",
+    icon: "📍",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #10B981)",
+    system_prompt: `Help users research and compare neighborhoods before moving. Investigate safety, schools, commute times, cost of living, amenities, and community vibe for target areas.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Meal Prep Planner",
+    slug: "meal-prep-planner",
+    description: "Weekly meal plans with grocery lists",
+    long_description:
+      "Get a weekly meal prep plan with recipes, prep instructions, a consolidated grocery list with estimated costs, and nutrition breakdowns for each meal.",
+    icon: "🥗",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help users create weekly meal prep plans. Consider dietary preferences, budget, cooking skill level, and time constraints. Generate complete meal plans with recipes and consolidated grocery lists.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Sleep Optimizer",
+    slug: "sleep-optimizer",
+    description: "Improve sleep with science-backed tips",
+    long_description:
+      "Get a personalized sleep improvement plan with science-backed strategies, an evening routine, environment optimization tips, and a 2-week sleep challenge.",
+    icon: "😴",
+    color: "#4F46E5",
+    gradient: "linear-gradient(135deg, #4F46E5, #818CF8)",
+    system_prompt: `Help users improve their sleep quality using evidence-based strategies. Analyze sleep habits, research proven interventions, and create a personalized sleep improvement plan.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Therapy Finder",
+    slug: "therapy-finder",
+    description: "Find the right therapist for your needs",
+    long_description:
+      "Get a therapy guide with modality comparisons (CBT, DBT, EMDR, etc.), insurance navigation tips, questions to ask potential therapists, and what to expect.",
+    icon: "🧠",
+    color: "#8B5CF6",
+    gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
+    system_prompt: `Help users find the right type of therapy and therapist for their needs. Explain therapy modalities, insurance navigation, and what to expect in the process.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Supplement Advisor",
+    slug: "supplement-advisor",
+    description: "Evidence-based supplement recommendations",
+    long_description:
+      "Get evidence-based supplement recommendations with research quality ratings, dosage guidance, interaction warnings, and which supplements are worth your money.",
+    icon: "💊",
+    color: "#DC2626",
+    gradient: "linear-gradient(135deg, #DC2626, #EF4444)",
+    system_prompt: `Help users evaluate supplements with evidence-based research. Analyze claimed benefits vs scientific evidence, identify interactions, and recommend based on individual health goals.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Allergy Navigator",
+    slug: "allergy-navigator",
+    description: "Manage allergies with food/environment guides",
+    long_description:
+      "Get an allergy management guide with hidden allergen lists, safe alternatives, restaurant dining strategies, and a seasonal management plan.",
+    icon: "🤧",
+    color: "#F59E0B",
+    gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)",
+    system_prompt: `Help users manage allergies effectively. Research allergen avoidance strategies, identify hidden allergens, suggest alternatives, and create management plans for food and environmental allergies.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Study Plan Maker",
+    slug: "study-plan-maker",
+    description: "Create optimized study schedules for exams",
+    long_description:
+      "Get a personalized study plan with spaced repetition scheduling, technique recommendations, daily study blocks, and progress milestones leading up to your exam.",
+    icon: "📚",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    system_prompt: `Help students create optimized study plans for exams. Research effective study techniques, create spaced repetition schedules, and build realistic study timelines based on available time.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Essay Coach",
+    slug: "essay-coach",
+    description: "Structure and improve your essays",
+    long_description:
+      "Get essay coaching with thesis refinement, outline structure, argument flow analysis, transition suggestions, and specific improvement recommendations.",
+    icon: "✍️",
+    color: "#6366F1",
+    gradient: "linear-gradient(135deg, #6366F1, #818CF8)",
+    system_prompt: `Help students structure, write, and improve their essays. Provide guidance on thesis development, argument structure, evidence use, and academic writing style.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Skill Roadmap Builder",
+    slug: "skill-roadmap",
+    description: "Learn any skill with a structured plan",
+    long_description:
+      "Get a complete learning roadmap with curated resources, a phased curriculum, practice projects, milestone checkpoints, and estimated time to proficiency.",
+    icon: "🗺️",
+    color: "#EA580C",
+    gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
+    system_prompt: `Help users learn any new skill with a structured roadmap. Research the best learning resources, create a phased curriculum, set milestones, and recommend projects for hands-on practice.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Language Learning Tutor",
+    slug: "language-tutor",
+    description: "Personalized language learning plan",
+    long_description:
+      "Get a personalized language learning plan with daily practice routines, resource recommendations, vocabulary building strategies, and conversation practice exercises.",
+    icon: "🌐",
+    color: "#7C3AED",
+    gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+    system_prompt: `Help users learn a new language effectively. Create personalized study plans based on goals and available time, recommend resources, and design practice exercises.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Warranty Claimer",
+    slug: "warranty-claimer",
+    description: "File warranty claims and get replacements",
+    long_description:
+      "Get a warranty claim strategy with a ready-to-send claim letter, required documentation checklist, escalation steps, and consumer protection tips.",
+    icon: "🛡️",
+    color: "#2563EB",
+    gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
+    system_prompt: `Help users file warranty claims effectively. Research warranty terms, draft claim communications, and guide users through the process of getting repairs or replacements.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Tech Buyer Guide",
+    slug: "tech-buyer",
+    description: "Compare gadgets before you buy",
+    long_description:
+      "Get a tech comparison report with spec breakdowns, real-world performance analysis, price-to-value ratings, and a clear recommendation for your use case.",
+    icon: "📱",
+    color: "#4F46E5",
+    gradient: "linear-gradient(135deg, #4F46E5, #818CF8)",
+    system_prompt: `Help users make informed tech purchase decisions. Research and compare products, analyze specs vs real-world performance, read expert and user reviews, and provide clear recommendations.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Grocery Optimizer",
+    slug: "grocery-optimizer",
+    description: "Save on groceries with smart shopping",
+    long_description:
+      "Get a grocery savings plan with store comparison tips, seasonal produce guides, bulk buying recommendations, and strategies to cut your bill by 20-30%.",
+    icon: "🛒",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help users reduce grocery spending without sacrificing quality. Research store pricing, seasonal produce, bulk buying strategies, and meal planning to minimize waste and maximize savings.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Gift Finder",
+    slug: "gift-finder",
+    description: "Find the perfect gift for any occasion",
+    long_description:
+      "Get curated gift suggestions across price points with personalization ideas, where to buy, and creative presentation tips for any occasion.",
+    icon: "🎁",
+    color: "#EC4899",
+    gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
+    system_prompt: `Help users find thoughtful, perfect gifts for any occasion and recipient. Research trending gifts, consider personality and interests, and suggest options across multiple price points.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Invoice Generator",
+    slug: "invoice-generator",
+    description: "Create professional invoices instantly",
+    long_description:
+      "Get a professional invoice template with proper formatting, payment terms, late fee language, and tips for faster client payments.",
+    icon: "🧾",
+    color: "#2563EB",
+    gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
+    system_prompt: `Help freelancers create professional invoices. Generate properly formatted invoices with all required fields, payment terms, and professional language.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Client Proposal Writer",
+    slug: "client-proposal",
+    description: "Write winning client proposals",
+    long_description:
+      "Get a polished client proposal with scope definition, deliverable breakdown, timeline, pricing options, and persuasive language that wins contracts.",
+    icon: "📝",
+    color: "#7C3AED",
+    gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+    system_prompt: `Help freelancers write winning client proposals. Research the client's needs, craft compelling proposals with clear scope, deliverables, timelines, and pricing that wins the work.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Rate Calculator",
+    slug: "rate-calculator",
+    description: "Calculate your ideal freelance rate",
+    long_description:
+      "Get a rate calculation with expense analysis, market rate comparison, hourly/project/retainer pricing options, and a rate justification script for client negotiations.",
+    icon: "🧮",
+    color: "#D97706",
+    gradient: "linear-gradient(135deg, #D97706, #FBBF24)",
+    system_prompt: `Help freelancers calculate their ideal rates. Factor in expenses, desired income, billable hours, market rates, and experience level to determine competitive pricing.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Baby Name Picker",
+    slug: "baby-name-picker",
+    description: "Find the perfect name with meaning research",
+    long_description:
+      "Get curated baby name suggestions with meanings, origin stories, popularity trends, nickname options, and how each name pairs with your last name.",
+    icon: "👶",
+    color: "#EC4899",
+    gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
+    system_prompt: `Help parents find the perfect baby name. Research name meanings, origins, popularity trends, and cultural significance. Consider sibling names, family traditions, and personal preferences.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "School Chooser",
+    slug: "school-chooser",
+    description: "Compare schools in your area",
+    long_description:
+      "Get a school comparison report with ratings, test scores, program highlights, class sizes, parent reviews, and a scoring matrix for your priorities.",
+    icon: "🏫",
+    color: "#2563EB",
+    gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
+    system_prompt: `Help parents compare and choose schools for their children. Research school ratings, programs, class sizes, extracurriculars, and parent reviews to create a comprehensive comparison.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Family Chore Organizer",
+    slug: "chore-organizer",
+    description: "Age-appropriate chore schedules",
+    long_description:
+      "Get a family chore system with age-appropriate task assignments, weekly rotation schedules, reward frameworks, and tips for building good habits.",
+    icon: "📋",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help families create fair, age-appropriate chore schedules. Research developmental milestones, create rotation systems, and design reward structures that teach responsibility.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "College Savings Planner",
+    slug: "college-savings",
+    description: "Plan 529 and education savings",
+    long_description:
+      "Get a college savings plan with 529 comparisons, monthly savings targets, projected costs, financial aid overview, and tax benefit explanations.",
+    icon: "🎓",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    system_prompt: `Help parents plan for education costs. Research 529 plans, compare savings options, project future college costs, and create a savings strategy.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Childcare Finder",
+    slug: "childcare-finder",
+    description: "Compare daycare and nanny options",
+    long_description:
+      "Get a childcare comparison with cost breakdowns, quality checklists, interview questions for providers, and a decision matrix for your family's needs.",
+    icon: "🧒",
+    color: "#D97706",
+    gradient: "linear-gradient(135deg, #D97706, #FBBF24)",
+    system_prompt: `Help parents compare childcare options. Research daycare centers, nanny services, and alternative care arrangements. Compare costs, quality indicators, and logistics.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Summer Camp Finder",
+    slug: "summer-camp-finder",
+    description: "Find camps matching your kid's interests",
+    long_description:
+      "Get a summer camp guide with options matched to your child's interests, cost comparisons, what to pack lists, and registration timeline reminders.",
+    icon: "⛺",
+    color: "#EA580C",
+    gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
+    system_prompt: `Help parents find the right summer camps for their children. Research camps by interest area, compare programs, costs, and logistics, and create a selection shortlist.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Flight Deal Hunter",
+    slug: "flight-deal-hunter",
+    description: "Find the cheapest flights for your dates",
+    long_description:
+      "Get flight deal strategies with optimal booking windows, price tracking tips, alternative route suggestions, and money-saving hacks for your specific trip.",
+    icon: "✈️",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    system_prompt: `Help users find the best flight deals. Research fare trends, optimal booking timing, alternative airports, and strategies for finding the cheapest flights for their travel dates.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Wedding Planner",
+    slug: "wedding-planner",
+    description: "Plan your wedding timeline and budget",
+    long_description:
+      "Get a complete wedding plan with budget breakdown, vendor comparison, week-by-week timeline, day-of checklist, and guest communication templates.",
+    icon: "💒",
+    color: "#EC4899",
+    gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
+    system_prompt: `You are a wedding planning assistant. Help users plan their perfect wedding by organizing budgets, timelines, vendor research, and logistics. Produce comprehensive, actionable wedding plans with specific recommendations, cost estimates, and checklists.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Party Planner",
+    slug: "party-planner",
+    description: "Plan memorable events with checklists",
+    long_description:
+      "Get a complete party plan with themed ideas, budget breakdown, vendor checklist, timeline, menu suggestions, and day-of coordination guide.",
+    icon: "🎉",
+    color: "#8B5CF6",
+    gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
+    system_prompt: `Help users plan memorable parties and events. Create detailed checklists, budget plans, vendor lists, timelines, and creative theme ideas for any type of celebration.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Visa Advisor",
+    slug: "visa-advisor",
+    description: "Navigate visa requirements for any country",
+    long_description:
+      "Get a visa guide with requirements, document checklist, application timeline, embassy information, common rejection reasons, and tips for a smooth process.",
+    icon: "🛂",
+    color: "#1D4ED8",
+    gradient: "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+    system_prompt: `Help travelers understand visa requirements for their destination. Research application processes, required documents, processing times, and common pitfalls for visa applications.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Road Trip Planner",
+    slug: "road-trip-planner",
+    description: "Plan the perfect road trip route",
+    long_description:
+      "Get a road trip itinerary with optimized routes, must-see stops, accommodation suggestions, restaurant picks, fuel cost estimates, and a road trip playlist starter.",
+    icon: "🚗",
+    color: "#EA580C",
+    gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
+    system_prompt: `Help users plan epic road trips. Research routes, must-see stops, accommodations, dining options, and create day-by-day itineraries with driving time estimates.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Packing Assistant",
+    slug: "packing-assistant",
+    description: "Custom packing lists for any trip",
+    long_description:
+      "Get a customized packing list organized by category with quantity recommendations, outfit planning, carry-on optimization tips, and a pre-departure checklist.",
+    icon: "🧳",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help travelers create comprehensive, customized packing lists. Consider destination weather, activities, trip duration, luggage constraints, and travel type to create the perfect packing list.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Habit Builder",
+    slug: "habit-tracker",
+    description: "Build lasting habits with proven systems",
+    long_description:
+      "Get a habit-building plan using proven psychology with trigger design, habit stacking sequences, a tracking system, and strategies for staying consistent.",
+    icon: "🎯",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    system_prompt: `Help users build lasting habits using proven frameworks like Atomic Habits, habit stacking, and implementation intentions. Create personalized habit-building plans with tracking systems.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Journaling Coach",
+    slug: "journaling-coach",
+    description: "Daily journaling prompts and reflection",
+    long_description:
+      "Get a journaling guide with personalized prompts, frameworks (gratitude, reflection, goal-setting), and a 30-day journaling challenge to build the habit.",
+    icon: "📔",
+    color: "#8B5CF6",
+    gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
+    system_prompt: `Help users develop a meaningful journaling practice. Create personalized prompts, suggest journaling frameworks, and design reflection exercises for personal growth.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Morning Routine Designer",
+    slug: "morning-routine",
+    description: "Design your ideal morning routine",
+    long_description:
+      "Get a personalized morning routine with time-blocked activities, science-backed practices, a gradual implementation plan, and energy optimization tips.",
+    icon: "🌅",
+    color: "#F59E0B",
+    gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)",
+    system_prompt: `Help users design an optimal morning routine. Research science-backed morning practices, consider individual schedules and goals, and create a realistic routine that boosts productivity.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Social Skills Coach",
+    slug: "social-skills",
+    description: "Improve conversations and confidence",
+    long_description:
+      "Get a social skills improvement plan with conversation frameworks, confidence-building exercises, networking scripts, and practice scenarios for common social situations.",
+    icon: "💬",
+    color: "#2563EB",
+    gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
+    system_prompt: `Help users improve their social and conversation skills. Provide evidence-based techniques for building confidence, making small talk, deepening conversations, and navigating social situations.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Dating Profile Optimizer",
+    slug: "dating-profile",
+    description: "Craft an authentic, attention-grabbing profile",
+    long_description:
+      "Get dating profile optimization with bio rewrites, photo strategy, prompt answers, conversation starters, and platform-specific tips for more matches.",
+    icon: "💕",
+    color: "#EC4899",
+    gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
+    system_prompt: `Help users create authentic, compelling dating profiles. Research what makes profiles successful, craft engaging bios, suggest photo strategies, and optimize for the specific platform.`,
+    model: "claude-sonnet-4-20250514",
+  },
+
+  {
+    name: "Pet Care Advisor",
+    slug: "pet-care-advisor",
+    description: "Breed-specific care guides and vet prep",
+    long_description:
+      "Get a breed-specific pet care guide with nutrition plans, exercise schedules, grooming routines, common health issues to watch for, and vet visit preparation tips.",
+    icon: "🐾",
+    color: "#D97706",
+    gradient: "linear-gradient(135deg, #D97706, #FBBF24)",
+    system_prompt: `Help pet owners with breed-specific care guidance. Research nutrition, exercise, grooming, health concerns, and training approaches tailored to their specific pet breed and age.`,
+    model: "claude-sonnet-4-20250514",
+  },
 
 ];

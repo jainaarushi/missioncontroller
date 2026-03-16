@@ -6,7 +6,7 @@ import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODEL
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { getUserToolKeys } from "@/lib/ai/get-tool-keys";
 import { calculateCost, calculateImageCost } from "@/lib/ai/cost";
-import { getPipeline, type PipelineStep } from "@/lib/ai/pipelines";
+import { getPipeline, getSpecialistPrompt, type PipelineStep } from "@/lib/ai/pipelines";
 import { getRequiredToolKeys } from "@/lib/ai/tools/registry";
 import { createWebSearchTool } from "@/lib/ai/tools/web-search";
 import { createDuckDuckGoSearchTool } from "@/lib/ai/tools/duckduckgo";
@@ -428,9 +428,12 @@ export async function runMultiAgentPipeline(
           const stepTools = { ...builtInTools, ...mcpTools };
           const hasTools = Object.keys(stepTools).length > 0;
 
-          let coreSystem = step.toolContext
-            ? blockSystemPrompt + "\n\n" + step.toolContext
+          const basePrompt = step.specialistSlug
+            ? (getSpecialistPrompt(step.specialistSlug) || blockSystemPrompt)
             : blockSystemPrompt;
+          let coreSystem = step.toolContext
+            ? basePrompt + "\n\n" + step.toolContext
+            : basePrompt;
 
           if (Object.keys(mcpTools).length > 0) {
             const mcpToolNames = Object.keys(mcpTools).join(", ");
@@ -465,10 +468,13 @@ export async function runMultiAgentPipeline(
 
         } else if (step.isCore2 && draftOutput) {
           const refinePrompt = (step.core2Prompt || "Improve and polish this output:\n\n") + draftOutput;
+          const core2System = step.specialistSlug
+            ? (getSpecialistPrompt(step.specialistSlug) || blockSystemPrompt)
+            : blockSystemPrompt;
 
           const result = await generateText({
             model: aiModel,
-            system: blockSystemPrompt,
+            system: core2System,
             prompt: refinePrompt,
           });
 

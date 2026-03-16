@@ -237,6 +237,33 @@ export const AGENT_CATEGORIES: AgentCategory[] = [
     gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
     order: 15,
   },
+  {
+    id: "parenting",
+    name: "Parenting & Family",
+    tagline: "Raise happy kids",
+    icon: "baby",
+    color: "#8B5CF6",
+    gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
+    order: 16,
+  },
+  {
+    id: "travel_events",
+    name: "Travel & Events",
+    tagline: "Plan unforgettable experiences",
+    icon: "plane",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    order: 17,
+  },
+  {
+    id: "personal_growth",
+    name: "Personal Growth",
+    tagline: "Become your best self",
+    icon: "sunrise",
+    color: "#F59E0B",
+    gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)",
+    order: 18,
+  },
 ];
 
 // Map every agent slug to its category
@@ -328,6 +355,11 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "resume-optimizer": "career",
   "interview-coach": "career",
   "salary-negotiator": "career",
+  "linkedin-optimizer": "career",
+  "career-pivoter": "career",
+  "remote-job-finder": "career",
+  "portfolio-builder": "career",
+  "networking-coach": "career",
 
   // Money & Bills
   "subscription-killer": "finance_personal",
@@ -335,6 +367,11 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "tax-deduction-finder": "finance_personal",
   "credit-score-coach": "finance_personal",
   "deal-spotter": "finance_personal",
+  "debt-snowball": "finance_personal",
+  "budget-builder": "finance_personal",
+  "crypto-tax-helper": "finance_personal",
+  "retirement-planner": "finance_personal",
+  "cashback-maximizer": "finance_personal",
 
   // Legal & Rights
   "dispute-fighter": "legal_personal",
@@ -342,31 +379,77 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "lease-reviewer": "legal_personal",
   "immigration-helper": "legal_personal",
   "small-claims-advisor": "legal_personal",
+  "tenant-rights": "legal_personal",
+  "will-planner": "legal_personal",
+  "traffic-ticket": "legal_personal",
 
   // Housing & Moving
   "apartment-scout": "housing",
   "moving-coordinator": "housing",
   "utility-optimizer": "housing",
   "roommate-matcher": "housing",
+  "home-inspector": "housing",
+  "renovation-planner": "housing",
+  "neighborhood-scout": "housing",
 
   // Health & Medical
   "medical-bill-auditor": "health_personal",
   "insurance-comparer": "health_personal",
   "symptom-researcher": "health_personal",
   "prescription-saver": "health_personal",
+  "meal-prep-planner": "health_personal",
+  "sleep-optimizer": "health_personal",
+  "therapy-finder": "health_personal",
+  "supplement-advisor": "health_personal",
+  "allergy-navigator": "health_personal",
 
   // Education
   "scholarship-hunter": "education",
   "college-advisor": "education",
+  "study-plan-maker": "education",
+  "essay-coach": "education",
+  "skill-roadmap": "education",
+  "language-tutor": "education",
 
   // Smart Shopping
   "return-assistant": "shopping",
   "car-buy-negotiator": "shopping",
+  "warranty-claimer": "shopping",
+  "tech-buyer": "shopping",
+  "grocery-optimizer": "shopping",
+  "gift-finder": "shopping",
 
   // Freelance & Side Income
   "freelance-bid-writer": "freelance",
   "side-hustle-matcher": "freelance",
   "contract-reviewer": "freelance",
+  "invoice-generator": "freelance",
+  "client-proposal": "freelance",
+  "rate-calculator": "freelance",
+
+  // Parenting & Family
+  "baby-name-picker": "parenting",
+  "school-chooser": "parenting",
+  "chore-organizer": "parenting",
+  "college-savings": "parenting",
+  "childcare-finder": "parenting",
+  "summer-camp-finder": "parenting",
+
+  // Travel & Events
+  "flight-deal-hunter": "travel_events",
+  "wedding-planner": "travel_events",
+  "party-planner": "travel_events",
+  "visa-advisor": "travel_events",
+  "road-trip-planner": "travel_events",
+  "packing-assistant": "travel_events",
+
+  // Personal Growth
+  "habit-tracker": "personal_growth",
+  "journaling-coach": "personal_growth",
+  "morning-routine": "personal_growth",
+  "social-skills": "personal_growth",
+  "dating-profile": "personal_growth",
+  "pet-care-advisor": "personal_growth",
 
   // Engineering
   "ai-data-remediation-engineer": "engineering",
@@ -543,7 +626,8 @@ export const SPECIALIST_CATEGORY_IDS = [
 
 export const TEMPLATE_CATEGORY_IDS = [
   "career", "finance_personal", "legal_personal", "housing",
-  "health_personal", "education", "shopping", "freelance"
+  "health_personal", "education", "shopping", "freelance",
+  "parenting", "travel_events", "personal_growth"
 ];
 
 export function isTemplateAgent(slug: string): boolean {

@@ -13,6 +13,7 @@ export interface PipelineStep {
   maxToolSteps?: number; // Max tool call rounds (default 3)
   toolContext?: string; // Extra context for tool-using steps
   requiresFileData?: boolean; // Step needs parsed file data (for data-query tool)
+  specialistSlug?: string; // Use this specialist agent's system_prompt for this step
 }
 
 export const AGENT_PIPELINES: Record<string, PipelineStep[]> = {
@@ -309,42 +310,167 @@ export const AGENT_PIPELINES: Record<string, PipelineStep[]> = {
   ],
 
   // Market Sizing — data-driven analysis
-  // ── Life Utility Pipelines ──────────────────────────────────
 
-  // Research and Draft — research a topic, produce actionable report
-  life_research: [
-    { description: "Understanding your situation", duration: 1200 },
-    { description: "Searching for relevant information", duration: 0, isCore: true, tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "You are a thorough personal research assistant. Search from multiple angles to find the most relevant, current information. Look for official sources, comparison data, and expert recommendations. Gather at least 5-8 unique sources. Track all URLs for citations." },
-    { description: "Cross-referencing sources", duration: 1500 },
-    { description: "Synthesizing actionable report", duration: 0, isCore2: true, core2Prompt: "You are an expert at turning research into actionable advice for regular people. Take the research below and create a clear, structured report with:\n1. Key Findings Summary\n2. Detailed Analysis with comparison tables where relevant\n3. Specific Action Steps (numbered, concrete)\n4. Important Warnings or Disclaimers\n5. Sources with links\n\nUse plain language — no jargon. Format with clean markdown and tables.\n\nResearch data:\n\n" },
-    { description: "Adding final details", duration: 800 },
+  // ── Template Pipelines (specialist-orchestrated) ──────────────
+
+  tmpl_career: [
+    { description: "Researching your industry and market", duration: 1200 },
+    { description: "Analyzing career landscape", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search"], maxToolSteps: 8, toolContext: "Research career trends, salary data, job market conditions, and industry outlook for the user's field. Search for LinkedIn trends, industry reports, and hiring data. Gather at least 5 unique data points." },
+    { description: "Building your career strategy", duration: 1500 },
+    { description: "Creating personalized action plan", duration: 0, isCore2: true, specialistSlug: "strategy-advisor", core2Prompt: "Create a personalized career plan with:\n1. Skills Gap Analysis table (current vs needed)\n2. 90-Day Action Plan with weekly milestones\n3. Target Companies list with why each is a fit\n4. Networking Strategy with specific outreach templates\n5. Key Milestones and success metrics\n\nBe specific and actionable — no generic advice.\n\nCareer research:\n\n" },
+    { description: "Final polish", duration: 800 },
   ],
 
-  // Document Analyzer — analyze user-provided text, produce review
-  life_document: [
-    { description: "Reading and parsing the document", duration: 1200 },
-    { description: "Analyzing content and flagging issues", duration: 0, isCore: true, tools: ["web-search", "calculator"], maxToolSteps: 8, toolContext: "You are a meticulous document analyst. Read the provided text carefully. Search for relevant regulations, standard terms, and benchmarks to compare against. Use the calculator for any financial calculations. Identify every potential issue, unusual term, or red flag." },
-    { description: "Cross-referencing with standards", duration: 1500 },
-    { description: "Building detailed review report", duration: 0, isCore2: true, core2Prompt: "You are an expert document reviewer. Take the analysis below and create a comprehensive review with:\n1. Document Summary (key terms at a glance)\n2. Clause-by-Clause Review Table (clause | summary | risk level: green/yellow/red)\n3. Red Flags and Concerns (detailed explanation of each)\n4. Comparison to Standard Terms\n5. Negotiation Points (what to push back on and how)\n6. Missing Protections (what should be there but isn't)\n\nUse tables extensively. Be specific, not vague.\n\nAnalysis data:\n\n" },
+  tmpl_career_profile: [
+    { description: "Analyzing your current profile", duration: 1200 },
+    { description: "Researching best practices", duration: 0, isCore: true, specialistSlug: "seo-agent", tools: ["web-search", "web-scrape"], maxToolSteps: 8, toolContext: "Research current best practices for professional profiles and resumes. Search for recruiter advice, ATS optimization tips, keyword strategies, and top-performing profile examples in the user's industry." },
+    { description: "Crafting optimized content", duration: 1500 },
+    { description: "Writing polished profile sections", duration: 0, isCore2: true, specialistSlug: "content-creator", core2Prompt: "Create optimized professional profile content with:\n1. Headline options (3 variations, keyword-rich)\n2. Summary/About section (compelling, keyword-optimized)\n3. Experience bullet rewrites (achievement-focused, quantified)\n4. Skills section recommendations\n5. SEO keywords to incorporate\n6. Before/After comparison\n\nMake every word count for both human readers and search algorithms.\n\nProfile research:\n\n" },
+    { description: "Finalizing recommendations", duration: 800 },
+  ],
+
+  tmpl_job_search: [
+    { description: "Understanding your requirements", duration: 1200 },
+    { description: "Searching job markets and companies", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "Search for job openings, company reviews, salary data, and hiring trends matching the user's criteria. Look at job boards, company career pages, and industry-specific platforms. Gather specific job titles, companies, and salary ranges." },
+    { description: "Evaluating opportunities", duration: 1500 },
+    { description: "Building your job search strategy", duration: 0, isCore2: true, specialistSlug: "recruitment-agent", core2Prompt: "Create a comprehensive job search strategy with:\n1. Top 10 Target Roles with companies and estimated salary ranges\n2. Application Priority Matrix (best fit → stretch roles)\n3. Resume tailoring tips for each role type\n4. Cover letter templates for top 3 opportunities\n5. Application tracking spreadsheet structure\n6. Weekly job search schedule\n\nBe specific with company names and role titles.\n\nJob market research:\n\n" },
+    { description: "Final details", duration: 800 },
+  ],
+
+  tmpl_interview: [
+    { description: "Researching the company and role", duration: 1200 },
+    { description: "Analyzing interview landscape", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search"], maxToolSteps: 8, toolContext: "Research the company culture, interview process, common questions, salary data, and recent news. Search Glassdoor, LinkedIn, and company blog for interview insights. Find specific examples of interview questions asked at this company." },
+    { description: "Preparing your strategy", duration: 1500 },
+    { description: "Creating interview playbook", duration: 0, isCore2: true, specialistSlug: "sales-coach", core2Prompt: "Create a comprehensive interview preparation playbook with:\n1. Company Research Brief (culture, values, recent wins)\n2. Top 15 Likely Questions with STAR-format answers\n3. Your Unique Value Proposition (2-minute pitch)\n4. Questions to Ask the Interviewer (thoughtful, specific)\n5. Salary Negotiation Script with anchoring strategy\n6. Follow-up Email Template\n\nMake answers specific to this company and role.\n\nInterview research:\n\n" },
+    { description: "Final polish", duration: 800 },
+  ],
+
+  tmpl_tax_finance: [
+    { description: "Understanding your financial situation", duration: 1200 },
+    { description: "Researching tax rules and strategies", duration: 0, isCore: true, specialistSlug: "data-analyst", tools: ["web-search", "calculator"], maxToolSteps: 10, toolContext: "Research current tax brackets, deduction rules, and filing deadlines. Use calculator for estimated savings. Search for jurisdiction-specific rules if location is mentioned. Find IRS publications and tax law changes for the current year." },
+    { description: "Calculating your options", duration: 1500 },
+    { description: "Building your financial strategy", duration: 0, isCore2: true, specialistSlug: "personal-finance", core2Prompt: "Create a detailed financial/tax strategy with:\n1. Tax Situation Summary with estimated liability\n2. Deductions & Credits Checklist (eligible items with estimated savings)\n3. Optimization Strategies ranked by impact\n4. Monthly Action Items and deadlines\n5. Documentation Checklist (what to gather)\n6. Estimated Total Savings\n\nInclude specific dollar amounts and calculations.\n\nFinancial research:\n\n" },
+    { description: "Finalizing report", duration: 800 },
+  ],
+
+  tmpl_budget_debt: [
+    { description: "Analyzing your financial picture", duration: 1200 },
+    { description: "Running financial calculations", duration: 0, isCore: true, specialistSlug: "personal-finance", tools: ["calculator", "web-search"], maxToolSteps: 8, toolContext: "Calculate debt payoff timelines, interest costs, budget allocations, and savings projections. Search for current interest rates, average costs, and financial benchmarks. Use the calculator for all projections and comparisons." },
+    { description: "Comparing strategies", duration: 1500 },
+    { description: "Creating your financial plan", duration: 0, isCore2: true, specialistSlug: "data-analyst", core2Prompt: "Create a comprehensive financial plan with:\n1. Budget Breakdown table (income vs expenses by category)\n2. Debt Payoff Schedule (monthly payments, interest saved, payoff date)\n3. Monthly Savings Target with automation tips\n4. Quick Wins list (immediate savings opportunities)\n5. 6-Month Financial Projection\n6. Key Metrics to Track\n\nUse tables and specific numbers throughout.\n\nFinancial analysis:\n\n" },
+    { description: "Final details", duration: 800 },
+  ],
+
+  tmpl_legal: [
+    { description: "Understanding your legal situation", duration: 1200 },
+    { description: "Researching applicable laws", duration: 0, isCore: true, specialistSlug: "legal-advisor", tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "Search for applicable laws, tenant rights by state, legal precedents, consumer protections, and government resources. If an authoritative source is found, scrape it. Focus on government websites, legal aid organizations, and official statutes." },
+    { description: "Analyzing your rights and options", duration: 1500 },
+    { description: "Building your action plan", duration: 0, isCore2: true, specialistSlug: "strategy-advisor", core2Prompt: "Create a legal action plan with:\n1. Rights Summary (your protections under applicable law)\n2. Step-by-Step Action Plan (numbered, with deadlines)\n3. Communication Templates (letters, emails ready to send)\n4. Evidence Checklist (what to document and gather)\n5. Escalation Path (if initial approach fails)\n6. Resources and Organizations that can help\n7. Important Disclaimers\n\nCite specific laws and statutes where possible.\n\nLegal research:\n\n" },
+    { description: "Final review", duration: 800 },
+  ],
+
+  tmpl_legal_doc: [
+    { description: "Reading the document", duration: 1200 },
+    { description: "Analyzing terms and conditions", duration: 0, isCore: true, specialistSlug: "legal-advisor", tools: ["web-search", "calculator"], maxToolSteps: 8, toolContext: "Analyze the document for unusual terms, missing protections, and potential red flags. Search for standard terms in this type of agreement, relevant regulations, and market benchmarks. Use calculator for any financial calculations." },
+    { description: "Cross-referencing standards", duration: 1500 },
+    { description: "Building detailed review", duration: 0, isCore2: true, specialistSlug: "editor", core2Prompt: "Create a comprehensive document review with:\n1. Document Summary (key terms at a glance)\n2. Clause-by-Clause Review Table (clause | summary | risk level: green/yellow/red)\n3. Red Flags and Concerns (detailed explanation)\n4. Comparison to Standard Terms\n5. Negotiation Points (what to push back on, with suggested language)\n6. Missing Protections (what should be there)\n\nUse tables extensively. Be specific, not vague.\n\nDocument analysis:\n\n" },
     { description: "Finalizing review", duration: 800 },
   ],
 
-  // Draft Writer — produce ready-to-send communications
-  life_draft: [
-    { description: "Understanding the situation", duration: 1000 },
-    { description: "Researching context and best practices", duration: 0, isCore: true, tools: ["web-search"], maxToolSteps: 6, toolContext: "Research the specific company, service, or context mentioned. Find relevant policies, contact information, competitor offers, and any regulations that support the user's position. Gather specific data points to strengthen the draft." },
-    { description: "Crafting the communication", duration: 1200 },
-    { description: "Writing final drafts", duration: 0, isCore2: true, core2Prompt: "You are an expert communicator who writes persuasive, professional messages. Using the research below, create:\n1. Primary Communication (formal letter or email — ready to send)\n2. Alternative Version (different angle/tone)\n3. Key Talking Points (if a phone call is needed)\n4. Escalation Template (if the first attempt fails)\n5. Expected Timeline and Next Steps\n\nMake every draft ready to copy-paste and send. Include specific details from the research.\n\nResearch and context:\n\n" },
-    { description: "Final polish", duration: 600 },
+  tmpl_home: [
+    { description: "Understanding your housing needs", duration: 1200 },
+    { description: "Researching options and market data", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search", "calculator"], maxToolSteps: 10, toolContext: "Research housing market data, neighborhood information, cost comparisons, and available options. Use calculator for cost projections, mortgage estimates, and budget analysis. Search for local market trends and average prices." },
+    { description: "Analyzing your options", duration: 1500 },
+    { description: "Creating your housing plan", duration: 0, isCore2: true, specialistSlug: "strategy-advisor", core2Prompt: "Create a comprehensive housing plan with:\n1. Market Overview (current conditions, trends)\n2. Options Comparison Table (features, costs, pros/cons)\n3. Budget Analysis (monthly costs, hidden expenses)\n4. Checklist for Next Steps\n5. Timeline with key milestones\n6. Money-Saving Tips specific to this situation\n\nInclude specific numbers and local data.\n\nHousing research:\n\n" },
+    { description: "Final details", duration: 800 },
   ],
 
-  // Comparison Research — compare multiple options with tables
-  life_compare: [
-    { description: "Identifying options to compare", duration: 1000 },
-    { description: "Researching each option in detail", duration: 0, isCore: true, tools: ["web-search", "web-scrape", "calculator"], maxToolSteps: 12, toolContext: "You are a thorough comparison researcher. For each option:\n1. Search for current pricing, features, and terms\n2. Search for user reviews and ratings\n3. Search for expert recommendations\n4. If a product/pricing page is available, scrape it for details\n5. Use the calculator for cost comparisons and savings estimates\nGet specific numbers — not ranges. Compare at least 3-5 options." },
-    { description: "Building comparison matrices", duration: 1500 },
-    { description: "Creating recommendation report", duration: 0, isCore2: true, core2Prompt: "You are a comparison expert who helps people make smart decisions. Using the research below, create:\n1. Quick Recommendation (best overall pick + why, in 2-3 sentences)\n2. Detailed Comparison Table (features, prices, pros/cons for each option)\n3. Best For Each Scenario (best budget, best premium, best value, etc.)\n4. Cost Analysis (monthly, yearly, total cost of ownership if relevant)\n5. How to Switch/Get Started (specific steps)\n6. Potential Savings Summary\n\nUse tables extensively. Bold the winning option in each category.\n\nResearch data:\n\n" },
+  tmpl_health: [
+    { description: "Understanding your health question", duration: 1200 },
+    { description: "Researching medical information", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "Research health information from reputable medical sources (NIH, Mayo Clinic, WHO, peer-reviewed journals). Search for evidence-based treatments, guidelines, and expert recommendations. Always prioritize authoritative medical sources." },
+    { description: "Evaluating evidence", duration: 1500 },
+    { description: "Creating your health guide", duration: 0, isCore2: true, specialistSlug: "fitness-coach", core2Prompt: "Create a comprehensive health guide with:\n1. Key Findings Summary (evidence quality noted)\n2. Actionable Recommendations (ranked by evidence strength)\n3. Lifestyle Modifications (specific, practical changes)\n4. Questions to Ask Your Doctor\n5. Tracking Metrics (what to monitor)\n6. Important Disclaimers (not medical advice, consult a professional)\n\nCite sources and note evidence quality for each recommendation.\n\nHealth research:\n\n" },
+    { description: "Final review", duration: 800 },
+  ],
+
+  tmpl_health_bills: [
+    { description: "Analyzing your healthcare costs", duration: 1200 },
+    { description: "Researching options and savings", duration: 0, isCore: true, specialistSlug: "data-analyst", tools: ["web-search", "calculator"], maxToolSteps: 10, toolContext: "Research healthcare costs, insurance plans, prescription prices, and billing codes. Use calculator for cost comparisons and savings estimates. Search for patient assistance programs, generic alternatives, and negotiation strategies." },
+    { description: "Comparing alternatives", duration: 1500 },
+    { description: "Building your savings plan", duration: 0, isCore2: true, specialistSlug: "legal-advisor", core2Prompt: "Create a healthcare cost reduction plan with:\n1. Cost Analysis (current vs potential savings)\n2. Options Comparison Table\n3. Step-by-Step Action Plan for each savings opportunity\n4. Negotiation Scripts (for bills, insurance)\n5. Assistance Programs you may qualify for\n6. Total Estimated Savings\n\nInclude specific dollar amounts and timelines.\n\nHealthcare cost research:\n\n" },
+    { description: "Finalizing report", duration: 800 },
+  ],
+
+  tmpl_meal: [
+    { description: "Understanding your dietary needs", duration: 1200 },
+    { description: "Planning meals and recipes", duration: 0, isCore: true, specialistSlug: "recipe-planner", tools: ["web-search", "calculator"], maxToolSteps: 8, toolContext: "Research recipes matching dietary preferences, calculate nutrition information, and estimate grocery costs. Search for seasonal ingredients, budget-friendly recipes, and meal prep techniques. Use calculator for nutrition totals and cost estimates." },
+    { description: "Building your meal plan", duration: 1500 },
+    { description: "Creating grocery list and prep guide", duration: 0, isCore2: true, specialistSlug: "fitness-coach", core2Prompt: "Create a complete meal prep plan with:\n1. Weekly Menu (breakfast, lunch, dinner, snacks)\n2. Recipes with prep times and instructions\n3. Consolidated Grocery List with estimated costs\n4. Nutrition Breakdown per meal (calories, protein, carbs, fat)\n5. Meal Prep Schedule (what to cook when)\n6. Storage and Reheating Tips\n7. Weekly Nutrition Totals vs goals\n\nMake it practical and time-efficient.\n\nMeal planning data:\n\n" },
+    { description: "Final details", duration: 800 },
+  ],
+
+  tmpl_edu: [
+    { description: "Understanding your learning goals", duration: 1200 },
+    { description: "Researching options and resources", duration: 0, isCore: true, specialistSlug: "academic-researcher", tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "Research educational resources, program requirements, scholarship opportunities, and learning strategies. Search for rankings, reviews, success rates, and expert recommendations. Scrape program pages for specific details." },
+    { description: "Analyzing your options", duration: 1500 },
+    { description: "Building your education plan", duration: 0, isCore2: true, specialistSlug: "strategy-advisor", core2Prompt: "Create a comprehensive education plan with:\n1. Goal Assessment and timeline\n2. Options Comparison Table (programs, costs, outcomes)\n3. Resource List (books, courses, tools) ranked by quality\n4. Study Schedule with milestones\n5. Financial Plan (scholarships, aid, costs)\n6. Success Metrics and checkpoints\n\nBe specific with program names, costs, and deadlines.\n\nEducation research:\n\n" },
+    { description: "Final polish", duration: 800 },
+  ],
+
+  tmpl_shopping: [
+    { description: "Understanding what you need", duration: 1200 },
+    { description: "Researching options and prices", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search", "web-scrape", "calculator"], maxToolSteps: 12, toolContext: "Search for product reviews, price comparisons, and current deals. Scrape retailer pages for actual prices when available. Use calculator for total cost comparisons and savings estimates. Look for expert reviews, user ratings, and price history." },
+    { description: "Comparing your options", duration: 1500 },
+    { description: "Creating recommendation report", duration: 0, isCore2: true, specialistSlug: "data-analyst", core2Prompt: "Create a shopping recommendation report with:\n1. Quick Pick (best overall choice + why)\n2. Detailed Comparison Table (features, prices, pros/cons)\n3. Best for Each Budget (budget, mid-range, premium)\n4. Total Cost of Ownership analysis\n5. Where to Buy (best current deals)\n6. Potential Savings vs alternatives\n\nUse tables extensively. Include specific prices.\n\nProduct research:\n\n" },
     { description: "Finalizing recommendations", duration: 800 },
+  ],
+
+  tmpl_freelance: [
+    { description: "Understanding your freelance goals", duration: 1200 },
+    { description: "Researching market and opportunities", duration: 0, isCore: true, specialistSlug: "strategy-advisor", tools: ["web-search", "calculator"], maxToolSteps: 8, toolContext: "Research freelance market rates, platform opportunities, client acquisition strategies, and industry benchmarks. Use calculator for rate calculations, project estimates, and income projections. Search for successful freelancer strategies in this field." },
+    { description: "Building your strategy", duration: 1500 },
+    { description: "Creating deliverables", duration: 0, isCore2: true, specialistSlug: "proposal-writer", core2Prompt: "Create professional freelance deliverables with:\n1. Market Rate Analysis (hourly, project, retainer)\n2. Service Package Options (3 tiers)\n3. Proposal/Invoice Template (ready to customize)\n4. Client Outreach Templates\n5. Pricing Calculator breakdown\n6. 90-Day Revenue Growth Plan\n\nMake everything ready to use immediately.\n\nFreelance research:\n\n" },
+    { description: "Final polish", duration: 800 },
+  ],
+
+  tmpl_parenting: [
+    { description: "Understanding your family situation", duration: 1200 },
+    { description: "Researching options and best practices", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "Research parenting resources, child development guidelines, program options, and expert recommendations. Search for reviews, ratings, costs, and availability. Focus on reputable sources (AAP, education departments, expert-reviewed sites)." },
+    { description: "Evaluating your options", duration: 1500 },
+    { description: "Creating your family plan", duration: 0, isCore2: true, specialistSlug: "strategy-advisor", core2Prompt: "Create a comprehensive family plan with:\n1. Options Overview (top choices with details)\n2. Comparison Table (cost, quality, convenience)\n3. Age-Appropriate Recommendations\n4. Budget Analysis and savings tips\n5. Action Steps with timeline\n6. Resources and next steps\n\nBe specific and practical for busy parents.\n\nParenting research:\n\n" },
+    { description: "Final details", duration: 800 },
+  ],
+
+  tmpl_travel: [
+    { description: "Researching your destination", duration: 1200 },
+    { description: "Finding the best options", duration: 0, isCore: true, specialistSlug: "travel-planner", tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "Research travel options, prices, reviews, and logistics. Search for deals, alternative routes, accommodation options, and local tips. Scrape booking sites for current prices when possible. Look for seasonal considerations and travel advisories." },
+    { description: "Planning your itinerary", duration: 1500 },
+    { description: "Creating your travel plan", duration: 0, isCore2: true, specialistSlug: "strategy-advisor", core2Prompt: "Create a complete travel plan with:\n1. Best Options Summary (top recommendation + why)\n2. Cost Breakdown (transport, accommodation, activities, food)\n3. Day-by-Day Itinerary (if applicable)\n4. Money-Saving Tips specific to this trip\n5. Packing Checklist\n6. Important Logistics (documents, bookings, deadlines)\n\nInclude specific prices and booking links when available.\n\nTravel research:\n\n" },
+    { description: "Final polish", duration: 800 },
+  ],
+
+  tmpl_event: [
+    { description: "Understanding your event vision", duration: 1200 },
+    { description: "Researching vendors and options", duration: 0, isCore: true, specialistSlug: "project-planner", tools: ["web-search", "web-scrape", "calculator"], maxToolSteps: 10, toolContext: "Research event venues, vendors, pricing, and logistics. Search for reviews, availability, and package deals. Use calculator for budget projections and cost comparisons. Look for seasonal pricing and discount opportunities." },
+    { description: "Building your event plan", duration: 1500 },
+    { description: "Creating detailed event guide", duration: 0, isCore2: true, specialistSlug: "personal-finance", core2Prompt: "Create a comprehensive event plan with:\n1. Budget Breakdown (itemized with estimates)\n2. Vendor Comparison Table (options, prices, ratings)\n3. Week-by-Week Planning Timeline\n4. Day-of Checklist and minute-by-minute schedule\n5. Guest Communication Templates\n6. Contingency Plans (weather, no-shows, vendor issues)\n7. Total Budget Summary with savings tips\n\nMake it actionable with specific recommendations.\n\nEvent research:\n\n" },
+    { description: "Final details", duration: 800 },
+  ],
+
+  tmpl_wellness: [
+    { description: "Understanding your goals", duration: 1200 },
+    { description: "Researching evidence-based approaches", duration: 0, isCore: true, specialistSlug: "mental-wellbeing", tools: ["web-search"], maxToolSteps: 8, toolContext: "Research evidence-based wellness strategies, habit formation science, and expert recommendations. Search for peer-reviewed studies, expert advice, and proven frameworks. Focus on practical, science-backed approaches." },
+    { description: "Designing your plan", duration: 1500 },
+    { description: "Creating your wellness program", duration: 0, isCore2: true, specialistSlug: "fitness-coach", core2Prompt: "Create a personalized wellness plan with:\n1. Current State Assessment framework\n2. Goal-Specific Action Plan (daily, weekly routines)\n3. Habit Stacking Sequence (new habits anchored to existing ones)\n4. Tracking System (what to measure and how)\n5. 30-Day Challenge with daily activities\n6. Obstacle Strategies (when motivation dips)\n\nMake it practical and sustainable, not overwhelming.\n\nWellness research:\n\n" },
+    { description: "Final polish", duration: 800 },
+  ],
+
+  tmpl_pet: [
+    { description: "Understanding your pet's needs", duration: 1200 },
+    { description: "Researching breed-specific care", duration: 0, isCore: true, specialistSlug: "deep-research", tools: ["web-search"], maxToolSteps: 8, toolContext: "Research breed-specific care guidelines, nutrition requirements, common health issues, and expert veterinary recommendations. Search for reputable sources (AKC, veterinary journals, breed associations). Find age-appropriate care adjustments." },
+    { description: "Building care recommendations", duration: 1500 },
+    { description: "Creating your pet care guide", duration: 0, isCore2: true, specialistSlug: "recipe-planner", core2Prompt: "Create a comprehensive pet care guide with:\n1. Breed Profile (characteristics, typical needs)\n2. Nutrition Plan (food type, portions, schedule)\n3. Exercise & Activity Schedule\n4. Grooming Routine (frequency, tools needed)\n5. Health Watch List (breed-specific concerns, vet visit schedule)\n6. Training Tips for this breed\n7. Supply Checklist\n\nTailor everything to the specific breed and age.\n\nPet care research:\n\n" },
+    { description: "Final details", duration: 800 },
   ],
 
   market_sizing: [
@@ -433,41 +559,98 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "podcast-strategist": "quill",
   "analytics-reporter": "metric",
   "product-manager": "strategist",
-  // ── Life Utility Agents ──────────────────────────────────
-  // research_and_draft pattern
-  "job-hunter": "life_research",
-  "interview-coach": "life_research",
-  "salary-negotiator": "life_research",
-  "scholarship-hunter": "life_research",
-  "college-advisor": "life_research",
-  "side-hustle-matcher": "life_research",
-  "benefits-finder": "life_research",
-  "immigration-helper": "life_research",
-  "tax-deduction-finder": "life_research",
-  "credit-score-coach": "life_research",
-  "symptom-researcher": "life_research",
-  "apartment-scout": "life_research",
-  "moving-coordinator": "life_research",
-  "small-claims-advisor": "life_research",
-  // document_analyzer pattern
-  "resume-optimizer": "life_document",
-  "lease-reviewer": "life_document",
-  "medical-bill-auditor": "life_document",
-  "contract-reviewer": "life_document",
-  // draft_writer pattern
-  "auto-applier": "life_draft",
-  "subscription-killer": "life_draft",
-  "bill-negotiator": "life_draft",
-  "dispute-fighter": "life_draft",
-  "return-assistant": "life_draft",
-  "roommate-matcher": "life_draft",
-  "freelance-bid-writer": "life_draft",
-  // comparison_research pattern
-  "deal-spotter": "life_compare",
-  "utility-optimizer": "life_compare",
-  "insurance-comparer": "life_compare",
-  "prescription-saver": "life_compare",
-  "car-buy-negotiator": "life_compare",
+  // ── Template Agents (specialist-orchestrated) ──────────────
+  // Career & Job Search
+  "job-hunter": "tmpl_job_search",
+  "auto-applier": "tmpl_job_search",
+  "remote-job-finder": "tmpl_job_search",
+  "interview-coach": "tmpl_interview",
+  "salary-negotiator": "tmpl_interview",
+  "resume-optimizer": "tmpl_career_profile",
+  "linkedin-optimizer": "tmpl_career_profile",
+  "career-pivoter": "tmpl_career",
+  "portfolio-builder": "tmpl_career",
+  "networking-coach": "tmpl_career",
+  // Money & Bills
+  "tax-deduction-finder": "tmpl_tax_finance",
+  "crypto-tax-helper": "tmpl_tax_finance",
+  "retirement-planner": "tmpl_tax_finance",
+  "debt-snowball": "tmpl_budget_debt",
+  "budget-builder": "tmpl_budget_debt",
+  "subscription-killer": "tmpl_budget_debt",
+  "bill-negotiator": "tmpl_budget_debt",
+  "credit-score-coach": "tmpl_budget_debt",
+  "cashback-maximizer": "tmpl_budget_debt",
+  // Legal & Rights
+  "dispute-fighter": "tmpl_legal",
+  "tenant-rights": "tmpl_legal",
+  "will-planner": "tmpl_legal",
+  "traffic-ticket": "tmpl_legal",
+  "small-claims-advisor": "tmpl_legal",
+  "immigration-helper": "tmpl_legal",
+  "benefits-finder": "tmpl_legal",
+  "lease-reviewer": "tmpl_legal_doc",
+  "contract-reviewer": "tmpl_legal_doc",
+  // Housing & Moving
+  "apartment-scout": "tmpl_home",
+  "home-inspector": "tmpl_home",
+  "renovation-planner": "tmpl_home",
+  "neighborhood-scout": "tmpl_home",
+  "moving-coordinator": "tmpl_home",
+  "utility-optimizer": "tmpl_home",
+  "roommate-matcher": "tmpl_home",
+  // Health & Medical
+  "symptom-researcher": "tmpl_health",
+  "therapy-finder": "tmpl_health",
+  "supplement-advisor": "tmpl_health",
+  "allergy-navigator": "tmpl_health",
+  "sleep-optimizer": "tmpl_health",
+  "medical-bill-auditor": "tmpl_health_bills",
+  "insurance-comparer": "tmpl_health_bills",
+  "prescription-saver": "tmpl_health_bills",
+  "meal-prep-planner": "tmpl_meal",
+  // Education
+  "scholarship-hunter": "tmpl_edu",
+  "college-advisor": "tmpl_edu",
+  "study-plan-maker": "tmpl_edu",
+  "essay-coach": "tmpl_edu",
+  "skill-roadmap": "tmpl_edu",
+  "language-tutor": "tmpl_edu",
+  // Smart Shopping
+  "deal-spotter": "tmpl_shopping",
+  "car-buy-negotiator": "tmpl_shopping",
+  "warranty-claimer": "tmpl_shopping",
+  "tech-buyer": "tmpl_shopping",
+  "grocery-optimizer": "tmpl_shopping",
+  "gift-finder": "tmpl_shopping",
+  "return-assistant": "tmpl_shopping",
+  // Freelance & Side Income
+  "freelance-bid-writer": "tmpl_freelance",
+  "side-hustle-matcher": "tmpl_freelance",
+  "invoice-generator": "tmpl_freelance",
+  "client-proposal": "tmpl_freelance",
+  "rate-calculator": "tmpl_freelance",
+  // Parenting & Family
+  "baby-name-picker": "tmpl_parenting",
+  "school-chooser": "tmpl_parenting",
+  "chore-organizer": "tmpl_parenting",
+  "college-savings": "tmpl_parenting",
+  "childcare-finder": "tmpl_parenting",
+  "summer-camp-finder": "tmpl_parenting",
+  // Travel & Events
+  "flight-deal-hunter": "tmpl_travel",
+  "visa-advisor": "tmpl_travel",
+  "road-trip-planner": "tmpl_travel",
+  "packing-assistant": "tmpl_travel",
+  "wedding-planner": "tmpl_event",
+  "party-planner": "tmpl_event",
+  // Personal Growth
+  "habit-tracker": "tmpl_wellness",
+  "journaling-coach": "tmpl_wellness",
+  "morning-routine": "tmpl_wellness",
+  "social-skills": "tmpl_wellness",
+  "dating-profile": "tmpl_wellness",
+  "pet-care-advisor": "tmpl_pet",
   // ── Agency Agents ──────────────────────────────────
   // Design
   "image-prompt-engineer": "architect",
@@ -621,6 +804,21 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "threat-detection-engineer": "architect",
   "wechat-mini-program-developer": "architect",
 };
+
+// ── Specialist Prompt Resolution ─────────────────────────────
+import { PRESET_AGENTS } from "@/seed/agents";
+
+const SPECIALIST_PROMPT_CACHE = new Map<string, string>();
+
+export function getSpecialistPrompt(slug: string): string | null {
+  if (SPECIALIST_PROMPT_CACHE.has(slug)) return SPECIALIST_PROMPT_CACHE.get(slug)!;
+  const agent = PRESET_AGENTS.find(a => a.slug === slug);
+  if (agent?.system_prompt) {
+    SPECIALIST_PROMPT_CACHE.set(slug, agent.system_prompt);
+    return agent.system_prompt;
+  }
+  return null;
+}
 
 export function getPipeline(agentSlug: string): PipelineStep[] {
   // Direct match first, then mapped slug, then default
