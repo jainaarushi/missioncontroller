@@ -12,9 +12,22 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
+import { isTemplateAgent } from "@/lib/agent-categories";
 import { ChevronRight } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
+
+// Template slugs shown in the scroller — curated mix across categories
+const FEATURED_TEMPLATE_SLUGS = [
+  "job-hunter", "budget-builder", "meal-prep-planner", "flight-deal-hunter",
+  "wedding-planner", "resume-optimizer", "debt-snowball", "apartment-scout",
+  "interview-coach", "lease-reviewer", "study-plan-maker", "deal-spotter",
+  "career-pivoter", "tax-deduction-finder", "habit-tracker", "road-trip-planner",
+  "baby-name-picker", "freelance-bid-writer", "sleep-optimizer", "gift-finder",
+  "scholarship-hunter", "dispute-fighter", "morning-routine", "party-planner",
+  "grocery-optimizer", "skill-roadmap", "retirement-planner", "pet-care-advisor",
+  "dating-profile", "invoice-generator",
+];
 
 // Rich color palette — cycles so adjacent cards never share colors
 const CARD_GRADIENTS = [
@@ -282,7 +295,7 @@ export default function TodayPage() {
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
-              Agent Studio
+              Task Templates
             </h2>
             <span style={{
               fontSize: 10, fontWeight: 700, color: "#fff",
@@ -290,12 +303,12 @@ export default function TodayPage() {
               letterSpacing: "0.04em",
               boxShadow: `0 2px 8px ${P.purple}30`,
             }}>
-              {agents.length} AGENTS
+              {agents.filter(a => isTemplateAgent(a.slug || "")).length}+ TEMPLATES
             </span>
           </div>
           {tasks.length === 0 && (
             <p style={{ fontSize: 13, color: P.textTer, margin: "6px 0 0", lineHeight: 1.4 }}>
-              Pick an agent, describe your task, and let AI handle the rest
+              Pick a template, customize your task, and let AI handle the rest
             </p>
           )}
         </div>
@@ -339,7 +352,7 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* AI Agents — single-row horizontal scroll */}
+      {/* Task Templates — single-row horizontal scroll */}
       <div className="agent-scroller-bleed" style={{ marginBottom: 20, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ position: "relative" }}>
           <div
@@ -366,25 +379,20 @@ export default function TodayPage() {
             }}
           >
             <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
-            {(() => {
-              const prioritySlugs = ["ux-designer", "content-creator", "linkedin-post", "academic-researcher", "product-launch", "travel-planner", "recipe-planner"];
-              const sorted = [...agents].sort((a, b) => {
-                const aIdx = prioritySlugs.indexOf(a.slug);
-                const bIdx = prioritySlugs.indexOf(b.slug);
-                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-                if (aIdx !== -1) return -1;
-                if (bIdx !== -1) return 1;
-                return 0;
-              });
-              return sorted;
-            })().map((agent, i) => {
+            {FEATURED_TEMPLATE_SLUGS.map((slug, i) => {
+              const agent = agents.find((a) => a.slug === slug);
+              if (!agent) return null;
               const delay = i * 0.04;
               const bg = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
               return (
                 <div
                   key={agent.id}
                   className="agent-card"
-                  onClick={() => setPreviewAgent(agent)}
+                  onClick={() => {
+                    setCreateAgentId(agent.id);
+                    setPreviewAgent(null);
+                    setShowCreateModal(true);
+                  }}
                   style={{
                     borderRadius: 22, cursor: "pointer",
                     overflow: "hidden",
@@ -620,43 +628,71 @@ export default function TodayPage() {
         loading={bulkLoading}
       />
 
-      {/* ── Browse Templates Link ─────────────────────────── */}
-      <a
-        href="/templates"
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: 48, marginBottom: 32, padding: "18px 24px",
-          borderRadius: 18,
-          background: `linear-gradient(135deg, ${P.purple}08, ${P.pink}08)`,
-          border: `1.5px solid ${P.border}`,
-          textDecoration: "none",
-          cursor: "pointer",
-          transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = P.purple + "40";
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = `0 8px 24px ${P.purple}15`;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = P.border;
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
-        }}
-      >
-        <div>
-          <div style={{
-            fontSize: 16, fontWeight: 800, color: P.text,
-            letterSpacing: "-0.02em", marginBottom: 4,
-          }}>
-            Browse Task Templates
+      {/* ── Browse All Links ─────────────────────────── */}
+      <div style={{ display: "flex", gap: 12, marginTop: 48, marginBottom: 32 }}>
+        <a
+          href="/templates"
+          style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "18px 24px", borderRadius: 18,
+            background: `linear-gradient(135deg, ${P.purple}08, ${P.pink}08)`,
+            border: `1.5px solid ${P.border}`,
+            textDecoration: "none", cursor: "pointer",
+            transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = P.purple + "40";
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = `0 8px 24px ${P.purple}15`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = P.border;
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: P.text, letterSpacing: "-0.02em", marginBottom: 4 }}>
+              All Templates
+            </div>
+            <div style={{ fontSize: 13, color: P.textSec }}>
+              Browse by category — jobs, bills, health, and more
+            </div>
           </div>
-          <div style={{ fontSize: 13, color: P.textSec }}>
-            Real-world AI agents for jobs, bills, leases, health, and more
+          <ChevronRight size={20} color={P.textTer} />
+        </a>
+        <a
+          href="/agents"
+          style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "18px 24px", borderRadius: 18,
+            background: `linear-gradient(135deg, ${P.cyan}08, ${P.emerald}08)`,
+            border: `1.5px solid ${P.border}`,
+            textDecoration: "none", cursor: "pointer",
+            transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = P.cyan + "40";
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = `0 8px 24px ${P.cyan}15`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = P.border;
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: P.text, letterSpacing: "-0.02em", marginBottom: 4 }}>
+              All Agents
+            </div>
+            <div style={{ fontSize: 13, color: P.textSec }}>
+              Specialist AI agents for any task
+            </div>
           </div>
-        </div>
-        <ChevronRight size={20} color={P.textTer} />
-      </a>
+          <ChevronRight size={20} color={P.textTer} />
+        </a>
+      </div>
 
       {/* Agent preview modal */}
       {previewAgent && (
