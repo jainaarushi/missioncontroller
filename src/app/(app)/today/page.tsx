@@ -442,35 +442,36 @@ export default function TodayPage() {
                 e.currentTarget.style.borderColor = P.border;
               }}
             >
-              {/* Gradient accent bar */}
-              <div style={{ height: 4, background: cat.gradient }} />
-
-              <div style={{ padding: "18px 20px 20px" }}>
-                {/* Category badge */}
+              {/* Full-width category banner */}
+              <div style={{
+                background: cat.gradient,
+                padding: "8px 16px",
+              }}>
                 <span style={{
-                  display: "inline-block", fontSize: 11, fontWeight: 700,
-                  color: cat.color, backgroundColor: cat.color + "12",
-                  padding: "4px 12px", borderRadius: 6, marginBottom: 14,
-                  letterSpacing: "0.02em",
+                  fontSize: 13, fontWeight: 700, color: "#fff",
+                  letterSpacing: "0.01em",
                 }}>
                   {cat.label}
                 </span>
+              </div>
 
+              <div style={{ padding: "16px 18px 18px" }}>
                 {/* Icon + rating row */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
                   <div style={{
-                    width: 48, height: 48, borderRadius: 14,
-                    background: cat.gradient,
+                    width: 46, height: 46, borderRadius: 12,
+                    background: `linear-gradient(135deg, ${cat.color}18, ${cat.color}08)`,
+                    border: `1px solid ${cat.color}20`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 24,
+                    fontSize: 22,
                   }}>
                     {agent.icon}
                   </div>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 4,
+                    display: "flex", alignItems: "center", gap: 3,
                     fontSize: 13, fontWeight: 700, color: P.text,
                   }}>
-                    <Star size={14} fill="#FBBF24" color="#FBBF24" />
+                    <Star size={13} fill="#FBBF24" color="#FBBF24" />
                     {rating}
                   </div>
                 </div>
@@ -478,7 +479,7 @@ export default function TodayPage() {
                 {/* Name */}
                 <div style={{
                   fontSize: 16, fontWeight: 800, color: P.text,
-                  letterSpacing: "-0.02em", marginBottom: 6,
+                  letterSpacing: "-0.02em", marginBottom: 6, lineHeight: 1.2,
                 }}>
                   {agent.name}
                 </div>
@@ -486,7 +487,7 @@ export default function TodayPage() {
                 {/* Description */}
                 <div style={{
                   fontSize: 13, color: P.textSec, lineHeight: 1.5,
-                  marginBottom: 14,
+                  marginBottom: 14, minHeight: 40,
                   display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
                   overflow: "hidden",
                 }}>
@@ -495,10 +496,10 @@ export default function TodayPage() {
 
                 {/* Use cases */}
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: P.textTer, marginBottom: 4, letterSpacing: "0.02em" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: P.text, marginBottom: 3 }}>
                     Use Cases
                   </div>
-                  <div style={{ fontSize: 12, color: P.textSec, fontWeight: 500 }}>
+                  <div style={{ fontSize: 12.5, color: P.textSec, fontWeight: 400 }}>
                     {useCases.join(", ")}
                   </div>
                 </div>
@@ -517,7 +518,7 @@ export default function TodayPage() {
         Hire a Specialist
       </h3>
 
-      {/* Specialist cards — horizontal scroll */}
+      {/* Specialist cards — 4-column grid */}
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16,
         marginBottom: 40,
@@ -532,13 +533,11 @@ export default function TodayPage() {
               key={persona.slug}
               onClick={() => setPreviewAgent(agent)}
               style={{
-                backgroundColor: "#fff", borderRadius: 16, padding: "20px",
+                backgroundColor: "#fff", borderRadius: 16, padding: "18px 16px 16px",
                 border: `1.5px solid ${P.border}`,
                 boxShadow: P.shadow, cursor: "pointer",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${0.35 + i * 0.06}s both`,
-                display: "flex", flexDirection: "column", alignItems: "center",
-                textAlign: "center",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = P.shadowHover;
@@ -551,26 +550,22 @@ export default function TodayPage() {
                 e.currentTarget.style.borderColor = P.border;
               }}
             >
-              {/* Avatar + rating */}
-              <div style={{ position: "relative", marginBottom: 12 }}>
+              {/* Avatar + rating — side by side */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <div style={{
-                  width: 64, height: 64, borderRadius: "50%",
+                  width: 56, height: 56, borderRadius: "50%",
                   background: agent.gradient,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 28,
-                  boxShadow: `0 4px 16px ${agent.color}25`,
+                  fontSize: 26,
+                  boxShadow: `0 4px 12px ${agent.color}20`,
                 }}>
                   {agent.icon}
                 </div>
                 <div style={{
-                  position: "absolute", top: -2, right: -8,
-                  display: "flex", alignItems: "center", gap: 2,
-                  backgroundColor: "#fff", borderRadius: 20,
-                  padding: "2px 8px", fontSize: 11, fontWeight: 700, color: P.text,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  border: `1px solid ${P.border}`,
+                  display: "flex", alignItems: "center", gap: 3,
+                  fontSize: 13, fontWeight: 700, color: P.text,
                 }}>
-                  <Star size={10} fill="#FBBF24" color="#FBBF24" />
+                  <Star size={12} fill="#FBBF24" color="#FBBF24" />
                   {persona.rating}
                 </div>
               </div>
@@ -581,17 +576,17 @@ export default function TodayPage() {
               </div>
 
               {/* Title */}
-              <div style={{ fontSize: 12, color: P.textSec, fontWeight: 500, marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: P.textSec, fontWeight: 500, marginBottom: 10 }}>
                 {persona.title}
               </div>
 
               {/* Skills */}
-              <div style={{ marginBottom: 14, width: "100%" }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: P.textTer, marginBottom: 4, letterSpacing: "0.04em" }}>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: P.text, marginBottom: 3 }}>
                   Key Skills
                 </div>
                 <div style={{
-                  fontSize: 11.5, color: P.textSec, fontWeight: 500,
+                  fontSize: 12.5, color: P.textSec, fontWeight: 400,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
                 }}>
                   {persona.skills.join(", ")}
@@ -604,7 +599,7 @@ export default function TodayPage() {
                   width: "100%", padding: "9px 0", borderRadius: 10,
                   border: `1.5px solid ${P.border}`,
                   backgroundColor: "#fff", color: P.text,
-                  fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+                  fontSize: 12.5, fontWeight: 600, cursor: "pointer",
                   fontFamily: "inherit", transition: "all 0.2s",
                 }}
                 onMouseEnter={(e) => {
