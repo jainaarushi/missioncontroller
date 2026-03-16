@@ -177,7 +177,7 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
             textAlign: "center",
             cursor: "pointer",
             transition: "all 0.2s",
-            backgroundColor: dragOver ? "#F5F3FF" : facePreview ? P.card : "#FAFAF8",
+            backgroundColor: dragOver ? "rgba(139,92,246,0.08)" : facePreview ? P.card : P.bg3,
             marginBottom: 16,
             display: "flex",
             alignItems: "center",
@@ -268,8 +268,8 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
       {error && (
         <div style={{
           marginTop: 8, padding: "8px 12px", borderRadius: 8,
-          backgroundColor: "#FEF2F2", border: "1px solid #FECACA",
-          fontSize: 12, color: "#DC2626",
+          backgroundColor: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)",
+          fontSize: 12, color: "#F87171",
         }}>
           {error}
         </div>
@@ -294,7 +294,7 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
                 borderRadius: 14,
                 overflow: "hidden",
                 border: `1.5px solid ${url ? color + "30" : P.border}`,
-                backgroundColor: url ? "transparent" : "#FAFAF8",
+                backgroundColor: url ? "transparent" : P.bg3,
                 transition: "all 0.3s",
               }}>
                 <div style={{

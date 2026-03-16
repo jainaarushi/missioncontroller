@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP, SPECIALIST_CATEGORY_IDS, isTemplateAgent } from "@/lib/agent-categories";
-import { P } from "@/lib/palette";
+import { P, F } from "@/lib/palette";
 
 
 const SPECIALIST_CATEGORIES = AGENT_CATEGORIES.filter(c => SPECIALIST_CATEGORY_IDS.includes(c.id));
@@ -102,7 +102,7 @@ export default function AgentsPage() {
   return (
     <>
       <style>{`
-        @keyframes createPulse { 0%,100%{box-shadow:0 0 0 0 rgba(139,61,255,0.18)}50%{box-shadow:0 0 0 14px rgba(139,61,255,0)} }
+        @keyframes createPulse { 0%,100%{box-shadow:0 0 0 0 rgba(124,111,239,0.18)}50%{box-shadow:0 0 0 14px rgba(124,111,239,0)} }
         @keyframes popIn { 0%{opacity:0;transform:scale(0.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)} }
         @keyframes fadeUp { 0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)} }
@@ -117,7 +117,8 @@ export default function AgentsPage() {
         animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
         padding: "36px 40px 32px",
         borderRadius: 24,
-        background: "linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 30%, #FDF2F8 60%, #EFF6FF 100%)",
+        background: `linear-gradient(135deg, ${P.bg2} 0%, ${P.bg3} 50%, ${P.bg2} 100%)`,
+        border: `1.5px solid ${P.border}`,
         position: "relative",
         overflow: "hidden",
       }}>
@@ -125,12 +126,12 @@ export default function AgentsPage() {
         <div style={{
           position: "absolute", top: -40, right: -20,
           width: 180, height: 180, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(139,61,255,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(124,111,239,0.12) 0%, transparent 70%)",
         }} />
         <div style={{
           position: "absolute", bottom: -30, left: "40%",
           width: 120, height: 120, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(0,196,204,0.06) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(197,241,53,0.06) 0%, transparent 70%)",
         }} />
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
@@ -212,7 +213,7 @@ export default function AgentsPage() {
             fontFamily: "inherit",
             transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             boxShadow: searchFocused
-              ? `0 0 0 4px ${P.purple}15, 0 4px 16px rgba(0,0,0,0.06)`
+              ? `0 0 0 4px ${P.purple}15, 0 4px 16px rgba(0,0,0,0.3)`
               : P.shadow,
           }}
         />
@@ -586,9 +587,9 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router, ca
             boxShadow: P.shadow,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#FEF2F2";
-            e.currentTarget.style.borderColor = "#FCA5A5";
-            e.currentTarget.style.color = "#EF4444";
+            e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.12)";
+            e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)";
+            e.currentTarget.style.color = "#f87171";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = P.card;

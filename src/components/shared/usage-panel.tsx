@@ -37,9 +37,9 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
     <div style={{
       marginBottom: 24,
       borderRadius: 16,
-      background: "linear-gradient(135deg, #FAFAFE, #F5F3FF)",
-      border: "1.5px solid rgba(99,102,241,0.15)",
-      boxShadow: "0 1px 6px rgba(99,102,241,0.08)",
+      background: `linear-gradient(135deg, ${P.bg2}, ${P.bg3})`,
+      border: `1.5px solid ${P.border2}`,
+      boxShadow: P.shadow,
       overflow: "hidden",
       transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
       position: "relative",
@@ -58,7 +58,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
           padding: "12px 18px", cursor: "pointer",
           transition: "background-color 0.15s",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(99,102,241,0.03)"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(99,102,241,0.06)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
@@ -149,7 +149,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
             display: "flex", gap: 12, marginBottom: 16, fontSize: 12, flexWrap: "wrap" as const,
           }}>
             <div style={{
-              padding: "8px 14px", borderRadius: 8, backgroundColor: "#F5F5F3",
+              padding: "8px 14px", borderRadius: 8, backgroundColor: P.bg3,
               display: "flex", alignItems: "center", gap: 6,
             }}>
               <span style={{ color: P.textTer }}>Input</span>
@@ -161,7 +161,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
               </span>
             </div>
             <div style={{
-              padding: "8px 14px", borderRadius: 8, backgroundColor: "#F5F5F3",
+              padding: "8px 14px", borderRadius: 8, backgroundColor: P.bg3,
               display: "flex", alignItems: "center", gap: 6,
             }}>
               <span style={{ color: P.textTer }}>Output</span>
@@ -174,7 +174,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
             </div>
             {completedTasks.length > 0 && (
               <div style={{
-                padding: "8px 14px", borderRadius: 8, backgroundColor: "#F5F5F3",
+                padding: "8px 14px", borderRadius: 8, backgroundColor: P.bg3,
                 display: "flex", alignItems: "center", gap: 6,
               }}>
                 <span style={{ color: P.textTer }}>Avg/task</span>
@@ -248,7 +248,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
                         </div>
                       </div>
                       <div style={{
-                        height: 4, backgroundColor: "#F5F5F3", borderRadius: 2,
+                        height: 4, backgroundColor: P.bg4, borderRadius: 2,
                         overflow: "hidden",
                       }}>
                         <div style={{

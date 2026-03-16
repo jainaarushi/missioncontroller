@@ -31,7 +31,7 @@ export function BulkActionsBar({
         display: "flex", alignItems: "center", gap: 10,
         padding: "10px 16px", borderRadius: 14,
         backgroundColor: P.text, color: "#fff",
-        boxShadow: "0 16px 48px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.15)",
+        boxShadow: P.shadowFloat,
         fontSize: 13, fontWeight: 600,
         opacity: loading ? 0.7 : 1,
       }}>

@@ -497,7 +497,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       <div key={keyBase} style={{
         overflowX: "auto", margin: "16px 0", borderRadius: 12,
         border: `1px solid ${agent?.color ? agent.color + "20" : P.border}`,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
       }}>
         <table style={{
           width: "100%", borderCollapse: "collapse", fontSize: 13,
@@ -525,7 +525,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                   <td key={ci} style={{
                     padding: "9px 14px", color: P.text,
                     borderBottom: `1px solid ${P.border}40`,
-                    backgroundColor: ri % 2 === 0 ? "transparent" : agent?.color ? agent.color + "03" : "#FAFAF8",
+                    backgroundColor: ri % 2 === 0 ? "transparent" : agent?.color ? agent.color + "06" : P.bg3,
                     fontSize: 13,
                   }}>
                     {processInline(cell)}
@@ -549,7 +549,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
     >
       <div style={{
         position: "absolute", inset: 0,
-        backgroundColor: "rgba(24,24,27,0.35)",
+        backgroundColor: "rgba(0,0,0,0.7)",
         backdropFilter: "blur(6px)",
         animation: "fadeIn 0.2s ease",
       }} />
@@ -558,7 +558,8 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "min(850px, 95vw)", maxHeight: "85vh", overflowY: "auto",
-          backgroundColor: P.card, borderRadius: 20,
+          backgroundColor: P.bg2, borderRadius: 20,
+          border: `1px solid ${P.border2}`,
           boxShadow: P.shadowFloat, position: "relative",
           animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
         }}
@@ -569,7 +570,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
         {loginPrompt && (
           <div style={{
             position: "absolute", inset: 0, zIndex: 10,
-            backgroundColor: "rgba(255,255,255,0.92)",
+            backgroundColor: "rgba(11,11,14,0.92)",
             backdropFilter: "blur(4px)",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             borderRadius: 20,
@@ -748,7 +749,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                     display: "flex", alignItems: "center", gap: 6,
                     padding: "7px 14px", borderRadius: 9,
                     border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
-                    backgroundColor: recording ? "#FEF2F2" : P.card,
+                    backgroundColor: recording ? "rgba(239,68,68,0.10)" : P.card,
                     color: recording ? "#EF4444" : P.textSec,
                     fontSize: 12.5, fontWeight: 600, cursor: "pointer",
                     fontFamily: "inherit", transition: "all 0.15s",
@@ -922,24 +923,24 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
           {mcpBanner && !task.output && (
             <div style={{
               padding: "14px 18px", borderRadius: 12, marginBottom: 16,
-              background: "linear-gradient(135deg, #EEF2FF, #F5F3FF)",
-              border: "1.5px solid #C7D2FE",
+              background: `linear-gradient(135deg, ${P.bg3}, ${P.bg4})`,
+              border: `1.5px solid ${P.border2}`,
               animation: "fadeUp 0.4s cubic-bezier(0.16,1,0.3,1)",
             }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <span style={{ fontSize: 20, lineHeight: 1 }}>MCP</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#3730A3", marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: P.violet2, marginBottom: 4 }}>
                     This agent works better with {mcpBanner.serverNames.join(" or ")}
                   </div>
-                  <div style={{ fontSize: 12, color: "#4338CA", lineHeight: 1.5, marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, color: P.textSec, lineHeight: 1.5, marginBottom: 8 }}>
                     {mcpBanner.message}
                   </div>
                   <a
                     href="/settings"
                     style={{
                       display: "inline-block", padding: "6px 14px", borderRadius: 7,
-                      backgroundColor: "#4F46E5", color: "#fff",
+                      backgroundColor: P.violet, color: "#fff",
                       fontSize: 11.5, fontWeight: 700, textDecoration: "none",
                     }}
                   >
@@ -949,7 +950,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                 <button
                   onClick={() => setMcpBanner(null)}
                   style={{
-                    background: "none", border: "none", color: "#6366F1",
+                    background: "none", border: "none", color: P.violet,
                     cursor: "pointer", fontSize: 16, padding: "0 2px", fontFamily: "inherit",
                   }}
                 >
@@ -963,19 +964,19 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
           {mcpBanner && task.output && (
             <div style={{
               padding: "10px 14px", borderRadius: 10, marginBottom: 12,
-              backgroundColor: "#EEF2FF", border: "1px solid #C7D2FE",
+              backgroundColor: P.bg3, border: `1px solid ${P.border2}`,
               display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
-              <div style={{ fontSize: 12, color: "#4338CA" }}>
+              <div style={{ fontSize: 12, color: P.textSec }}>
                 <strong>Tip:</strong> {mcpBanner.settingsHint}
               </div>
               <div style={{ display: "flex", gap: 6 }}>
-                <a href="/settings" style={{ fontSize: 11, color: "#4F46E5", fontWeight: 700, textDecoration: "none" }}>
+                <a href="/settings" style={{ fontSize: 11, color: P.violet, fontWeight: 700, textDecoration: "none" }}>
                   Settings
                 </a>
                 <button
                   onClick={() => setMcpBanner(null)}
-                  style={{ background: "none", border: "none", color: "#6366F1", cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}
+                  style={{ background: "none", border: "none", color: P.violet, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}
                 >
                   x
                 </button>
@@ -1067,7 +1068,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                       style={{
                         width: "100%", minHeight: 50, padding: "8px 10px",
                         borderRadius: 8, border: `1px solid ${P.border}`,
-                        backgroundColor: "#fff", color: P.text,
+                        backgroundColor: P.bg3, color: P.text,
                         fontSize: 13, fontFamily: "inherit", resize: "vertical",
                         outline: "none", lineHeight: 1.4,
                       }}
@@ -1077,7 +1078,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                         onClick={() => { setRerunStepIndex(null); setRerunFeedback(""); }}
                         style={{
                           padding: "6px 14px", borderRadius: 7,
-                          border: `1px solid ${P.border}`, backgroundColor: "#fff",
+                          border: `1px solid ${P.border}`, backgroundColor: P.bg3,
                           color: P.textSec, fontSize: 12, fontWeight: 600,
                           cursor: "pointer", fontFamily: "inherit",
                         }}
@@ -1166,9 +1167,9 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
               {/* Output content */}
               <div style={{
                 padding: "24px 26px", borderRadius: 16,
-                backgroundColor: "#fff",
+                backgroundColor: P.bg2,
                 border: `1px solid ${agent?.color ? agent.color + "20" : P.border}`,
-                boxShadow: agent ? `0 2px 12px ${agent.color}06, 0 1px 3px rgba(0,0,0,0.04)` : "0 1px 3px rgba(0,0,0,0.04)",
+                boxShadow: agent ? `0 2px 12px ${agent.color}06, 0 1px 3px rgba(0,0,0,0.2)` : "0 1px 3px rgba(0,0,0,0.2)",
                 position: "relative", overflow: "hidden",
               }}>
                 {/* Subtle top accent line */}

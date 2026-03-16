@@ -130,7 +130,7 @@ export function TaskCard({
             boxShadow: selected ? `0 2px 8px ${P.purple}30` : "none",
           }}
         >
-          {selected && <span style={{ color: "#fff", fontSize: 11, fontWeight: 900 }}>✓</span>}
+          {selected && <span style={{ color: P.text, fontSize: 11, fontWeight: 900 }}>✓</span>}
         </div>
       )}
 
@@ -138,12 +138,12 @@ export function TaskCard({
       {!selectable && (
         <div style={{ marginTop: 3, flexShrink: 0 }}>
           {isDone ? (
-            <div style={{ width: 26, height: 26, borderRadius: 9, background: P.emeraldGrad, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700, boxShadow: `0 3px 10px ${P.emerald}30` }}>✓</div>
+            <div style={{ width: 26, height: 26, borderRadius: 9, background: P.emeraldGrad, display: "flex", alignItems: "center", justifyContent: "center", color: P.text, fontSize: 12, fontWeight: 700, boxShadow: `0 3px 10px ${P.emerald}30` }}>✓</div>
           ) : isWorking && agent ? (
             <ProgressArc pct={task.progress} color={agent.color} size={26} />
           ) : isReview && agent ? (
             <div style={{ width: 26, height: 26, borderRadius: 9, background: agent.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 3px 10px ${agent.color}25` }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#fff", animation: "pulseGlow 2s infinite" }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: P.text, animation: "pulseGlow 2s infinite" }} />
             </div>
           ) : agent ? (
             <div style={{ width: 26, height: 26, borderRadius: 9, border: `2px solid ${agent.color}35`, backgroundColor: agent.color + "08", transition: "all 0.2s" }} />
@@ -230,7 +230,7 @@ export function TaskCard({
           <button
             onClick={(e) => { e.stopPropagation(); onRun(task.id); }}
             style={{
-              fontSize: 11.5, fontWeight: 700, color: "#fff",
+              fontSize: 11.5, fontWeight: 700, color: P.text,
               background: agent?.gradient || P.purpleGrad,
               padding: "6px 16px", borderRadius: 10,
               border: "none", cursor: "pointer",

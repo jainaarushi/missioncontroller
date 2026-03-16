@@ -75,7 +75,7 @@ export function TaskSection({
         }}>{label}</span>
         {tasks.length > 0 && (
           <span style={{
-            fontSize: 11.5, fontWeight: 700, color: P.card,
+            fontSize: 11.5, fontWeight: 700, color: "#0b0b0e",
             backgroundColor: color === P.textGhost ? P.textTer : color,
             padding: "2px 8px", borderRadius: 10,
             marginLeft: 2,
@@ -111,9 +111,9 @@ export function TaskSection({
       ) : (
         <div style={{
           padding: "18px 20px", borderRadius: 14,
-          border: `2px dashed ${dragOver ? P.purple : P.border}`,
-          backgroundColor: dragOver ? P.purpleSoft : "transparent",
-          fontSize: 13, color: dragOver ? P.purple : P.textGhost,
+          border: `2px dashed ${dragOver ? P.violet : P.border}`,
+          backgroundColor: dragOver ? `${P.violet}12` : "transparent",
+          fontSize: 13, color: dragOver ? P.violet : P.textGhost,
           fontWeight: dragOver ? 600 : 400,
           textAlign: "center",
           transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",

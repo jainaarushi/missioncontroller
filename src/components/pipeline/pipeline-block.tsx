@@ -65,14 +65,14 @@ export function PipelineBlock({
         }}
         style={{
           position: "relative",
-          backgroundColor: "#fff",
+          backgroundColor: P.bg2,
           borderRadius: 14,
           padding: "14px 16px",
           border: `1.5px solid ${isCore ? agentColor + "30" : P.border}`,
           borderLeft: `4px solid ${isCore ? agentColor : P.border}`,
           boxShadow: isCore
-            ? `0 0 12px ${agentColor}15, 0 1px 4px rgba(0,0,0,0.04)`
-            : "0 1px 4px rgba(0,0,0,0.04)",
+            ? `0 0 12px ${agentColor}15, 0 1px 4px rgba(0,0,0,0.2)`
+            : "0 1px 4px rgba(0,0,0,0.2)",
           transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
           transform: hovered ? "translateY(-1px)" : "translateY(0)",
           cursor: output ? "pointer" : "default",

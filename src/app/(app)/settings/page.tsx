@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient, isSupabaseEnabled } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { P } from "@/lib/palette";
+import { P, F, FM } from "@/lib/palette";
 import { AvatarSection } from "@/components/settings/avatar-section";
 
 type Provider = "openai" | "gemini" | "anthropic";
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                     }} />
                     <span style={{
                       fontSize: 10.5, color: P.emerald, fontWeight: 600,
-                      fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                      fontFamily: FM,
                     }}>
                       {info.maskedKey}
                     </span>
@@ -332,12 +332,12 @@ export default function SettingsPage() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 14px", borderRadius: 12,
-            backgroundColor: "#ECFDF5", border: "1.5px solid #A7F3D0",
+            backgroundColor: P.emeraldSoft, border: `1.5px solid ${P.emerald}30`,
             marginBottom: 16,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: P.emerald, boxShadow: `0 0 6px ${P.emerald}50` }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#065F46" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: P.emerald }}>
                 {activeProviderConfig.name} key active
               </span>
             </div>
@@ -346,8 +346,8 @@ export default function SettingsPage() {
               disabled={deleting}
               style={{
                 padding: "5px 12px", borderRadius: 7,
-                border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
-                color: "#DC2626", fontSize: 11, fontWeight: 600,
+                border: `1px solid ${P.coral}30`, backgroundColor: P.coralSoft,
+                color: P.coral, fontSize: 11, fontWeight: 600,
                 cursor: deleting ? "not-allowed" : "pointer",
                 fontFamily: "inherit",
               }}
@@ -376,7 +376,7 @@ export default function SettingsPage() {
                   style={{
                     width: "100%", padding: "11px 38px 11px 14px", borderRadius: 10,
                     border: `1.5px solid ${P.border}`, fontSize: 13, color: P.text,
-                    fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                    fontFamily: FM,
                     outline: "none", backgroundColor: P.card,
                   }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = activeProviderConfig.color + "60"; }}
@@ -429,9 +429,9 @@ export default function SettingsPage() {
         {message && (
           <div style={{
             marginTop: 12, padding: "10px 14px", borderRadius: 10,
-            backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2",
-            border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}`,
-            fontSize: 13, color: message.type === "success" ? "#065F46" : "#DC2626",
+            backgroundColor: message.type === "success" ? P.emeraldSoft : P.coralSoft,
+            border: `1px solid ${message.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
+            fontSize: 13, color: message.type === "success" ? P.emerald : P.coral,
             fontWeight: 500,
           }}>
             {message.type === "success" ? "✓ " : "✕ "}{message.text}
@@ -468,7 +468,7 @@ export default function SettingsPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: P.purple, boxShadow: `0 0 6px ${P.purple}80` }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: P.purple }}>Wispr key active</span>
-              <span style={{ fontSize: 10.5, color: P.purple, fontFamily: "'JetBrains Mono', var(--font-mono), monospace", opacity: 0.7 }}>
+              <span style={{ fontSize: 10.5, color: P.purple, fontFamily: FM, opacity: 0.7 }}>
                 {wisprInfo.maskedKey}
               </span>
             </div>
@@ -483,8 +483,8 @@ export default function SettingsPage() {
               }}
               style={{
                 padding: "5px 12px", borderRadius: 7,
-                border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
-                color: "#DC2626", fontSize: 11, fontWeight: 600,
+                border: `1px solid ${P.coral}30`, backgroundColor: P.coralSoft,
+                color: P.coral, fontSize: 11, fontWeight: 600,
                 cursor: "pointer", fontFamily: "inherit",
               }}
             >
@@ -501,7 +501,7 @@ export default function SettingsPage() {
               style={{
                 flex: 1, padding: "11px 14px", borderRadius: 10,
                 border: `1.5px solid ${P.border}`, fontSize: 13, color: P.text,
-                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                fontFamily: FM,
                 outline: "none", backgroundColor: P.card,
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = P.purple + "60"; }}
@@ -527,9 +527,9 @@ export default function SettingsPage() {
         {wisprMessage && (
           <div style={{
             marginTop: 10, padding: "8px 12px", borderRadius: 8,
-            backgroundColor: wisprMessage.type === "success" ? "#ECFDF5" : "#FEF2F2",
-            border: `1px solid ${wisprMessage.type === "success" ? "#A7F3D0" : "#FECACA"}`,
-            fontSize: 12, color: wisprMessage.type === "success" ? "#065F46" : "#DC2626",
+            backgroundColor: wisprMessage.type === "success" ? P.emeraldSoft : P.coralSoft,
+            border: `1px solid ${wisprMessage.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
+            fontSize: 12, color: wisprMessage.type === "success" ? P.emerald : P.coral,
           }}>
             {wisprMessage.type === "success" ? "✓ " : "✕ "}{wisprMessage.text}
           </div>
@@ -619,7 +619,7 @@ export default function SettingsPage() {
               {tp.info?.hasKey && (
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto" }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: tp.color }} />
-                  <span style={{ fontSize: 10, color: tp.color, fontWeight: 600, fontFamily: "'JetBrains Mono', var(--font-mono), monospace" }}>
+                  <span style={{ fontSize: 10, color: tp.color, fontWeight: 600, fontFamily: FM }}>
                     {tp.info.maskedKey}
                   </span>
                   <button
@@ -631,8 +631,8 @@ export default function SettingsPage() {
                     }}
                     style={{
                       padding: "2px 8px", borderRadius: 5, marginLeft: 8,
-                      border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
-                      color: "#DC2626", fontSize: 10, fontWeight: 600,
+                      border: `1px solid ${P.coral}30`, backgroundColor: P.coralSoft,
+                      color: P.coral, fontSize: 10, fontWeight: 600,
                       cursor: "pointer", fontFamily: "inherit",
                     }}
                   >
@@ -658,7 +658,7 @@ export default function SettingsPage() {
                     style={{
                       flex: 1, padding: "8px 12px", borderRadius: 8,
                       border: `1.5px solid ${P.border}`, fontSize: 12, color: P.text,
-                      fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                      fontFamily: FM,
                       outline: "none", backgroundColor: P.card,
                     }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = tp.color + "60"; }}
@@ -697,9 +697,9 @@ export default function SettingsPage() {
         {toolMessage && (
           <div style={{
             marginTop: 8, padding: "8px 12px", borderRadius: 8,
-            backgroundColor: toolMessage.type === "success" ? "#ECFDF5" : "#FEF2F2",
-            border: `1px solid ${toolMessage.type === "success" ? "#A7F3D0" : "#FECACA"}`,
-            fontSize: 12, color: toolMessage.type === "success" ? "#065F46" : "#DC2626",
+            backgroundColor: toolMessage.type === "success" ? P.emeraldSoft : P.coralSoft,
+            border: `1px solid ${toolMessage.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
+            fontSize: 12, color: toolMessage.type === "success" ? P.emerald : P.coral,
           }}>
             {toolMessage.type === "success" ? "✓ " : "✕ "}{toolMessage.text}
           </div>
@@ -754,7 +754,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{server.name}</div>
-                      <div style={{ fontSize: 10.5, color: P.textTer, fontFamily: "'JetBrains Mono', var(--font-mono), monospace" }}>
+                      <div style={{ fontSize: 10.5, color: P.textTer, fontFamily: FM }}>
                         {server.url.length > 40 ? server.url.slice(0, 40) + "..." : server.url}
                       </div>
                     </div>
@@ -773,9 +773,9 @@ export default function SettingsPage() {
                       }}
                       style={{
                         padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-                        border: `1px solid ${server.enabled ? "#A7F3D0" : P.border}`,
-                        backgroundColor: server.enabled ? "#ECFDF5" : P.bg,
-                        color: server.enabled ? "#065F46" : P.textTer,
+                        border: `1px solid ${server.enabled ? P.emerald + "30" : P.border}`,
+                        backgroundColor: server.enabled ? P.emeraldSoft : P.bg,
+                        color: server.enabled ? P.emerald : P.textTer,
                         cursor: "pointer", fontFamily: "inherit",
                       }}
                     >
@@ -795,8 +795,8 @@ export default function SettingsPage() {
                       }}
                       style={{
                         padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-                        border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
-                        color: "#DC2626", cursor: "pointer", fontFamily: "inherit",
+                        border: `1px solid ${P.coral}30`, backgroundColor: P.coralSoft,
+                        color: P.coral, cursor: "pointer", fontFamily: "inherit",
                       }}
                     >
                       Remove
@@ -854,7 +854,7 @@ export default function SettingsPage() {
                   style={{
                     padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
                     fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
-                    fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                    fontFamily: FM,
                   }}
                 />
                 <input
@@ -865,7 +865,7 @@ export default function SettingsPage() {
                   style={{
                     padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
                     fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
-                    fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                    fontFamily: FM,
                   }}
                 />
                 {suggestion?.docsUrl && (
@@ -969,9 +969,9 @@ export default function SettingsPage() {
         {mcpMessage && (
           <div style={{
             marginTop: 12, padding: "8px 12px", borderRadius: 8,
-            backgroundColor: mcpMessage.type === "success" ? "#ECFDF5" : "#FEF2F2",
-            border: `1px solid ${mcpMessage.type === "success" ? "#A7F3D0" : "#FECACA"}`,
-            fontSize: 12, color: mcpMessage.type === "success" ? "#065F46" : "#DC2626",
+            backgroundColor: mcpMessage.type === "success" ? P.emeraldSoft : P.coralSoft,
+            border: `1px solid ${mcpMessage.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
+            fontSize: 12, color: mcpMessage.type === "success" ? P.emerald : P.coral,
           }}>
             {mcpMessage.type === "success" ? "ok " : "x "}{mcpMessage.text}
           </div>
@@ -1023,8 +1023,8 @@ export default function SettingsPage() {
           onClick={handleSignOut}
           style={{
             padding: "8px 18px", borderRadius: 9,
-            border: `1.5px solid #FECACA`, backgroundColor: "#FEF2F2",
-            color: "#DC2626", fontSize: 12.5, fontWeight: 600,
+            border: `1.5px solid ${P.coral}30`, backgroundColor: P.coralSoft,
+            color: P.coral, fontSize: 12.5, fontWeight: 600,
             cursor: "pointer", fontFamily: "inherit",
           }}
         >

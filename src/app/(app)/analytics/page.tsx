@@ -3,7 +3,7 @@
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
-import { P } from "@/lib/palette";
+import { P, F, FM } from "@/lib/palette";
 import { PRIORITY_CONFIG } from "@/lib/utils/constants";
 import type { TaskPriority } from "@/lib/types/task";
 
@@ -41,8 +41,8 @@ export default function AnalyticsPage() {
   const statusData = [
     { label: "Done", count: doneTasks.length, color: P.emerald, gradient: P.emeraldGrad },
     { label: "Review", count: reviewTasks.length, color: P.coral, gradient: P.coralGrad },
-    { label: "Working", count: workingTasks.length, color: P.amber, gradient: `linear-gradient(135deg, ${P.amber}, #FBBF24)` },
-    { label: "To Do", count: todoTasks.length, color: P.textTer, gradient: `linear-gradient(135deg, ${P.textTer}, #D4D4D8)` },
+    { label: "Working", count: workingTasks.length, color: P.amber, gradient: `linear-gradient(135deg, ${P.amber}, ${P.orange})` },
+    { label: "To Do", count: todoTasks.length, color: P.textTer, gradient: `linear-gradient(135deg, ${P.textTer}, ${P.textSec})` },
   ];
   const maxStatusCount = Math.max(...statusData.map((s) => s.count), 1);
 
@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
         <h1 style={{
           fontSize: 36, fontWeight: 900, margin: "0 0 10px",
           letterSpacing: "-0.04em",
-          background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #FF3399 100%)",
+          background: `linear-gradient(135deg, ${P.violet} 0%, ${P.purple} 50%, ${P.rose} 100%)`,
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
         }}>
@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
             </div>
             <div style={{
               fontSize: 30, fontWeight: 800, color: stat.color,
-              fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+              fontFamily: FM,
               letterSpacing: "-0.03em",
             }}>
               {stat.value}
@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
               </div>
               <div style={{
                 width: 36, fontSize: 15, fontWeight: 700, color: s.color,
-                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                fontFamily: FM,
               }}>
                 {s.count}
               </div>
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
                   border: `1px solid ${P.border}`,
                   transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = agent.color + "40"; e.currentTarget.style.backgroundColor = agent.color + "06"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = agent.color + "40"; e.currentTarget.style.backgroundColor = agent.color + "12"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.bg; }}
               >
                 <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={30} />
@@ -181,7 +181,7 @@ export default function AnalyticsPage() {
                 </div>
                 <div style={{
                   fontSize: 12, fontWeight: 700, color: P.textSec,
-                  fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                  fontFamily: FM,
                   backgroundColor: P.card,
                   padding: "4px 10px", borderRadius: 8,
                   border: `1px solid ${P.border}`,
@@ -216,7 +216,7 @@ export default function AnalyticsPage() {
                       <span style={{ fontSize: 13, fontWeight: 600, color: P.text }}>{config.label}</span>
                       <span style={{
                         fontSize: 13, fontWeight: 700, color: config.color,
-                        fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                        fontFamily: FM,
                       }}>
                         {count}
                       </span>
@@ -264,7 +264,7 @@ export default function AnalyticsPage() {
               </div>
               <div style={{
                 fontSize: 24, fontWeight: 800, color: item.color,
-                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                fontFamily: FM,
                 letterSpacing: "-0.02em",
               }}>
                 {item.value}

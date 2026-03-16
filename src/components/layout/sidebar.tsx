@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { SidebarNav } from "./sidebar-nav";
-import { P } from "@/lib/palette";
+import { P, F, FM } from "@/lib/palette";
 import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
-import { LogOut, Settings, User, Coins } from "lucide-react";
 import type { TaskWithAgent } from "@/lib/types/task";
 
 interface SidebarProps {
@@ -21,13 +20,16 @@ interface SidebarProps {
 export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
   const { user } = useUser();
   const [showMenu, setShowMenu] = useState(false);
-  const [showCost, setShowCost] = useState(false);
   const isDemo = !user || user.email === "demo@agentstudio.world";
   const totalSpent = tasks.reduce((s, t) => s + (Number(t.cost_usd) || 0), 0);
-  const totalTokens = tasks.reduce((s, t) => s + (t.tokens_in || 0) + (t.tokens_out || 0), 0);
-  const completedTasks = tasks.filter((t) => t.status === "done" || t.status === "review").length;
 
   const initial = isDemo ? "" : (user?.email?.[0] || "U").toUpperCase();
+  const displayName = isDemo ? "Guest" : (user?.email?.split("@")[0] || "User");
+
+  // Get recent tasks for sidebar
+  const recentTasks = tasks
+    .filter((t) => t.status === "done" || t.status === "review" || t.status === "working")
+    .slice(0, 3);
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -37,227 +39,155 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
 
   return (
     <div style={{
-      width: 76,
-      background: "linear-gradient(180deg, #1A1A2E 0%, #16162A 100%)",
-      padding: "20px 8px",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      position: "sticky",
-      top: 0,
-      height: "100vh",
-      borderRight: "1px solid rgba(255,255,255,0.06)",
+      width: 208, minWidth: 208,
+      background: P.bg2,
+      borderRight: `1px solid ${P.border}`,
+      display: "flex", flexDirection: "column",
+      height: "100vh", position: "sticky", top: 0,
     }}>
-      {/* Logo */}
+      {/* Logo header */}
       <a href="/today" style={{
-        width: 42, height: 42, borderRadius: 14,
-        overflow: "hidden",
-        boxShadow: "0 4px 16px rgba(139,61,255,0.35)",
-        marginBottom: 28,
-        cursor: "pointer",
-        display: "block", flexShrink: 0,
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(139,61,255,0.5)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(139,61,255,0.35)"; }}
-      >
-        <img src="/logo.png" alt="AgentStudio" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        display: "flex", alignItems: "center", gap: 9,
+        padding: "17px 17px 15px",
+        borderBottom: `1px solid ${P.border}`,
+        fontFamily: F, fontSize: 14, fontWeight: 700,
+        textDecoration: "none", color: P.text,
+      }}>
+        <div style={{
+          width: 27, height: 27, background: P.lime, borderRadius: 7,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="1" width="5" height="5" rx="1.5" fill="#0b0b0e"/>
+            <rect x="8" y="1" width="5" height="5" rx="1.5" fill="#0b0b0e" opacity=".5"/>
+            <rect x="1" y="8" width="5" height="5" rx="1.5" fill="#0b0b0e" opacity=".5"/>
+            <rect x="8" y="8" width="5" height="5" rx="1.5" fill="#0b0b0e" opacity=".28"/>
+          </svg>
+        </div>
+        AgentStudio
       </a>
 
       {/* Navigation */}
-      <SidebarNav reviewCount={reviewCount} doneTasks={stats.working + stats.review} />
+      <div style={{ flex: 1, padding: "8px 7px", overflowY: "auto" }}>
+        <SidebarNav reviewCount={reviewCount} doneTasks={stats.working + stats.review} />
 
-      {/* Spacer */}
-      <div style={{ flex: 1 }} />
-
-      {/* Cost tracker icon */}
-      {(
-        <div style={{ position: "relative", marginBottom: 8 }}>
-          <div
-            onClick={() => setShowCost(!showCost)}
-            style={{
-              width: 40, height: 40, borderRadius: 12,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", transition: "all 0.2s ease",
-              backgroundColor: showCost ? "rgba(139,61,255,0.2)" : "transparent",
-              color: totalSpent > 0 ? "#00BFA6" : "rgba(255,255,255,0.35)",
-            }}
-            onMouseEnter={(e) => { if (!showCost) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; }}
-            onMouseLeave={(e) => { if (!showCost) e.currentTarget.style.backgroundColor = "transparent"; }}
-          >
-            <Coins size={18} strokeWidth={1.6} />
-          </div>
-
-          {showCost && (
-            <>
-              <div onClick={() => setShowCost(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-              <div style={{
-                position: "absolute", bottom: 0, left: 56,
-                width: 220, backgroundColor: "#fff",
-                borderRadius: 16, padding: "16px 18px",
-                boxShadow: "0 12px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04)",
-                zIndex: 100,
-                animation: "scaleIn 0.2s cubic-bezier(0.16,1,0.3,1)",
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: P.textTer, marginBottom: 10, letterSpacing: "0.06em", textTransform: "uppercase" as const }}>
-                  Usage
-                </div>
-                <div style={{
-                  fontSize: 26, fontWeight: 800, color: P.text,
-                  fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
-                  letterSpacing: "-0.03em",
-                  background: "linear-gradient(135deg, #667eea, #764ba2)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}>
-                  ${totalSpent < 0.01 ? totalSpent.toFixed(4) : totalSpent.toFixed(2)}
-                </div>
-                <div style={{ fontSize: 11, color: P.textTer, marginTop: 2, marginBottom: 14 }}>total spent</div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "10px 0 0", borderTop: `1px solid ${P.border}` }}>
-                  <div>
-                    <div style={{ color: P.textTer, fontSize: 10.5, marginBottom: 2 }}>Tasks</div>
-                    <div style={{ fontWeight: 700, color: P.text }}>{completedTasks}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: P.textTer, fontSize: 10.5, marginBottom: 2 }}>Tokens</div>
-                    <div style={{ fontWeight: 700, color: P.text }}>{totalTokens.toLocaleString()}</div>
-                  </div>
-                </div>
+        {/* Recent Jobs */}
+        {recentTasks.length > 0 && (
+          <>
+            <div style={{
+              fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase" as const,
+              color: P.textTer, padding: "16px 10px 5px", fontFamily: F,
+            }}>
+              Recent Jobs
+            </div>
+            {recentTasks.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "6px 10px", borderRadius: 8,
+                  cursor: "pointer", fontSize: 11, color: P.textSec, fontFamily: F,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = P.bg3; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <span>{t.agent?.icon || "📋"}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {t.title}
+                </span>
               </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Shortcut badge */}
-      <kbd style={{
-        fontSize: 9, padding: "4px 8px", borderRadius: 6,
-        border: "1px solid rgba(255,255,255,0.12)",
-        backgroundColor: "rgba(255,255,255,0.06)",
-        color: "rgba(255,255,255,0.35)",
-        fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
-        marginBottom: 14,
-      }}>
-        ⌘K
-      </kbd>
-
-      {/* User avatar / Sign in */}
-      <div style={{ position: "relative" }}>
-        {isDemo ? (
-          <a
-            href="/login"
-            style={{
-              width: 40, height: 40, borderRadius: "50%",
-              background: "linear-gradient(135deg, #667eea, #764ba2)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", textDecoration: "none",
-              transition: "all 0.2s ease",
-              boxShadow: "0 4px 12px rgba(139,61,255,0.35)",
-            }}
-            title="Sign in"
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(139,61,255,0.5)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(139,61,255,0.35)"; }}
-          >
-            <User size={18} color="#fff" strokeWidth={2} />
-          </a>
-        ) : (
-          <div
-            onClick={() => setShowMenu(!showMenu)}
-            style={{
-              width: 40, height: 40, borderRadius: "50%",
-              background: "linear-gradient(135deg, #8B3DFF, #667eea)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
-              fontSize: 15, fontWeight: 800, color: "#fff",
-              transition: "all 0.2s ease",
-              boxShadow: showMenu ? "0 0 0 3px rgba(139,61,255,0.3)" : "0 4px 12px rgba(139,61,255,0.3)",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-          >
-            {initial}
-          </div>
+            ))}
+          </>
         )}
 
-        {/* Profile popover menu */}
+        {/* Account section */}
+        <div style={{
+          fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase" as const,
+          color: P.textTer, padding: "16px 10px 5px", fontFamily: F,
+        }}>
+          Account
+        </div>
+        <a
+          href="/settings"
+          style={{
+            display: "flex", alignItems: "center", gap: 9,
+            padding: "8px 10px", borderRadius: 8,
+            cursor: "pointer", fontSize: 12, color: P.textSec, fontFamily: F,
+            textDecoration: "none",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = P.bg3; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+        >
+          <span style={{ fontSize: 13 }}>⚙️</span>
+          Settings
+        </a>
+      </div>
+
+      {/* User profile at bottom */}
+      <div style={{ padding: "12px 10px", borderTop: `1px solid ${P.border}`, position: "relative" }}>
+        <div
+          onClick={() => isDemo ? (window.location.href = "/login") : setShowMenu(!showMenu)}
+          style={{
+            display: "flex", alignItems: "center", gap: 9,
+            padding: "7px 8px", borderRadius: 8, cursor: "pointer",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = P.bg3; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+        >
+          <div style={{
+            width: 26, height: 26, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${P.violet}, ${P.rose})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 10, fontWeight: 700, flexShrink: 0, color: "#fff",
+          }}>
+            {initial || "?"}
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 600, fontFamily: F, color: P.text }}>{displayName}</div>
+            <div style={{ fontSize: 9.5, color: P.textTer }}>
+              {isDemo ? "Sign in" : `$${totalSpent < 0.01 ? totalSpent.toFixed(4) : totalSpent.toFixed(2)} used`}
+            </div>
+          </div>
+        </div>
+
+        {/* Profile popover */}
         {showMenu && !isDemo && (
           <>
-            <div
-              onClick={() => setShowMenu(false)}
-              style={{ position: "fixed", inset: 0, zIndex: 99 }}
-            />
+            <div onClick={() => setShowMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
             <div style={{
-              position: "absolute", bottom: 0, left: 56,
-              width: 250, backgroundColor: "#fff",
-              borderRadius: 16, padding: "8px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04)",
+              position: "absolute", bottom: "100%", left: 10, marginBottom: 8,
+              width: 200, backgroundColor: P.bg3,
+              borderRadius: 12, padding: "8px",
+              border: `1px solid ${P.border2}`,
+              boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
               zIndex: 100,
-              animation: "scaleIn 0.2s cubic-bezier(0.16,1,0.3,1)",
             }}>
-              {/* User info */}
-              <div style={{
-                padding: "14px 16px", borderBottom: `1px solid ${P.border}`,
-                marginBottom: 4,
-              }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                }}>
-                  <div style={{
-                    width: 38, height: 38, borderRadius: "50%",
-                    background: "linear-gradient(135deg, #8B3DFF, #667eea)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 15, fontWeight: 800, color: "#fff",
-                    flexShrink: 0,
-                  }}>
-                    {initial}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 14, fontWeight: 700, color: P.text,
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>
-                      {user?.email?.split("@")[0] || "User"}
-                    </div>
-                    <div style={{
-                      fontSize: 11, color: P.textTer,
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>
-                      {user?.email}
-                    </div>
-                  </div>
+              <div style={{ padding: "10px 12px", borderBottom: `1px solid ${P.border}`, marginBottom: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: P.text, fontFamily: F }}>
+                  {user?.email?.split("@")[0] || "User"}
                 </div>
+                <div style={{ fontSize: 10, color: P.textTer, marginTop: 1 }}>{user?.email}</div>
               </div>
-
-              {/* Menu items */}
-              <a
-                href="/settings"
-                onClick={() => setShowMenu(false)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 16px", borderRadius: 10,
-                  fontSize: 13, color: P.textSec, textDecoration: "none",
-                  cursor: "pointer", transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.purpleLight; e.currentTarget.style.color = P.purple; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = P.textSec; }}
+              <a href="/settings" onClick={() => setShowMenu(false)} style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "8px 12px", borderRadius: 8,
+                fontSize: 12, color: P.textSec, textDecoration: "none",
+                fontFamily: F, cursor: "pointer",
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = P.bg4; e.currentTarget.style.color = P.lime; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = P.textSec; }}
               >
-                <Settings size={15} strokeWidth={1.8} />
-                Settings
+                ⚙️ Settings
               </a>
-
-              <div
-                onClick={() => { setShowMenu(false); handleSignOut(); }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 16px", borderRadius: 10,
-                  fontSize: 13, color: P.textSec,
-                  cursor: "pointer", transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#FEF2F2"; e.currentTarget.style.color = "#DC2626"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = P.textSec; }}
+              <div onClick={() => { setShowMenu(false); handleSignOut(); }} style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "8px 12px", borderRadius: 8,
+                fontSize: 12, color: P.textSec, cursor: "pointer", fontFamily: F,
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(248,113,113,0.08)"; e.currentTarget.style.color = "#f87171"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = P.textSec; }}
               >
-                <LogOut size={15} strokeWidth={1.8} />
-                Log out
+                🚪 Log out
               </div>
             </div>
           </>

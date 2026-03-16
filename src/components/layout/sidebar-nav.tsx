@@ -2,128 +2,101 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FolderOpen, FileText, Users, Zap, Settings, HelpCircle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { P, F } from "@/lib/palette";
 
 interface SidebarNavProps {
   reviewCount: number;
   doneTasks?: number;
 }
 
-const NAV_ITEMS: { href: string; icon: LucideIcon; label: string; disabled?: boolean }[] = [
-  { href: "/today", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/analytics", icon: FolderOpen, label: "My Projects" },
-  { href: "/templates", icon: FileText, label: "Templates" },
-  { href: "/agents", icon: Users, label: "Specialists" },
-  { href: "/completed", icon: Zap, label: "Automation", disabled: true },
-  { href: "/settings", icon: Settings, label: "Settings" },
-  { href: "/support", icon: HelpCircle, label: "Support", disabled: true },
+const NAV_ITEMS = [
+  { href: "/today", icon: "⚡", label: "Today" },
+  { href: "/analytics", icon: "🎯", label: "My Jobs", badgeKey: "review" as const },
+  { href: "/templates", icon: "🗂️", label: "Templates" },
+  { href: "/agents", icon: "🤝", label: "Specialists" },
+  { href: "/completed", icon: "📊", label: "Analytics", disabled: true },
 ];
 
 export function SidebarNav({ reviewCount }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" }}>
-      {NAV_ITEMS.map((item) => {
-        const isActive = pathname === item.href;
-        const showBadge = item.href === "/analytics" && reviewCount > 0;
-        const Icon = item.icon;
+    <div style={{ width: "100%" }}>
+      <div style={{
+        fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase" as const,
+        color: P.textTer, padding: "10px 10px 5px", fontFamily: F,
+      }}>
+        Workspace
+      </div>
+      <nav style={{ display: "flex", flexDirection: "column", gap: 1, width: "100%" }}>
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname === item.href;
+          const showBadge = item.badgeKey === "review" && reviewCount > 0;
 
-        if (item.disabled) {
+          if (item.disabled) {
+            return (
+              <div
+                key={item.href}
+                style={{
+                  display: "flex", alignItems: "center", gap: 9,
+                  padding: "8px 10px", borderRadius: 8,
+                  fontSize: 12, fontFamily: F,
+                  color: P.textTer, opacity: 0.5,
+                  cursor: "default", position: "relative",
+                }}
+              >
+                <span style={{ width: 16, textAlign: "center", fontSize: 13 }}>{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+            );
+          }
+
           return (
-            <div
+            <Link
               key={item.href}
+              href={item.href}
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                padding: "10px 6px 8px",
-                borderRadius: 12,
-                cursor: "default",
-                color: "rgba(255,255,255,0.2)",
-                width: "100%",
-                position: "relative",
-                opacity: 0.5,
+                display: "flex", alignItems: "center", gap: 9,
+                padding: "8px 10px", borderRadius: 8,
+                cursor: "pointer", fontSize: 12, fontFamily: F,
+                position: "relative", textDecoration: "none",
+                background: isActive ? "rgba(197,241,53,0.10)" : "transparent",
+                color: isActive ? P.lime : P.textSec,
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = P.bg3;
+                  e.currentTarget.style.color = P.text;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = P.textSec;
+                }
               }}
             >
-              <Icon size={20} strokeWidth={1.6} />
-              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: "0.02em" }}>
-                {item.label}
-              </span>
-            </div>
+              {isActive && (
+                <div style={{
+                  position: "absolute", left: 0, width: 2.5, height: 14,
+                  background: P.lime, borderRadius: 100,
+                }} />
+              )}
+              <span style={{ width: 16, textAlign: "center", fontSize: 13 }}>{item.icon}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {showBadge && (
+                <span style={{
+                  background: P.violet, color: "#fff",
+                  fontSize: 9, padding: "1px 6px", borderRadius: 100, fontWeight: 700,
+                }}>
+                  {reviewCount}
+                </span>
+              )}
+            </Link>
           );
-        }
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 4,
-              padding: "10px 6px 8px",
-              borderRadius: 12,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              textDecoration: "none",
-              backgroundColor: isActive ? "rgba(139,61,255,0.15)" : "transparent",
-              color: isActive ? "#B794F6" : "rgba(255,255,255,0.4)",
-              width: "100%",
-              position: "relative",
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)";
-                e.currentTarget.style.color = "rgba(255,255,255,0.7)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "rgba(255,255,255,0.4)";
-              }
-            }}
-          >
-            <Icon size={20} strokeWidth={isActive ? 2 : 1.6} />
-            <span style={{
-              fontSize: 10, fontWeight: isActive ? 700 : 500,
-              letterSpacing: "0.02em",
-            }}>
-              {item.label}
-            </span>
-            {showBadge && (
-              <span style={{
-                position: "absolute", top: 4, right: 8,
-                fontSize: 9, fontWeight: 700,
-                color: "#fff",
-                background: "linear-gradient(135deg, #FF3399, #f5576c)",
-                padding: "2px 6px", borderRadius: 10,
-                minWidth: 16, textAlign: "center",
-                lineHeight: "14px",
-                boxShadow: "0 2px 8px rgba(255,51,153,0.4)",
-              }}>
-                {reviewCount}
-              </span>
-            )}
-            {isActive && (
-              <div style={{
-                position: "absolute",
-                left: 0,
-                top: "50%",
-                transform: "translateY(-50%)",
-                width: 3,
-                height: 20,
-                borderRadius: "0 3px 3px 0",
-                background: "linear-gradient(180deg, #8B3DFF, #667eea)",
-              }} />
-            )}
-          </Link>
-        );
-      })}
-    </nav>
+        })}
+      </nav>
+    </div>
   );
 }

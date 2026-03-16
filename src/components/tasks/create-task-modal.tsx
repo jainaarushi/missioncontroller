@@ -243,7 +243,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       {/* Backdrop */}
       <div style={{
         position: "absolute", inset: 0,
-        background: "radial-gradient(ellipse at center, rgba(99,102,241,0.08) 0%, rgba(24,24,27,0.5) 100%)",
+        background: "radial-gradient(ellipse at center, rgba(99,102,241,0.08) 0%, rgba(0,0,0,0.7) 100%)",
         backdropFilter: "blur(12px)",
         animation: "fadeIn 0.2s ease",
       }} />
@@ -254,8 +254,9 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
         style={{
           width: stage === 2 ? "min(920px, 95vw)" : "min(680px, 95vw)",
           maxHeight: "90vh",
-          backgroundColor: P.card, borderRadius: 24,
-          boxShadow: "0 25px 80px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.08)",
+          backgroundColor: P.bg2, borderRadius: 24,
+          border: `1px solid ${P.border2}`,
+          boxShadow: P.shadowFloat,
           position: "relative",
           animation: "modalIn 0.35s cubic-bezier(0.16,1,0.3,1)",
           display: "flex", flexDirection: "column", overflow: "hidden",
@@ -372,7 +373,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                     display: "flex", alignItems: "center", gap: 5,
                     padding: "6px 14px", borderRadius: 10,
                     border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
-                    backgroundColor: recording ? "#FEF2F2" : P.card,
+                    backgroundColor: recording ? "rgba(239,68,68,0.10)" : P.card,
                     color: recording ? "#EF4444" : P.textSec,
                     fontSize: 12, fontWeight: 600, cursor: "pointer",
                     fontFamily: "inherit", transition: "all 0.15s",

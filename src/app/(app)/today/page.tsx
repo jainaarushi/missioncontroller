@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { TaskSection } from "@/components/tasks/task-section";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
@@ -11,42 +11,31 @@ import { UsagePanel } from "@/components/shared/usage-panel";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
-import { P } from "@/lib/palette";
+import { P, F, FS, FM } from "@/lib/palette";
 import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
-import { Search, SlidersHorizontal, Star } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
 
 // Category metadata for template cards
-const CATEGORY_META: Record<string, { label: string; color: string; gradient: string }> = {
-  career: { label: "Career", color: "#2563EB", gradient: "linear-gradient(135deg, #2563EB, #60A5FA)" },
-  finance_personal: { label: "Finance", color: "#059669", gradient: "linear-gradient(135deg, #059669, #34D399)" },
-  legal_personal: { label: "Legal", color: "#7C3AED", gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)" },
-  housing: { label: "Housing", color: "#D97706", gradient: "linear-gradient(135deg, #D97706, #FBBF24)" },
-  health_personal: { label: "Health", color: "#DC2626", gradient: "linear-gradient(135deg, #DC2626, #F87171)" },
-  education: { label: "Education", color: "#0891B2", gradient: "linear-gradient(135deg, #0891B2, #22D3EE)" },
-  shopping: { label: "Shopping", color: "#C026D3", gradient: "linear-gradient(135deg, #C026D3, #E879F9)" },
-  freelance: { label: "Freelance", color: "#EA580C", gradient: "linear-gradient(135deg, #EA580C, #FB923C)" },
-  parenting: { label: "Parenting", color: "#8B5CF6", gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)" },
-  travel_events: { label: "Travel", color: "#0891B2", gradient: "linear-gradient(135deg, #0891B2, #22D3EE)" },
-  personal_growth: { label: "Wellness", color: "#F59E0B", gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)" },
+const CATEGORY_META: Record<string, { label: string; color: string; catBg: string }> = {
+  career: { label: "Career", color: "#60a5fa", catBg: "rgba(96,165,250,0.13)" },
+  finance_personal: { label: "Finance", color: "#4ade80", catBg: "rgba(74,222,128,0.10)" },
+  legal_personal: { label: "Legal", color: "#c084fc", catBg: "rgba(192,132,252,0.10)" },
+  housing: { label: "Housing", color: "#fb923c", catBg: "rgba(251,146,60,0.10)" },
+  health_personal: { label: "Health", color: "#f472b6", catBg: "rgba(244,114,182,0.10)" },
+  education: { label: "Education", color: "#22d3ee", catBg: "rgba(34,211,238,0.10)" },
+  shopping: { label: "Shopping", color: "#c084fc", catBg: "rgba(192,132,252,0.10)" },
+  freelance: { label: "Freelance", color: "#fb923c", catBg: "rgba(251,146,60,0.10)" },
+  parenting: { label: "Parenting", color: "#a99cf5", catBg: "rgba(169,156,245,0.10)" },
+  travel_events: { label: "Travel", color: "#2dd4bf", catBg: "rgba(45,212,191,0.10)" },
+  personal_growth: { label: "Wellness", color: "#f5a623", catBg: "rgba(245,166,35,0.10)" },
 };
 
-// Recommended templates — curated 6 for the grid
+// Recommended templates — curated 4 for the grid
 const RECOMMENDED_SLUGS = [
   "resume-optimizer", "budget-builder", "lease-reviewer",
-  "study-plan-maker", "meal-prep-planner", "freelance-bid-writer",
+  "study-plan-maker",
 ];
-
-// Use cases per template slug
-const TEMPLATE_USE_CASES: Record<string, string[]> = {
-  "resume-optimizer": ["Resume Rewrite", "ATS Optimization"],
-  "budget-builder": ["Monthly Budget", "Savings Plan"],
-  "lease-reviewer": ["Lease Audit", "Red Flag Check"],
-  "study-plan-maker": ["Exam Prep", "Study Schedule"],
-  "meal-prep-planner": ["Weekly Meals", "Grocery Lists"],
-  "freelance-bid-writer": ["Bid Writing", "Client Pitches"],
-};
 
 // Ratings per template
 const TEMPLATE_RATINGS: Record<string, number> = {
@@ -58,17 +47,200 @@ const TEMPLATE_RATINGS: Record<string, number> = {
   "freelance-bid-writer": 4.7,
 };
 
-// Specialist agents displayed in the "Hire a Specialist" section — slug to human persona
-const SPECIALIST_PERSONAS: { slug: string; name: string; title: string; rating: number; skills: string[] }[] = [
-  { slug: "deep-research", name: "Dr. Evelyn Reed", title: "Research Strategist", rating: 5.0, skills: ["Deep Research", "Data Analysis"] },
-  { slug: "fullstack-developer", name: "Liam Chen", title: "Full-Stack AI Dev", rating: 4.9, skills: ["Full-Stack AI", "Stack Architecture"] },
-  { slug: "ux-designer", name: "Sofia Patel", title: "UX/UI Designer", rating: 4.8, skills: ["UX Design", "UI Prototyping"] },
-  { slug: "data-analyst", name: "Noah Smith", title: "Data Scientist", rating: 5.0, skills: ["Data Science", "ML Analytics"] },
-  { slug: "content-creator", name: "Maya Johnson", title: "Content Strategist", rating: 4.7, skills: ["SEO Content", "Brand Voice"] },
-  { slug: "strategy-advisor", name: "James Park", title: "Strategy Consultant", rating: 4.9, skills: ["Business Strategy", "Growth Plans"] },
-  { slug: "code-reviewer", name: "Priya Sharma", title: "Code Quality Lead", rating: 4.8, skills: ["Code Review", "Code Analysis"] },
-  { slug: "sales-coach", name: "Marcus Lee", title: "Sales Director", rating: 4.7, skills: ["Sales Strategy", "Negotiation"] },
+// Specialist agents displayed in the "Hire a Specialist" section
+const SPECIALIST_PERSONAS: {
+  slug: string; emoji: string; role: string; xp: string;
+  skills: string[]; stats: { tasks: string; rating: string; speed: string };
+  color1: string; color2: string; badge: string; specialty: string;
+}[] = [
+  { slug: "deep-research", emoji: "🧠", role: "Research Strategist", xp: "8 yrs", skills: ["Deep Research", "Data Analysis", "Competitive Intel"], stats: { tasks: "1.2k", rating: "5.0", speed: "Fast" }, color1: "#7c6fef", color2: "#a99cf5", badge: "Top Rated", specialty: "Multi-source" },
+  { slug: "fullstack-developer", emoji: "💻", role: "Full-Stack AI Dev", xp: "6 yrs", skills: ["React / Next.js", "Node & APIs", "AI Integration"], stats: { tasks: "980", rating: "4.9", speed: "Fast" }, color1: "#2dd4bf", color2: "#5eead4", badge: "Expert", specialty: "SaaS Products" },
+  { slug: "ux-designer", emoji: "🎨", role: "UX/UI Designer", xp: "5 yrs", skills: ["Figma", "User Research", "Design Systems"], stats: { tasks: "750", rating: "4.8", speed: "Medium" }, color1: "#f472b6", color2: "#f9a8d4", badge: "Creative", specialty: "Consumer Apps" },
+  { slug: "data-analyst", emoji: "📊", role: "Data Scientist", xp: "7 yrs", skills: ["Python & Pandas", "ML Models", "Dashboards"], stats: { tasks: "860", rating: "5.0", speed: "Thorough" }, color1: "#f5a623", color2: "#fcd34d", badge: "Top Rated", specialty: "Analytics" },
+  { slug: "content-creator", emoji: "✍️", role: "Content Strategist", xp: "4 yrs", skills: ["Long-form Writing", "SEO", "Brand Voice"], stats: { tasks: "2.1k", rating: "4.7", speed: "Fast" }, color1: "#60a5fa", color2: "#93c5fd", badge: "Prolific", specialty: "B2C Brands" },
+  { slug: "strategy-advisor", emoji: "📈", role: "Growth Hacker", xp: "5 yrs", skills: ["A/B Testing", "Funnel Optimization", "Viral Loops"], stats: { tasks: "640", rating: "4.8", speed: "Fast" }, color1: "#fb923c", color2: "#fdba74", badge: "Results-driven", specialty: "Early Stage" },
+  { slug: "code-reviewer", emoji: "🔒", role: "Security Auditor", xp: "9 yrs", skills: ["Pen Testing", "Code Review", "OWASP"], stats: { tasks: "430", rating: "5.0", speed: "Thorough" }, color1: "#ef4444", color2: "#f87171", badge: "Certified", specialty: "SaaS & APIs" },
+  { slug: "sales-coach", emoji: "🤖", role: "AI Prompt Engineer", xp: "3 yrs", skills: ["Chain-of-thought", "RAG Systems", "Agent Design"], stats: { tasks: "1.5k", rating: "4.9", speed: "Fast" }, color1: "#22d3ee", color2: "#67e8f9", badge: "Specialist", specialty: "LLM Products" },
 ];
+
+/* ─── Pill component ─── */
+function Pill({ children, color = P.lime, bg = "rgba(197,241,53,0.13)", size = 10 }: {
+  children: React.ReactNode; color?: string; bg?: string; size?: number;
+}) {
+  return (
+    <span style={{
+      fontSize: size, fontWeight: 700, padding: "3px 10px", borderRadius: 100,
+      background: bg, color, letterSpacing: "0.04em", whiteSpace: "nowrap",
+    }}>{children}</span>
+  );
+}
+
+/* ─── Specialist Card with 3D tilt ─── */
+function SpecialistCardH({ s, onClick }: {
+  s: typeof SPECIALIST_PERSONAS[0];
+  onClick: () => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [rot, setRot] = useState({ x: 0, y: 0 });
+  const [hov, setHov] = useState(false);
+
+  const handleMove = useCallback((e: React.MouseEvent) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setRot({
+      x: ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -7,
+      y: ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * 10,
+    });
+  }, []);
+
+  const handleLeave = useCallback(() => {
+    setRot({ x: 0, y: 0 });
+    setHov(false);
+  }, []);
+
+  const gx = 50 + rot.y * 3;
+  const gy = 50 + rot.x * 3;
+
+  return (
+    <div ref={cardRef} onMouseMove={handleMove} onMouseEnter={() => setHov(true)} onMouseLeave={handleLeave}
+      onClick={onClick}
+      style={{ perspective: 800, cursor: "pointer", flexShrink: 0, width: 220 }}>
+      <div style={{
+        background: `linear-gradient(150deg, ${P.bg3}, ${P.bg2})`,
+        border: `1px solid ${hov ? P.border2 : P.border}`,
+        borderRadius: 16, padding: "0 0 14px", overflow: "hidden", position: "relative",
+        transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) scale(${hov ? 1.03 : 1})`,
+        transition: hov ? "transform 0.08s" : "transform 0.5s",
+        boxShadow: hov ? "0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)" : "0 3px 14px rgba(0,0,0,0.3)",
+        transformStyle: "preserve-3d" as const,
+      }}>
+        {/* Specular highlight */}
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none", zIndex: 10,
+          background: `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.07) 0%, transparent 55%)`,
+          transition: "background 0.08s",
+        }} />
+
+        {/* Header strip */}
+        <div style={{
+          height: 52, background: `linear-gradient(135deg, ${s.color1}22, ${s.color2}38)`,
+          borderBottom: `1px solid ${P.border}`, position: "relative",
+        }}>
+          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 75% 35%, ${s.color1}25 0%, transparent 65%)` }} />
+          <div style={{ position: "absolute", top: 9, right: 11, zIndex: 2 }}>
+            <Pill color={s.color1} bg={`${s.color1}22`} size={8}>{s.badge}</Pill>
+          </div>
+          <div style={{
+            width: 40, height: 40, borderRadius: 11,
+            background: `linear-gradient(135deg, ${s.color1}, ${s.color2})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 20, border: `2.5px solid ${P.bg3}`,
+            position: "absolute", bottom: -16, left: 14,
+            boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
+          }}>{s.emoji}</div>
+        </div>
+
+        <div style={{ padding: "24px 14px 0", position: "relative", zIndex: 1 }}>
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, color: P.text, marginBottom: 1 }}>{s.role}</div>
+            <div style={{ fontSize: 10, color: P.textSec }}>
+              {s.xp} · <span style={{ color: s.color1 }}>{s.specialty}</span>
+            </div>
+          </div>
+          <div style={{ height: 1, background: `linear-gradient(90deg, ${s.color1}44, transparent)`, margin: "8px 0" }} />
+
+          {/* Skills */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 9 }}>
+            {s.skills.slice(0, 3).map((sk) => (
+              <span key={sk} style={{
+                fontSize: 9, padding: "2px 7px", borderRadius: 4,
+                background: P.bg4, border: `1px solid ${P.border}`,
+                color: P.textSec, fontFamily: F,
+              }}>{sk}</span>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5, marginBottom: 10 }}>
+            {Object.entries(s.stats).map(([k, v]) => (
+              <div key={k} style={{
+                background: P.bg4, borderRadius: 7, padding: "6px 5px",
+                textAlign: "center", border: `1px solid ${P.border}`,
+              }}>
+                <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: s.color1, lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: 8, color: P.textTer, marginTop: 2, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{k}</div>
+              </div>
+            ))}
+          </div>
+
+          <button style={{
+            width: "100%", padding: "8px", borderRadius: 8,
+            border: `1px solid ${s.color1}`,
+            background: `${s.color1}14`,
+            color: s.color1, fontWeight: 700, fontSize: 10.5,
+            cursor: "pointer", fontFamily: F, transition: "all 0.2s",
+          }}>
+            Hire →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Job Row ─── */
+function JobRow({ task, onClick }: { task: TaskWithAgent; onClick: () => void }) {
+  const [hov, setHov] = useState(false);
+  const progress = task.progress || 0;
+  const statusColor = task.status === "review" ? P.amber : task.status === "working" ? P.teal : task.status === "done" ? P.lime : P.textTer;
+  const statusBg = `${statusColor}15`;
+  const statusLabel = task.status === "review" ? "Review Ready" : task.status === "working" ? "Running" : task.status === "done" ? "Done" : "Queued";
+  const cost = Number(task.cost_usd) || 0;
+
+  return (
+    <div onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        display: "flex", alignItems: "center", gap: 12,
+        padding: "11px 15px",
+        background: hov ? P.bg3 : P.bg2,
+        border: `1px solid ${hov ? P.border2 : P.border}`,
+        borderRadius: 11, cursor: "pointer",
+        transition: "all 0.15s",
+      }}>
+      <div style={{
+        width: 31, height: 31, borderRadius: 9,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 14, flexShrink: 0, background: statusBg,
+      }}>
+        {task.agent?.icon || "📋"}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: 12, fontWeight: 600, fontFamily: F,
+          marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>{task.title}</div>
+        <div style={{ fontSize: 10.5, color: P.textSec }}>
+          {task.agent?.name || "Unassigned"} {task.current_step ? `· ${task.current_step}` : ""}
+        </div>
+      </div>
+      <div style={{
+        width: 68, background: P.bg4, borderRadius: 100,
+        height: 3.5, overflow: "hidden", flexShrink: 0,
+      }}>
+        <div style={{
+          height: "100%", borderRadius: 100,
+          width: `${progress}%`,
+          background: task.status === "review" ? P.amber : P.lime,
+        }} />
+      </div>
+      <Pill color={statusColor} bg={statusBg} size={9.5}>{statusLabel}</Pill>
+      <div style={{ fontSize: 10.5, color: P.textTer, flexShrink: 0 }}>
+        ${cost < 0.01 ? cost.toFixed(4) : cost.toFixed(2)}
+      </div>
+    </div>
+  );
+}
 
 
 export default function TodayPage() {
@@ -94,7 +266,6 @@ export default function TodayPage() {
     if (agentId && agents.length > 0) {
       setCreateAgentId(agentId);
       setShowCreateModal(true);
-      // Clean up URL
       window.history.replaceState({}, "", "/today");
     }
   }, [searchParams, agents]);
@@ -103,6 +274,7 @@ export default function TodayPage() {
   const workingTasks = tasks.filter((t) => t.status === "working");
   const todoTasks = tasks.filter((t) => t.status === "todo" || t.status === "failed");
   const totalCost = tasks.reduce((s, t) => s + (Number(t.cost_usd) || 0), 0);
+  const runningJobs = tasks.filter((t) => t.status === "working" || t.status === "review");
 
   const handleConfetti = useCallback(() => {
     setShowConfetti(true);
@@ -209,15 +381,12 @@ export default function TodayPage() {
 
   async function handleDropTask(taskId: string, targetSection: string) {
     if (targetSection === "working") {
-      // Dropping a task onto AGENTS WORKING = run the agent
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
       if (!task.agent_id) {
-        // No agent assigned — open the task detail to assign one
         setSelectedTask(task);
         return;
       }
-      // Agent assigned — run it
       handleRunTask(taskId);
     }
   }
@@ -262,7 +431,6 @@ export default function TodayPage() {
     if (res.ok) {
       const task = await res.json();
 
-      // Save file content as description
       if (fileContent) {
         await fetch(`/api/tasks/${task.id}`, {
           method: "PATCH",
@@ -271,7 +439,6 @@ export default function TodayPage() {
         });
       }
 
-      // If agents were selected, assign the first one and auto-run with team
       if (agentIds && agentIds.length > 0) {
         await fetch(`/api/tasks/${task.id}/assign`, {
           method: "POST",
@@ -279,7 +446,6 @@ export default function TodayPage() {
           body: JSON.stringify({ agent_id: agentIds[0] }),
         });
 
-        // Auto-run with the full team
         const teamIds = agentIds.length > 1 ? agentIds.slice(1) : [];
         const runRes = await fetch(`/api/tasks/${task.id}/run`, {
           method: "POST",
@@ -305,424 +471,219 @@ export default function TodayPage() {
     <>
       <Confetti show={showConfetti} />
 
-      {/* Page title bar */}
-      <div style={{
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        marginBottom: 28, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
-      }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: P.text, margin: 0, letterSpacing: "-0.03em" }}>
-          Templates
-        </h1>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button
-            onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
-            style={{
-              padding: "10px 22px", borderRadius: 12, border: "none",
-              background: "linear-gradient(135deg, #8B3DFF, #D946EF)",
-              color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
-              fontFamily: "inherit", transition: "all 0.2s",
-              boxShadow: `0 4px 14px ${P.purple}30`,
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 6px 20px ${P.purple}40`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 14px ${P.purple}30`; }}
-          >
-            New project
-          </button>
-        </div>
-      </div>
+      <div style={{ padding: "20px 26px", display: "flex", flexDirection: "column", gap: 26 }}>
 
-      {/* Big heading */}
-      <h2 style={{
-        fontSize: 36, fontWeight: 900, color: P.text, margin: "0 0 24px",
-        letterSpacing: "-0.04em", lineHeight: 1.1,
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both",
-      }}>
-        What would you like to build today?
-      </h2>
-
-      {/* Search bar + Filters */}
-      <div style={{
-        display: "flex", gap: 12, marginBottom: 36,
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both",
-      }}>
-        <div
-          className="create-bar"
-          onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
-          style={{
-            flex: 1, padding: "14px 20px", borderRadius: 50,
-            backgroundColor: "#fff",
-            border: `1.5px solid ${P.border}`,
-            cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            display: "flex", alignItems: "center", gap: 12,
-            boxShadow: P.shadow,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139,61,255,0.12), 0 8px 24px rgba(0,0,0,0.06)";
-            e.currentTarget.style.borderColor = P.purple + "40";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = P.shadow;
-            e.currentTarget.style.borderColor = P.border;
-          }}
-        >
-          <Search size={18} color={P.textTer} />
-          <span style={{ flex: 1, color: P.textTer, fontWeight: 500, fontSize: 15 }}>
-            Search for templates, agents, or tasks...
-          </span>
+        {/* Compact greeting banner */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "13px 18px", background: P.bg2,
+          border: `1px solid ${P.border}`, borderRadius: 12,
+          position: "relative", overflow: "hidden",
+          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1)",
+        }}>
           <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: "linear-gradient(135deg, #8B3DFF, #D946EF)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Search size={16} color="#fff" />
+            position: "absolute", right: -40, top: -40, width: 180, height: 180,
+            background: `radial-gradient(circle, ${P.violet}18 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }} />
+          <div>
+            <div style={{ fontFamily: FS, fontSize: 17, fontWeight: 400, lineHeight: 1.2 }}>
+              Good morning. <span style={{ fontStyle: "italic", color: P.lime2 }}>What are we shipping?</span>
+            </div>
+            <div style={{ fontSize: 11, color: P.textSec, marginTop: 3 }}>
+              50+ specialist agents · pre-built pipelines · results in seconds.
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+            {[
+              { num: String(tasks.length), label: "Jobs today", c: P.lime },
+              { num: `$${totalCost < 0.01 ? totalCost.toFixed(4) : totalCost.toFixed(2)}`, label: "Cost", c: P.amber },
+              { num: String(workingTasks.length), label: "Running", c: P.teal },
+            ].map((s) => (
+              <div key={s.label} style={{
+                textAlign: "center", padding: "8px 14px",
+                background: P.bg3, border: `1px solid ${P.border}`, borderRadius: 9,
+              }}>
+                <div style={{ fontSize: 17, fontWeight: 700, color: s.c, lineHeight: 1, fontFamily: F }}>{s.num}</div>
+                <div style={{ fontSize: 9, color: P.textTer, marginTop: 3, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
-        <button style={{
-          display: "flex", alignItems: "center", gap: 8,
-          padding: "14px 20px", borderRadius: 50,
-          backgroundColor: "#fff", border: `1.5px solid ${P.border}`,
-          fontSize: 14, fontWeight: 600, color: P.text,
-          cursor: "pointer", fontFamily: "inherit",
-          boxShadow: P.shadow, transition: "all 0.2s",
-        }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = P.purple + "40"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; }}
-        >
-          <SlidersHorizontal size={16} color={P.textSec} />
-          Filters
-        </button>
-      </div>
 
-      {/* Recommended Templates heading */}
-      <h3 style={{
-        fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 16px",
-        letterSpacing: "-0.02em",
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both",
-      }}>
-        Recommended Templates
-      </h3>
-
-      {/* Template cards grid — 3 columns, 2 rows */}
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16,
-        marginBottom: 40,
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both",
-      }}>
-        {RECOMMENDED_SLUGS.map((slug, i) => {
-          const agent = agents.find(a => a.slug === slug);
-          if (!agent) return null;
-          const catId = AGENT_CATEGORY_MAP[slug] || "career";
-          const cat = CATEGORY_META[catId] || CATEGORY_META.career;
-          const rating = TEMPLATE_RATINGS[slug] || 4.7;
-          const useCases = TEMPLATE_USE_CASES[slug] || [agent.name];
-
-          return (
-            <div
-              key={slug}
-              onClick={() => {
-                setCreateAgentId(agent.id);
-                setPreviewAgent(null);
-                setShowCreateModal(true);
-              }}
-              style={{
-                backgroundColor: "#fff", borderRadius: 16, overflow: "hidden",
-                border: `1.5px solid ${P.border}`,
-                boxShadow: P.shadow, cursor: "pointer",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${0.2 + i * 0.06}s both`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = P.shadowHover;
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.borderColor = cat.color + "40";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = P.shadow;
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.borderColor = P.border;
-              }}
-            >
-              {/* Full-width category banner */}
-              <div style={{
-                background: cat.gradient,
-                padding: "8px 16px",
-              }}>
-                <span style={{
-                  fontSize: 13, fontWeight: 700, color: "#fff",
-                  letterSpacing: "0.01em",
-                }}>
-                  {cat.label}
-                </span>
-              </div>
-
-              <div style={{ padding: "16px 18px 18px" }}>
-                {/* Icon + rating row */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-                  <div style={{
-                    width: 46, height: 46, borderRadius: 12,
-                    background: `linear-gradient(135deg, ${cat.color}18, ${cat.color}08)`,
-                    border: `1px solid ${cat.color}20`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 22,
-                  }}>
-                    {agent.icon}
-                  </div>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 3,
-                    fontSize: 13, fontWeight: 700, color: P.text,
-                  }}>
-                    <Star size={13} fill="#FBBF24" color="#FBBF24" />
-                    {rating}
-                  </div>
-                </div>
-
-                {/* Name */}
-                <div style={{
-                  fontSize: 16, fontWeight: 800, color: P.text,
-                  letterSpacing: "-0.02em", marginBottom: 6, lineHeight: 1.2,
-                }}>
-                  {agent.name}
-                </div>
-
-                {/* Description */}
-                <div style={{
-                  fontSize: 13, color: P.textSec, lineHeight: 1.5,
-                  marginBottom: 14, minHeight: 40,
-                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
-                  overflow: "hidden",
-                }}>
-                  {agent.description}
-                </div>
-
-                {/* Use cases */}
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: P.text, marginBottom: 3 }}>
-                    Use Cases
-                  </div>
-                  <div style={{ fontSize: 12.5, color: P.textSec, fontWeight: 400 }}>
-                    {useCases.join(", ")}
-                  </div>
-                </div>
-              </div>
+        {/* Ready-to-run Templates */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
+            <div>
+              <h2 style={{ fontSize: 13.5, fontWeight: 700, fontFamily: F, marginBottom: 2, margin: 0 }}>
+                🗂️ Ready-to-run Templates
+              </h2>
+              <div style={{ fontSize: 11, color: P.textSec }}>Click Use to start a new job with this pipeline</div>
             </div>
-          );
-        })}
-      </div>
+            <a href="/templates" style={{ fontSize: 11, color: P.textSec, textDecoration: "none", fontFamily: F }}>Browse all →</a>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 11 }}>
+            {RECOMMENDED_SLUGS.map((slug) => {
+              const agent = agents.find((a) => a.slug === slug);
+              if (!agent) return null;
+              const catId = AGENT_CATEGORY_MAP[slug] || "career";
+              const cat = CATEGORY_META[catId] || CATEGORY_META.career;
+              const rating = TEMPLATE_RATINGS[slug] || 4.7;
 
-      {/* Hire a Specialist heading */}
-      <h3 style={{
-        fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 16px",
-        letterSpacing: "-0.02em",
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.3s both",
-      }}>
-        Hire a Specialist
-      </h3>
+              return (
+                <TemplateCard
+                  key={slug}
+                  agent={agent}
+                  cat={cat}
+                  rating={rating}
+                  onUse={() => {
+                    setCreateAgentId(agent.id);
+                    setPreviewAgent(null);
+                    setShowCreateModal(true);
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
 
-      {/* Specialist cards — 4-column grid */}
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16,
-        marginBottom: 40,
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.35s both",
-      }}>
-        {SPECIALIST_PERSONAS.map((persona, i) => {
-          const agent = agents.find(a => a.slug === persona.slug);
-          if (!agent) return null;
-
-          return (
-            <div
-              key={persona.slug}
-              onClick={() => setPreviewAgent(agent)}
-              style={{
-                backgroundColor: "#fff", borderRadius: 16, padding: "18px 16px 16px",
-                border: `1.5px solid ${P.border}`,
-                boxShadow: P.shadow, cursor: "pointer",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${0.35 + i * 0.06}s both`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = P.shadowHover;
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.borderColor = agent.color + "40";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = P.shadow;
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.borderColor = P.border;
-              }}
-            >
-              {/* Avatar + rating — side by side */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div style={{
-                  width: 56, height: 56, borderRadius: "50%",
-                  background: agent.gradient,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 26,
-                  boxShadow: `0 4px 12px ${agent.color}20`,
-                }}>
-                  {agent.icon}
-                </div>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 3,
-                  fontSize: 13, fontWeight: 700, color: P.text,
-                }}>
-                  <Star size={12} fill="#FBBF24" color="#FBBF24" />
-                  {persona.rating}
-                </div>
-              </div>
-
-              {/* Name */}
-              <div style={{ fontSize: 15, fontWeight: 800, color: P.text, letterSpacing: "-0.01em", marginBottom: 2 }}>
-                {persona.name}
-              </div>
-
-              {/* Title */}
-              <div style={{ fontSize: 12, color: P.textSec, fontWeight: 500, marginBottom: 10 }}>
-                {persona.title}
-              </div>
-
-              {/* Skills */}
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: P.text, marginBottom: 3 }}>
-                  Key Skills
-                </div>
-                <div style={{
-                  fontSize: 12.5, color: P.textSec, fontWeight: 400,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
-                }}>
-                  {persona.skills.join(", ")}
-                </div>
-              </div>
-
-              {/* View Profile button */}
-              <button
-                style={{
-                  width: "100%", padding: "9px 0", borderRadius: 10,
-                  border: `1.5px solid ${P.border}`,
-                  backgroundColor: "#fff", color: P.text,
-                  fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-                  fontFamily: "inherit", transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = agent.color + "08";
-                  e.currentTarget.style.borderColor = agent.color + "40";
-                  e.currentTarget.style.color = agent.color;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#fff";
-                  e.currentTarget.style.borderColor = P.border;
-                  e.currentTarget.style.color = P.text;
-                }}
-              >
-                View Profile
-              </button>
+        {/* Hire a Specialist */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
+            <div>
+              <h2 style={{ fontSize: 13.5, fontWeight: 700, fontFamily: F, marginBottom: 2, margin: 0 }}>
+                🤝 Hire a Specialist
+              </h2>
+              <div style={{ fontSize: 11, color: P.textSec }}>Expert agents — hover any card for full profile</div>
             </div>
-          );
-        })}
-      </div>
+            <a href="/agents" style={{ fontSize: 11, color: P.textSec, textDecoration: "none", fontFamily: F }}>Meet all →</a>
+          </div>
+          <div style={{
+            display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8,
+            scrollbarWidth: "thin" as const, scrollbarColor: `${P.border2} transparent`,
+          }}>
+            {SPECIALIST_PERSONAS.map((s) => {
+              const agent = agents.find((a) => a.slug === s.slug);
+              return (
+                <SpecialistCardH
+                  key={s.slug}
+                  s={s}
+                  onClick={() => agent && setPreviewAgent(agent)}
+                />
+              );
+            })}
+          </div>
+        </div>
 
-      {/* Usage panel — cost & tokens */}
-      <div className="usage-panel">
-        <UsagePanel tasks={tasks} />
-      </div>
-
-      {/* Tasks header — status + select */}
-      <div className="section-header" style={{
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        marginBottom: 16,
-      }}>
-        <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
-          {tasks.length > 0 ? (
-            <>
-              {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
-              {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
-              {workingTasks.length > 0 && <>{workingTasks.length} working</>}
-              {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
-              {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
-            </>
-          ) : (
-            "Create a task to get started"
-          )}
-        </p>
-        {tasks.length > 0 && (
-          <button
-            onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
-            style={{
-              padding: "6px 14px", borderRadius: 8,
-              border: `1.5px solid ${bulkMode ? P.indigo + "50" : P.border}`,
-              backgroundColor: bulkMode ? P.indigoLight : P.card,
-              color: bulkMode ? P.indigo : P.textSec,
-              fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-              fontFamily: "inherit", transition: "all 0.15s",
-              boxShadow: bulkMode ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
-            }}
-          >
-            {bulkMode ? "Cancel" : "Select"}
-          </button>
+        {/* Running Jobs */}
+        {runningJobs.length > 0 && (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <h2 style={{ fontSize: 13.5, fontWeight: 700, fontFamily: F, margin: 0 }}>🟢 Running Jobs</h2>
+              <a href="/analytics" style={{ fontSize: 11, color: P.textSec, textDecoration: "none", fontFamily: F }}>View all →</a>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {runningJobs.slice(0, 3).map((t) => (
+                <JobRow key={t.id} task={t} onClick={() => setSelectedTask(t)} />
+              ))}
+            </div>
+          </div>
         )}
+
+        {/* Usage panel */}
+        <UsagePanel tasks={tasks} />
+
+        {/* Tasks header — status + select */}
+        <div style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+        }}>
+          <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
+            {tasks.length > 0 ? (
+              <>
+                {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
+                {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
+                {workingTasks.length > 0 && <>{workingTasks.length} working</>}
+                {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
+                {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
+              </>
+            ) : (
+              "Create a task to get started"
+            )}
+          </p>
+          {tasks.length > 0 && (
+            <button
+              onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
+              style={{
+                padding: "6px 14px", borderRadius: 8,
+                border: `1.5px solid ${bulkMode ? P.violet + "50" : P.border}`,
+                backgroundColor: bulkMode ? P.indigoLight : P.bg2,
+                color: bulkMode ? P.violet : P.textSec,
+                fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: F, transition: "all 0.15s",
+              }}
+            >
+              {bulkMode ? "Cancel" : "Select"}
+            </button>
+          )}
+        </div>
+
+        {/* Task sections */}
+        <TaskSection
+          label="AWAITING DEBRIEF"
+          sectionId="review"
+          tasks={reviewTasks}
+          onTaskClick={bulkMode ? () => {} : setSelectedTask}
+          accentColor={P.coral}
+          dot
+          selectable={bulkMode}
+          selectedIds={selectedIds}
+          onSelect={handleToggleSelect}
+        />
+        <TaskSection
+          label="ON MISSION"
+          sectionId="working"
+          tasks={workingTasks}
+          onTaskClick={bulkMode ? () => {} : setSelectedTask}
+          onDropTask={handleDropTask}
+          accentColor={P.amber}
+          selectable={bulkMode}
+          selectedIds={selectedIds}
+          onSelect={handleToggleSelect}
+        />
+        <TaskSection
+          label="READY TO DEPLOY"
+          sectionId="todo"
+          tasks={todoTasks}
+          onTaskClick={bulkMode ? () => {} : setSelectedTask}
+          onRunTask={handleRunTask}
+          accentColor={P.textGhost}
+          selectable={bulkMode}
+          selectedIds={selectedIds}
+          onSelect={handleToggleSelect}
+          draggable={!bulkMode}
+          onReorder={(dragId, dropId) => {
+            const dragIdx = todoTasks.findIndex((t) => t.id === dragId);
+            const dropIdx = todoTasks.findIndex((t) => t.id === dropId);
+            if (dragIdx !== -1 && dropIdx !== -1) {
+              const reordered = [...tasks];
+              const allDragIdx = reordered.findIndex((t) => t.id === dragId);
+              const allDropIdx = reordered.findIndex((t) => t.id === dropId);
+              const [moved] = reordered.splice(allDragIdx, 1);
+              reordered.splice(allDropIdx, 0, moved);
+              mutate(reordered, false);
+            }
+          }}
+        />
+
+        <BulkActionsBar
+          selectedCount={selectedIds.size}
+          onClearSelection={clearSelection}
+          onBulkDelete={handleBulkDelete}
+          onBulkPriority={handleBulkPriority}
+          onBulkMove={handleBulkMove}
+          loading={bulkLoading}
+        />
       </div>
-
-      {/* Review section */}
-      <TaskSection
-        label="AWAITING DEBRIEF"
-        sectionId="review"
-        tasks={reviewTasks}
-        onTaskClick={bulkMode ? () => {} : setSelectedTask}
-        accentColor={P.coral}
-        dot
-        selectable={bulkMode}
-        selectedIds={selectedIds}
-        onSelect={handleToggleSelect}
-      />
-
-      {/* Working section — drop zone for running agents */}
-      <TaskSection
-        label="ON MISSION"
-        sectionId="working"
-        tasks={workingTasks}
-        onTaskClick={bulkMode ? () => {} : setSelectedTask}
-        onDropTask={handleDropTask}
-        accentColor={P.amber}
-        selectable={bulkMode}
-        selectedIds={selectedIds}
-        onSelect={handleToggleSelect}
-      />
-
-      {/* To do section */}
-      <TaskSection
-        label="READY TO DEPLOY"
-        sectionId="todo"
-        tasks={todoTasks}
-        onTaskClick={bulkMode ? () => {} : setSelectedTask}
-        onRunTask={handleRunTask}
-        accentColor={P.textGhost}
-        selectable={bulkMode}
-        selectedIds={selectedIds}
-        onSelect={handleToggleSelect}
-        draggable={!bulkMode}
-        onReorder={(dragId, dropId) => {
-          // Optimistic reorder
-          const dragIdx = todoTasks.findIndex((t) => t.id === dragId);
-          const dropIdx = todoTasks.findIndex((t) => t.id === dropId);
-          if (dragIdx !== -1 && dropIdx !== -1) {
-            const reordered = [...tasks];
-            const allDragIdx = reordered.findIndex((t) => t.id === dragId);
-            const allDropIdx = reordered.findIndex((t) => t.id === dropId);
-            const [moved] = reordered.splice(allDragIdx, 1);
-            reordered.splice(allDropIdx, 0, moved);
-            mutate(reordered, false);
-          }
-        }}
-      />
-
-      {/* Bulk actions */}
-      <BulkActionsBar
-        selectedCount={selectedIds.size}
-        onClearSelection={clearSelection}
-        onBulkDelete={handleBulkDelete}
-        onBulkPriority={handleBulkPriority}
-        onBulkMove={handleBulkMove}
-        loading={bulkLoading}
-      />
 
       {/* Agent preview modal */}
       {previewAgent && (
@@ -735,15 +696,17 @@ export default function TodayPage() {
         >
           <div style={{
             position: "absolute", inset: 0,
-            backgroundColor: "rgba(24,24,27,0.35)",
+            backgroundColor: "rgba(0,0,0,0.7)",
             backdropFilter: "blur(6px)",
             animation: "fadeIn 0.2s ease",
           }} />
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: "min(440px, 92vw)", backgroundColor: P.card, borderRadius: 20,
-              boxShadow: P.shadowFloat, position: "relative",
+              width: "min(440px, 92vw)", backgroundColor: P.bg2,
+              border: `1px solid ${P.border2}`,
+              borderRadius: 20, boxShadow: P.shadowFloat,
+              position: "relative",
               animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
               overflow: "hidden",
             }}
@@ -758,18 +721,15 @@ export default function TodayPage() {
             </div>
 
             <div style={{ padding: "20px 24px 24px" }}>
-              {/* Name + description */}
               <h3 style={{
                 fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 4px",
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.02em", fontFamily: F,
               }}>
                 {previewAgent.name}
               </h3>
               <p style={{ fontSize: 13, color: previewAgent.color, fontWeight: 600, margin: "0 0 12px" }}>
                 {previewAgent.description}
               </p>
-
-              {/* Long description */}
               <p style={{
                 fontSize: 14, color: P.textSec, lineHeight: 1.6, margin: "0 0 20px",
               }}>
@@ -780,9 +740,8 @@ export default function TodayPage() {
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
                 padding: "4px 10px", borderRadius: 6,
-                backgroundColor: P.purpleSoft, fontSize: 11, color: P.purple,
-                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
-                marginBottom: 20,
+                backgroundColor: `${P.violet}18`, fontSize: 11, color: P.violet2,
+                fontFamily: FM, marginBottom: 20,
               }}>
                 {previewAgent.model.includes("claude") ? "Anthropic Claude" : previewAgent.model.includes("gemini") ? "Google Gemini" : previewAgent.model.includes("gpt") ? "OpenAI GPT" : "AI-Powered"}
               </div>
@@ -793,28 +752,22 @@ export default function TodayPage() {
                   onClick={() => { setCreateAgentId(previewAgent?.id || null); setPreviewAgent(null); setShowCreateModal(true); }}
                   style={{
                     flex: 1, padding: "12px 0", borderRadius: 12, border: "none",
-                    background: previewAgent.gradient, color: "#fff",
+                    background: P.lime, color: "#0b0b0e",
                     fontSize: 14, fontWeight: 700, cursor: "pointer",
-                    fontFamily: "inherit",
-                    boxShadow: `0 4px 14px ${previewAgent.color}30`,
-                    transition: "all 0.2s",
+                    fontFamily: F, transition: "all 0.2s",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
                 >
-                  Use this agent
+                  Hire this specialist
                 </button>
                 <button
                   onClick={() => setPreviewAgent(null)}
                   style={{
                     padding: "12px 20px", borderRadius: 12,
-                    border: `1.5px solid ${P.border}`,
-                    backgroundColor: P.card, color: P.textSec,
+                    border: `1px solid ${P.border2}`,
+                    backgroundColor: P.bg3, color: P.textSec,
                     fontSize: 14, fontWeight: 600, cursor: "pointer",
-                    fontFamily: "inherit", transition: "all 0.15s",
+                    fontFamily: F, transition: "all 0.15s",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.bg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
                 >
                   Close
                 </button>
@@ -850,21 +803,24 @@ export default function TodayPage() {
         }}>
           <div style={{
             position: "absolute", inset: 0,
-            backgroundColor: "rgba(24,24,27,0.5)",
+            backgroundColor: "rgba(0,0,0,0.7)",
             backdropFilter: "blur(8px)",
             animation: "fadeIn 0.3s ease",
           }} />
           <div style={{
             position: "relative", width: "min(480px, 90vw)", padding: "48px 28px",
-            backgroundColor: "#fff", borderRadius: 24,
-            boxShadow: "0 24px 80px rgba(0,0,0,0.15)",
+            backgroundColor: P.bg2, borderRadius: 24,
+            border: `1px solid ${P.border2}`,
+            boxShadow: P.shadowFloat,
             textAlign: "center",
             animation: "modalIn 0.4s cubic-bezier(0.16,1,0.3,1)",
           }}>
             {/* Top gradient accent */}
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 4,
-              background: `linear-gradient(90deg, ${P.purple}, #D946EF, ${P.pink})`,
+              background: authPrompt === "login"
+                ? `linear-gradient(90deg, ${P.violet}, ${P.rose})`
+                : `linear-gradient(90deg, ${P.amber}, ${P.orange})`,
               borderRadius: "24px 24px 0 0",
             }} />
 
@@ -872,27 +828,24 @@ export default function TodayPage() {
             <div style={{
               width: 72, height: 72, borderRadius: 20, margin: "0 auto 20px",
               background: authPrompt === "login"
-                ? `linear-gradient(135deg, ${P.purple}, #D946EF)`
-                : "linear-gradient(135deg, #F59E0B, #F97316)",
+                ? `linear-gradient(135deg, ${P.violet}, ${P.rose})`
+                : `linear-gradient(135deg, ${P.amber}, ${P.orange})`,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 32,
               boxShadow: authPrompt === "login"
-                ? `0 8px 24px ${P.purple}4D`
-                : "0 8px 24px rgba(245,158,11,0.3)",
-              animation: "floatY 3s ease-in-out infinite",
+                ? `0 8px 24px ${P.violet}4D`
+                : `0 8px 24px ${P.amber}4D`,
             }}>
               {authPrompt === "login" ? "🔐" : "🔑"}
             </div>
 
-            {/* Title */}
             <h2 style={{
               fontSize: 24, fontWeight: 900, color: P.text,
-              letterSpacing: "-0.03em", margin: "0 0 8px",
+              letterSpacing: "-0.03em", margin: "0 0 8px", fontFamily: F,
             }}>
               {authPrompt === "login" ? "Oh snap! You need to sign in" : "Almost there! Add your API key"}
             </h2>
 
-            {/* Description */}
             <p style={{
               fontSize: 15, color: P.textSec, lineHeight: 1.6,
               margin: "0 0 28px", maxWidth: 340, marginLeft: "auto", marginRight: "auto",
@@ -902,51 +855,109 @@ export default function TodayPage() {
                 : "Add your OpenAI, Gemini, or Anthropic API key in Settings to start running agents."}
             </p>
 
-            {/* CTA Button */}
             <a
               href={authPrompt === "login" ? "/login" : "/settings"}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 padding: "14px 32px", borderRadius: 14,
-                background: authPrompt === "login"
-                  ? `linear-gradient(135deg, ${P.purple}, #D946EF)`
-                  : "linear-gradient(135deg, #F59E0B, #F97316)",
-                color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none",
-                boxShadow: authPrompt === "login"
-                  ? `0 4px 20px ${P.purple}59`
-                  : "0 4px 20px rgba(245,158,11,0.35)",
-                transition: "all 0.2s",
+                background: P.lime, color: "#0b0b0e",
+                fontSize: 16, fontWeight: 700, textDecoration: "none",
+                fontFamily: F, transition: "all 0.2s",
               }}
             >
               {authPrompt === "login" ? "Sign In Free" : "Go to Settings"}
             </a>
 
-            {/* Countdown */}
             <p style={{
               fontSize: 13, color: P.textTer, marginTop: 20, marginBottom: 0,
             }}>
               Redirecting in <span style={{
-                fontWeight: 700, color: P.indigo,
-                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                fontWeight: 700, color: P.lime,
+                fontFamily: FM,
               }}>{authCountdown}s</span>
             </p>
 
-            {/* Progress bar */}
             <div style={{
-              marginTop: 12, height: 3, backgroundColor: P.border,
+              marginTop: 12, height: 3, backgroundColor: P.bg4,
               borderRadius: 2, overflow: "hidden",
             }}>
               <div style={{
                 height: "100%",
                 width: `${((10 - authCountdown) / 10) * 100}%`,
-                background: `linear-gradient(90deg, ${P.purple}, #D946EF)`,
-                borderRadius: 2,
-                transition: "width 1s linear",
+                background: `linear-gradient(90deg, ${P.violet}, ${P.lime})`,
+                borderRadius: 2, transition: "width 1s linear",
               }} />
             </div>
           </div>
         </div>
       )}
     </>
+  );
+}
+
+
+/* ─── Template Card ─── */
+function TemplateCard({ agent, cat, rating, onUse }: {
+  agent: { id: string; icon: string; name: string; description: string | null; slug?: string };
+  cat: { label: string; color: string; catBg: string };
+  rating: number;
+  onUse: () => void;
+}) {
+  const [hov, setHov] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      onClick={onUse}
+      style={{
+        background: P.bg2, border: `1px solid ${hov ? P.border2 : P.border}`,
+        borderRadius: 15, overflow: "hidden", cursor: "pointer",
+        display: "flex", flexDirection: "column",
+        transform: hov ? "translateY(-3px)" : "none",
+        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.5)" : "none",
+        transition: "all 0.2s", minWidth: 0,
+      }}
+    >
+      {/* Gradient stripe */}
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}44)` }} />
+
+      <div style={{ padding: "13px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 9,
+              background: cat.catBg,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 16, flexShrink: 0,
+            }}>{agent.icon}</div>
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, marginBottom: 2 }}>{agent.name}</div>
+              <Pill color={cat.color} bg={cat.catBg} size={9}>{cat.label}</Pill>
+            </div>
+          </div>
+          <span style={{ fontSize: 11, color: P.amber, fontWeight: 700 }}>★ {rating}</span>
+        </div>
+
+        <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
+          {agent.description}
+        </div>
+
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginTop: "auto", paddingTop: 9,
+          borderTop: `1px solid ${P.border}`,
+        }}>
+          <span style={{ fontSize: 10, color: P.textTer }}>AI-powered</span>
+          <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
+            fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
+            background: P.lime, color: "#0b0b0e", border: "none",
+            cursor: "pointer", fontFamily: F,
+          }}>
+            Use Template →
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

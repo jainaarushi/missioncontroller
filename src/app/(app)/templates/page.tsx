@@ -5,16 +5,17 @@ import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { CreateTaskModal } from "@/components/tasks/create-task-modal";
 import type { PipelineStep } from "@/lib/ai/pipelines";
+import { P, F } from "@/lib/palette";
 
 const TP = {
-  bg: "#F8F9FC",
-  card: "#FFFFFF",
-  purple: "#8B3DFF",
-  text: "#2E2E2E",
-  textSec: "#6B6B6B",
-  shadow: "0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
-  shadowHover: "0 12px 32px rgba(139,61,255,0.12), 0 4px 12px rgba(0,0,0,0.08)",
-  border: "#E8E8EE",
+  bg: P.bg,
+  card: P.bg2,
+  purple: P.violet,
+  text: P.text,
+  textSec: P.textSec,
+  shadow: P.shadow,
+  shadowHover: P.shadowHover,
+  border: P.border,
 };
 
 const CARD_GRADIENTS = [
@@ -150,6 +151,7 @@ export default function TemplatesPage() {
           fontSize: 40, fontWeight: 900, margin: "0 0 10px",
           letterSpacing: "-0.04em",
           lineHeight: 1.1,
+          fontFamily: F,
           background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #F472B6 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
@@ -184,7 +186,7 @@ export default function TemplatesPage() {
             style={{
               width: "100%", height: 54, padding: "0 20px 0 50px", borderRadius: 16,
               border: `2px solid ${TP.border}`, fontSize: 16, color: TP.text,
-              outline: "none", backgroundColor: TP.card,
+              outline: "none", backgroundColor: P.bg3,
               fontFamily: "inherit",
               transition: "border-color 0.2s, box-shadow 0.2s",
               boxShadow: TP.shadow,
@@ -384,7 +386,7 @@ function TemplateCard({ agent, bg, onClick }: { agent: any; bg: string; onClick:
           background: bg,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 24,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
         }}>
           {agent.icon}
         </div>

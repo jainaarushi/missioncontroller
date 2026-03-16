@@ -156,7 +156,7 @@ export function CommandPalette({ tasks, agents }: CommandPaletteProps) {
         style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(24,24,27,0.4)",
+          backgroundColor: "rgba(0,0,0,0.7)",
           backdropFilter: "blur(8px)",
           animation: "fadeIn 0.15s ease",
         }}
@@ -166,8 +166,9 @@ export function CommandPalette({ tasks, agents }: CommandPaletteProps) {
         style={{
           width: "min(520px, 92vw)",
           maxHeight: 420,
-          backgroundColor: P.card,
+          backgroundColor: P.bg2,
           borderRadius: 16,
+          border: `1px solid ${P.border2}`,
           boxShadow: P.shadowFloat,
           position: "relative",
           animation: "modalIn 0.2s cubic-bezier(0.16,1,0.3,1)",

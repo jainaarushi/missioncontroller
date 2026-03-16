@@ -298,8 +298,8 @@ export function AgentCreateModal({ open, onClose, onCreated }: AgentCreateModalP
           {error && (
             <div style={{
               padding: "10px 14px", borderRadius: 10,
-              backgroundColor: "#FEF2F2", border: "1px solid #FECACA",
-              fontSize: 13, color: "#DC2626", marginBottom: 16,
+              backgroundColor: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)",
+              fontSize: 13, color: "#F87171", marginBottom: 16,
             }}>
               {error}
             </div>
