@@ -53,28 +53,33 @@ export function TaskSection({
 
   return (
     <div
-      style={{ marginBottom: 28 }}
+      style={{ marginBottom: 32 }}
       onDragOver={handleSectionDragOver}
       onDragLeave={handleSectionDragLeave}
       onDrop={handleSectionDrop}
     >
       <div style={{
-        display: "flex", alignItems: "center", gap: 8, marginBottom: 12, paddingLeft: 2,
+        display: "flex", alignItems: "center", gap: 10, marginBottom: 14, paddingLeft: 2,
       }}>
         <div style={{
-          width: 8, height: 8, borderRadius: "50%", backgroundColor: color,
-          ...(dot && tasks.length > 0 ? { animation: "pulseGlow 2s infinite", boxShadow: `0 0 6px ${color}60` } : {}),
-          opacity: tasks.length === 0 ? 0.4 : 1,
+          width: 10, height: 10, borderRadius: "50%", backgroundColor: color,
+          ...(dot && tasks.length > 0 ? { animation: "pulseGlow 2s infinite", boxShadow: `0 0 8px ${color}50` } : {}),
+          opacity: tasks.length === 0 ? 0.35 : 1,
+          transition: "all 0.3s",
         }} />
         <span style={{
-          fontSize: 12, fontWeight: 700, letterSpacing: "0.06em",
+          fontSize: 13, fontWeight: 700, letterSpacing: "0.05em",
+          textTransform: "uppercase" as const,
           color: color === P.textGhost ? P.textTer : color,
           opacity: tasks.length === 0 ? 0.5 : 1,
         }}>{label}</span>
         {tasks.length > 0 && (
           <span style={{
-            fontSize: 11, fontWeight: 600, color: P.textGhost,
+            fontSize: 11.5, fontWeight: 700, color: P.card,
+            backgroundColor: color === P.textGhost ? P.textTer : color,
+            padding: "2px 8px", borderRadius: 10,
             marginLeft: 2,
+            lineHeight: "16px",
           }}>
             {tasks.length}
           </span>
@@ -105,13 +110,13 @@ export function TaskSection({
         </div>
       ) : (
         <div style={{
-          padding: "14px 16px", borderRadius: 12,
-          border: `2px dashed ${dragOver ? P.indigo : P.border}`,
-          backgroundColor: dragOver ? P.indigo + "06" : "transparent",
-          fontSize: 12.5, color: dragOver ? P.indigo : P.textGhost,
+          padding: "18px 20px", borderRadius: 14,
+          border: `2px dashed ${dragOver ? P.purple : P.border}`,
+          backgroundColor: dragOver ? P.purpleSoft : "transparent",
+          fontSize: 13, color: dragOver ? P.purple : P.textGhost,
           fontWeight: dragOver ? 600 : 400,
           textAlign: "center",
-          transition: "all 0.2s",
+          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         }}>
           {dragOver ? "Drop here to deploy agent" : "No tasks"}
         </div>

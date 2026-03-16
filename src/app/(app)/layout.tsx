@@ -13,23 +13,23 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
   return (
     <nav style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
-      backgroundColor: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
-      borderTop: "1px solid rgba(0,0,0,0.06)",
+      backgroundColor: "rgba(26,26,46,0.96)", backdropFilter: "blur(12px)",
+      borderTop: `1px solid rgba(255,255,255,0.08)`,
       display: "flex", justifyContent: "space-around", alignItems: "center",
       padding: "8px 0",
       paddingBottom: "max(8px, env(safe-area-inset-bottom))",
       minHeight: 56,
     }}>
       {[
-        { href: "/today", icon: "🏠", label: "Today" },
+        { href: "/today", icon: "\u{1F3E0}", label: "Today" },
         { href: "/agents", icon: "\u{1F916}", label: "Agents" },
         { href: "/templates", icon: "\u{1F4CB}", label: "Templates" },
         { href: "/analytics", icon: "\u{1F4CA}", label: "Analytics" },
-        { href: "/settings", icon: "⚙️", label: "Settings" },
+        { href: "/settings", icon: "\u{2699}\u{FE0F}", label: "Settings" },
       ].map((item) => (
         <a key={item.href} href={item.href} style={{
           display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-          textDecoration: "none", color: P.textSec, fontSize: 10, fontWeight: 600,
+          textDecoration: "none", color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 600,
           position: "relative",
         }}>
           <span style={{ fontSize: 20 }}>{item.icon}</span>
@@ -38,7 +38,7 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
             <span style={{
               position: "absolute", top: -2, right: -6,
               width: 16, height: 16, borderRadius: "50%",
-              backgroundColor: P.coral, color: "#fff",
+              backgroundColor: P.pink, color: "#fff",
               fontSize: 9, fontWeight: 700,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>{reviewCount}</span>
@@ -57,7 +57,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const reviewCount = tasks.filter((t) => t.status === "review").length;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FAFAF8" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: P.bg }}>
       <style>{`
         @keyframes slideUp { from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes fadeIn { from{opacity:0}to{opacity:1} }
@@ -75,9 +75,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
         @keyframes scaleIn { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
         @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
         @keyframes floatY { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
-        @keyframes borderGlow { 0%,100%{border-color:rgba(124,58,237,0.15)}50%{border-color:rgba(124,58,237,0.35)} }
-        .create-bar { animation: borderGlow 3s ease-in-out infinite; }
-        .create-bar:hover { animation: none !important; }
+        @keyframes borderGlow { 0%,100%{border-color:rgba(139,61,255,0.15)}50%{border-color:rgba(139,61,255,0.35)} }
+        .create-bar { animation: borderGlow 3s ease-in-out infinite; border-radius: 16px; background: #FFFFFF; }
+        .create-bar:hover { animation: none !important; border-color: rgba(139,61,255,0.5) !important; }
+        .create-bar:focus-within { animation: none !important; border-color: #8B3DFF !important; box-shadow: 0 0 0 3px rgba(139,61,255,0.12) !important; }
         .usage-panel { animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
         .section-header { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
         .task-section { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
@@ -87,19 +88,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
         @keyframes inputReveal { from{opacity:0;transform:translateY(-4px);max-height:0}to{opacity:1;transform:translateY(0);max-height:70px} }
         @keyframes glow { 0%,100%{opacity:1;box-shadow:0 0 4px currentColor}50%{opacity:0.6;box-shadow:0 0 12px currentColor} }
         @keyframes slideDown { from{opacity:0;max-height:0}to{opacity:1;max-height:60px} }
-        @keyframes dragPulse { 0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.15)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)} }
-        .task-drag-over { border-color: #6366F1 !important; background-color: #EEF2FF !important; }
+        @keyframes dragPulse { 0%,100%{box-shadow:0 0 0 0 rgba(139,61,255,0.15)}50%{box-shadow:0 0 0 8px rgba(139,61,255,0)} }
+        .task-drag-over { border-color: #8B3DFF !important; background-color: #F5F0FF !important; }
         .task-dragging { opacity: 0.5; transform: scale(0.97) rotate(1deg); }
         * { box-sizing:border-box }
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.07);border-radius:3px}
-        ::selection{background:#6366F120}
+        ::selection{background:rgba(139,61,255,0.12)}
 
         /* Mobile bottom nav */
         .mobile-nav { display: none; }
         @media (max-width: 768px) {
           .desktop-sidebar { display: none !important; }
           .mobile-nav { display: flex !important; }
-          .app-gradient { left: 0 !important; }
           .app-content-wrapper { padding: 16px 12px 72px !important; }
           .agent-scroller-bleed { margin-left: -12px !important; margin-right: -12px !important; }
           .agent-scroller-inner { padding-left: 12px !important; }
@@ -117,13 +117,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
           tasks={tasks}
         />
       </div>
-      <div style={{ flex: 1, display: "flex", justifyContent: "center", overflow: "auto" }}>
-        <div className="app-gradient" style={{
-          position: "fixed", top: 0, left: 72, right: 0, height: 280,
-          background: "linear-gradient(180deg, #DDD6FE 0%, #E9D5FF 30%, #FAFAF8 100%)",
-          zIndex: 0, pointerEvents: "none",
-        }} />
-        <div className="app-content-wrapper" style={{ width: "100%", maxWidth: 1100, padding: "24px 24px", position: "relative", zIndex: 1 }}>
+      <div style={{ flex: 1, display: "flex", justifyContent: "center", overflow: "auto", backgroundColor: P.bg }}>
+        <div className="app-content-wrapper" style={{ width: "100%", maxWidth: 1100, padding: "32px 32px", position: "relative" }}>
           {children}
         </div>
       </div>

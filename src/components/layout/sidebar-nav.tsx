@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { P } from "@/lib/palette";
 import { Home, Layers, FileText, BarChart3, CheckCircle2, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -24,7 +23,7 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+    <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" }}>
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         const showBadge = item.href === "/today" && reviewCount > 0;
@@ -38,43 +37,62 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 3,
+              gap: 4,
               padding: "10px 6px 8px",
               borderRadius: 12,
               cursor: "pointer",
-              transition: "all 0.15s",
+              transition: "all 0.2s ease",
               textDecoration: "none",
-              backgroundColor: isActive ? P.sidebarActive : "transparent",
-              color: isActive ? P.indigo : P.textTer,
+              backgroundColor: isActive ? "rgba(139,61,255,0.15)" : "transparent",
+              color: isActive ? "#B794F6" : "rgba(255,255,255,0.4)",
               width: "100%",
               position: "relative",
             }}
             onMouseEnter={(e) => {
-              if (!isActive) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.03)";
+              if (!isActive) {
+                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.color = "rgba(255,255,255,0.7)";
+              }
             }}
             onMouseLeave={(e) => {
-              if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
+              if (!isActive) {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "rgba(255,255,255,0.4)";
+              }
             }}
           >
             <Icon size={20} strokeWidth={isActive ? 2 : 1.6} />
             <span style={{
               fontSize: 10, fontWeight: isActive ? 700 : 500,
-              letterSpacing: "0.01em",
+              letterSpacing: "0.02em",
             }}>
               {item.label}
             </span>
             {showBadge && (
               <span style={{
-                position: "absolute", top: 6, right: 10,
+                position: "absolute", top: 4, right: 8,
                 fontSize: 9, fontWeight: 700,
                 color: "#fff",
-                backgroundColor: P.coral,
-                padding: "1px 5px", borderRadius: 10,
+                background: "linear-gradient(135deg, #FF3399, #f5576c)",
+                padding: "2px 6px", borderRadius: 10,
                 minWidth: 16, textAlign: "center",
                 lineHeight: "14px",
+                boxShadow: "0 2px 8px rgba(255,51,153,0.4)",
               }}>
                 {reviewCount}
               </span>
+            )}
+            {isActive && (
+              <div style={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 3,
+                height: 20,
+                borderRadius: "0 3px 3px 0",
+                background: "linear-gradient(180deg, #8B3DFF, #667eea)",
+              }} />
             )}
           </Link>
         );

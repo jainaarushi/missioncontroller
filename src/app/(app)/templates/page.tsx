@@ -4,8 +4,18 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { CreateTaskModal } from "@/components/tasks/create-task-modal";
-import { P } from "@/lib/palette";
 import type { PipelineStep } from "@/lib/ai/pipelines";
+
+const TP = {
+  bg: "#F8F9FC",
+  card: "#FFFFFF",
+  purple: "#8B3DFF",
+  text: "#2E2E2E",
+  textSec: "#6B6B6B",
+  shadow: "0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+  shadowHover: "0 12px 32px rgba(139,61,255,0.12), 0 4px 12px rgba(0,0,0,0.08)",
+  border: "#E8E8EE",
+};
 
 const CARD_GRADIENTS = [
   "linear-gradient(135deg, #8B5CF6, #C084FC)",
@@ -130,53 +140,79 @@ export default function TemplatesPage() {
       <style>{`
         @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)} }
         @keyframes fadeUp { 0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)} }
+        .tmpl-card .tmpl-use-btn { opacity: 0; transform: translateY(8px); }
+        .tmpl-card:hover .tmpl-use-btn { opacity: 1; transform: translateY(0); }
       `}</style>
 
       {/* Header */}
-      <div style={{ marginBottom: 24, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
+      <div style={{ marginBottom: 32, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
         <h1 style={{
-          fontSize: 28, fontWeight: 800, color: P.text, margin: "0 0 6px",
-          letterSpacing: "-0.03em",
+          fontSize: 40, fontWeight: 900, margin: "0 0 10px",
+          letterSpacing: "-0.04em",
+          lineHeight: 1.1,
+          background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #F472B6 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
         }}>
-          Task Templates
+          Template Gallery
         </h1>
-        <p style={{ fontSize: 14, color: P.textSec, lineHeight: 1.5 }}>
-          Real-world AI agents for everyday tasks — jobs, bills, leases, health, and more
+        <p style={{ fontSize: 16, color: TP.textSec, lineHeight: 1.6, maxWidth: 520 }}>
+          Launch powerful AI agents in one click. Pick a template, customize your task, and let AI handle the rest.
         </p>
       </div>
 
       {/* Search Bar */}
       <div style={{
-        marginBottom: 28, animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both",
+        marginBottom: 36, animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both",
+        maxWidth: 600,
       }}>
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search templates..."
-          style={{
-            width: "100%", padding: "12px 18px", borderRadius: 14,
-            border: `2px solid ${P.border}`, fontSize: 14, color: P.text,
-            outline: "none", backgroundColor: P.card,
-            fontFamily: "inherit",
-            transition: "border-color 0.2s",
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = "#6366F160"; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
-        />
+        <div style={{ position: "relative" }}>
+          <svg
+            style={{
+              position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)",
+              width: 20, height: 20, color: TP.textSec, pointerEvents: "none",
+            }}
+            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" strokeLinecap="round" />
+          </svg>
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search templates..."
+            style={{
+              width: "100%", height: 54, padding: "0 20px 0 50px", borderRadius: 16,
+              border: `2px solid ${TP.border}`, fontSize: 16, color: TP.text,
+              outline: "none", backgroundColor: TP.card,
+              fontFamily: "inherit",
+              transition: "border-color 0.2s, box-shadow 0.2s",
+              boxShadow: TP.shadow,
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = TP.purple;
+              e.currentTarget.style.boxShadow = `0 0 0 4px ${TP.purple}18, ${TP.shadow}`;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = TP.border;
+              e.currentTarget.style.boxShadow = TP.shadow;
+            }}
+          />
+        </div>
       </div>
 
       {/* Search Results */}
       {filteredBySearch && (
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 40 }}>
           <div style={{
-            fontSize: 14, fontWeight: 700, color: P.textSec, marginBottom: 14,
+            fontSize: 15, fontWeight: 700, color: TP.textSec, marginBottom: 18,
           }}>
             {filteredBySearch.length} result{filteredBySearch.length !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
           </div>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 14,
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 20,
           }}>
             {filteredBySearch.map((agent, i) => (
               <TemplateCard
@@ -202,26 +238,26 @@ export default function TemplatesPage() {
 
         return (
           <div key={cat.title} style={{
-            marginBottom: 32,
+            marginBottom: 40,
             animation: `fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) ${0.1 + catIdx * 0.05}s both`,
           }}>
             {/* Category header */}
             <div style={{
-              display: "flex", alignItems: "center", gap: 10,
-              marginBottom: 14,
+              display: "flex", alignItems: "center", gap: 12,
+              marginBottom: 18,
             }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 10,
+                width: 40, height: 40, borderRadius: 12,
                 background: cat.gradient,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 16,
-                boxShadow: `0 4px 12px ${cat.color}25`,
+                fontSize: 20,
+                boxShadow: `0 4px 14px ${cat.color}30`,
               }}>
                 {cat.icon}
               </div>
               <span style={{
-                fontSize: 15, fontWeight: 800, color: P.text,
-                letterSpacing: "-0.02em",
+                fontSize: 20, fontWeight: 800, color: TP.text,
+                letterSpacing: "-0.03em",
               }}>
                 {cat.title}
               </span>
@@ -230,8 +266,8 @@ export default function TemplatesPage() {
             {/* Template cards grid */}
             <div style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-              gap: 14,
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 20,
             }}>
               {catAgents.map((agent, j) => {
                 if (!agent) return null;
@@ -290,74 +326,116 @@ export default function TemplatesPage() {
 function TemplateCard({ agent, bg, onClick }: { agent: any; bg: string; onClick: () => void }) {
   return (
     <div
+      className="tmpl-card"
       onClick={onClick}
       style={{
         position: "relative",
-        borderRadius: 22,
-        height: 200,
+        borderRadius: 16,
+        minHeight: 240,
         cursor: "pointer",
         overflow: "hidden",
-        background: bg,
-        transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+        background: TP.card,
+        border: `1px solid ${TP.border}`,
+        transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+        boxShadow: TP.shadow,
+        display: "flex",
+        flexDirection: "column",
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget;
-        el.style.transform = "translateY(-4px) scale(1.02)";
-        el.style.boxShadow = "0 20px 50px rgba(0,0,0,0.18)";
+        el.style.transform = "translateY(-4px) scale(1.03)";
+        el.style.boxShadow = TP.shadowHover;
+        el.style.borderColor = "transparent";
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget;
         el.style.transform = "translateY(0) scale(1)";
-        el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)";
+        el.style.boxShadow = TP.shadow;
+        el.style.borderColor = TP.border;
       }}
     >
+      {/* Gradient accent bar at top */}
       <div style={{
+        height: 4,
+        background: bg,
+        flexShrink: 0,
+      }} />
+
+      {/* Icon area with gradient background */}
+      <div style={{
+        height: 80,
+        background: bg,
+        opacity: 0.12,
+        position: "absolute",
+        top: 4,
+        left: 0,
+        right: 0,
+      }} />
+      <div style={{
+        height: 80,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         position: "relative",
-        height: "100%",
-        display: "flex", flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "20px 20px 18px",
+        flexShrink: 0,
       }}>
-        {/* Icon */}
         <div style={{
-          width: 48, height: 48, borderRadius: 16,
-          backgroundColor: "rgba(255,255,255,0.22)",
-          backdropFilter: "blur(8px)",
+          width: 48, height: 48, borderRadius: 14,
+          background: bg,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 24,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}>
           {agent.icon}
         </div>
+      </div>
 
-        {/* Name + tagline + description */}
-        <div>
-          <div style={{
-            fontSize: 20, fontWeight: 900, color: "#fff",
-            textShadow: "0 2px 8px rgba(0,0,0,0.2)",
-            lineHeight: 1.15, letterSpacing: "-0.03em",
-            marginBottom: 3,
-          }}>
-            {agent.name}
-          </div>
-          <div style={{
-            fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.9)",
-            letterSpacing: "0.02em",
-            textTransform: "uppercase" as const,
-            marginBottom: 4,
-          }}>
-            {agent.description}
-          </div>
-          <div style={{
-            fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.72)",
-            lineHeight: 1.4,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical" as const,
-            overflow: "hidden",
-          }}>
-            {agent.long_description || ""}
-          </div>
+      {/* Content */}
+      <div style={{
+        padding: "4px 20px 20px",
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        position: "relative",
+      }}>
+        <div style={{
+          fontSize: 18, fontWeight: 800, color: TP.text,
+          lineHeight: 1.2, letterSpacing: "-0.02em",
+          marginBottom: 6,
+        }}>
+          {agent.name}
+        </div>
+        <div style={{
+          fontSize: 13, fontWeight: 500, color: TP.textSec,
+          lineHeight: 1.5,
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical" as const,
+          overflow: "hidden",
+          flex: 1,
+        }}>
+          {agent.long_description || agent.description || ""}
+        </div>
+
+        {/* Use Template button - appears on hover */}
+        <div
+          className="tmpl-use-btn"
+          style={{
+            marginTop: 14,
+            height: 36,
+            borderRadius: 10,
+            background: bg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#FFFFFF",
+            letterSpacing: "0.01em",
+            transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+          }}
+        >
+          Use Template
         </div>
       </div>
     </div>

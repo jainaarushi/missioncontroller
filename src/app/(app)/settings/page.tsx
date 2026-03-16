@@ -253,8 +253,11 @@ export default function SettingsPage() {
     <>
       <div style={{ marginBottom: 28, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
         <h1 style={{
-          fontSize: 32, fontWeight: 800, color: P.text, margin: "0 0 6px",
+          fontSize: 36, fontWeight: 900, margin: "0 0 6px",
           letterSpacing: "-0.04em",
+          background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #FF3399 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
         }}>
           Settings
         </h1>
@@ -412,13 +415,13 @@ export default function SettingsPage() {
         {/* Security info */}
         <div style={{
           padding: "12px 14px", borderRadius: 12,
-          backgroundColor: P.sidebar, border: `1px solid ${P.border}`,
+          backgroundColor: P.purpleSoft, border: `1px solid ${P.purple}10`,
         }}>
-          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textTer, flexWrap: "wrap" as const }}>
-            <span>🛡️ AES-256-GCM encrypted</span>
-            <span>🔐 Decrypted only at execution</span>
-            <span>🗑️ Delete anytime</span>
-            <span>💰 Your key, your billing</span>
+          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textSec, flexWrap: "wrap" as const }}>
+            <span>AES-256-GCM encrypted</span>
+            <span>Decrypted only at execution</span>
+            <span>Delete anytime</span>
+            <span>Your key, your billing</span>
           </div>
         </div>
 
@@ -447,7 +450,7 @@ export default function SettingsPage() {
           <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>Voice Input</div>
           <span style={{
             fontSize: 9, fontWeight: 700, color: "#fff",
-            backgroundColor: "#8B5CF6", padding: "2px 6px", borderRadius: 4,
+            background: P.purpleGrad, padding: "2px 6px", borderRadius: 4,
           }}>
             Wispr Flow
           </span>
@@ -460,12 +463,12 @@ export default function SettingsPage() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 14px", borderRadius: 12,
-            backgroundColor: "#F5F3FF", border: "1.5px solid #DDD6FE",
+            backgroundColor: P.purpleSoft, border: `1.5px solid ${P.purple}25`,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#8B5CF6", boxShadow: "0 0 6px rgba(139,92,246,0.5)" }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#5B21B6" }}>Wispr key active</span>
-              <span style={{ fontSize: 10.5, color: "#7C3AED", fontFamily: "'JetBrains Mono', var(--font-mono), monospace" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: P.purple, boxShadow: `0 0 6px ${P.purple}80` }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: P.purple }}>Wispr key active</span>
+              <span style={{ fontSize: 10.5, color: P.purple, fontFamily: "'JetBrains Mono', var(--font-mono), monospace", opacity: 0.7 }}>
                 {wisprInfo.maskedKey}
               </span>
             </div>
@@ -501,7 +504,7 @@ export default function SettingsPage() {
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 outline: "none", backgroundColor: P.card,
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "#8B5CF660"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = P.purple + "60"; }}
               onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
               onKeyDown={(e) => { if (e.key === "Enter" && wisprKey.trim()) handleSaveWispr(); }}
             />
@@ -510,7 +513,7 @@ export default function SettingsPage() {
               disabled={wisprSaving || !wisprKey.trim()}
               style={{
                 padding: "11px 18px", borderRadius: 10, border: "none",
-                background: wisprKey.trim() ? "linear-gradient(135deg, #8B5CF6, #7C3AED)" : P.border,
+                background: wisprKey.trim() ? P.purpleGrad : P.border,
                 color: wisprKey.trim() ? "#fff" : P.textTer,
                 fontSize: 13, fontWeight: 700, cursor: wisprSaving || !wisprKey.trim() ? "not-allowed" : "pointer",
                 fontFamily: "inherit", whiteSpace: "nowrap",
@@ -534,7 +537,7 @@ export default function SettingsPage() {
 
         <div style={{ marginTop: 12, fontSize: 11, color: P.textTer }}>
           <a href="https://platform.wisprflow.ai/" target="_blank" rel="noopener noreferrer"
-            style={{ color: "#8B5CF6", fontWeight: 600, textDecoration: "none" }}>
+            style={{ color: P.purple, fontWeight: 600, textDecoration: "none" }}>
             Get key at platform.wisprflow.ai →
           </a>
         </div>
@@ -551,7 +554,7 @@ export default function SettingsPage() {
           <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>Tool API Keys</div>
           <span style={{
             fontSize: 9, fontWeight: 700, color: "#fff",
-            backgroundColor: "#6366F1", padding: "2px 6px", borderRadius: 4,
+            background: P.purpleGrad, padding: "2px 6px", borderRadius: 4,
           }}>
             Optional
           </span>
@@ -717,7 +720,7 @@ export default function SettingsPage() {
           <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>External Tool Servers</div>
           <span style={{
             fontSize: 9, fontWeight: 700, color: "#fff",
-            backgroundColor: "#8B5CF6", padding: "2px 6px", borderRadius: 4,
+            background: P.purpleGrad, padding: "2px 6px", borderRadius: 4,
           }}>
             MCP Protocol
           </span>
@@ -738,13 +741,13 @@ export default function SettingsPage() {
                 <div key={server.id} style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "12px 14px", borderRadius: 12, marginBottom: 8,
-                  backgroundColor: server.enabled ? (suggestion?.color || "#6366F1") + "08" : P.sidebar,
-                  border: `1.5px solid ${server.enabled ? (suggestion?.color || "#6366F1") + "30" : P.border}`,
+                  backgroundColor: server.enabled ? (suggestion?.color || P.purple) + "08" : P.bg,
+                  border: `1.5px solid ${server.enabled ? (suggestion?.color || P.purple) + "30" : P.border}`,
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                      backgroundColor: (suggestion?.color || "#6366F1") + "15", color: suggestion?.color || "#6366F1",
+                      backgroundColor: (suggestion?.color || P.purple) + "15", color: suggestion?.color || P.purple,
                       fontSize: 11, fontWeight: 800,
                     }}>
                       {suggestion?.icon || "MCP"}
@@ -771,7 +774,7 @@ export default function SettingsPage() {
                       style={{
                         padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
                         border: `1px solid ${server.enabled ? "#A7F3D0" : P.border}`,
-                        backgroundColor: server.enabled ? "#ECFDF5" : P.sidebar,
+                        backgroundColor: server.enabled ? "#ECFDF5" : P.bg,
                         color: server.enabled ? "#065F46" : P.textTer,
                         cursor: "pointer", fontFamily: "inherit",
                       }}
@@ -811,13 +814,13 @@ export default function SettingsPage() {
           return (
             <div style={{
               padding: "16px", borderRadius: 12, marginBottom: 14,
-              border: `2px solid ${(suggestion?.color || "#6366F1") + "40"}`,
-              backgroundColor: (suggestion?.color || "#6366F1") + "05",
+              border: `2px solid ${(suggestion?.color || P.purple) + "40"}`,
+              backgroundColor: (suggestion?.color || P.purple) + "05",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
-                  backgroundColor: (suggestion?.color || "#6366F1") + "15", color: suggestion?.color || "#6366F1",
+                  backgroundColor: (suggestion?.color || P.purple) + "15", color: suggestion?.color || P.purple,
                   fontSize: 10, fontWeight: 800,
                 }}>
                   {suggestion?.icon || "MCP"}
@@ -914,7 +917,7 @@ export default function SettingsPage() {
                   style={{
                     padding: "10px 18px", borderRadius: 8, border: "none",
                     background: mcpForm.name.trim() && mcpForm.url.trim()
-                      ? `linear-gradient(135deg, ${suggestion?.color || "#6366F1"}, ${suggestion?.color || "#6366F1"}cc)`
+                      ? `linear-gradient(135deg, ${suggestion?.color || P.purple}, ${suggestion?.color || P.purple}cc)`
                       : P.border,
                     color: mcpForm.name.trim() && mcpForm.url.trim() ? "#fff" : P.textTer,
                     fontSize: 13, fontWeight: 700, cursor: mcpSaving ? "not-allowed" : "pointer",
@@ -977,9 +980,9 @@ export default function SettingsPage() {
         {/* Security info */}
         <div style={{
           marginTop: 14, padding: "12px 14px", borderRadius: 12,
-          backgroundColor: P.sidebar, border: `1px solid ${P.border}`,
+          backgroundColor: P.purpleSoft, border: `1px solid ${P.purple}10`,
         }}>
-          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textTer, flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textSec, flexWrap: "wrap" as const }}>
             <span>AES-256 encrypted</span>
             <span>HTTPS required for remote</span>
             <span>30s timeout per tool call</span>

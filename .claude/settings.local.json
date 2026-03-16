@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-next-app@latest:*)"
+      "Bash(npx create-next-app@latest:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebSearch",
+      "WebFetch(domain:sintra.ai)",
+      "WebFetch(domain:gmelius.com)",
+      "WebFetch(domain:www.lindy.ai)",
+      "WebFetch(domain:cybernews.com)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)",
+      "Read(//private/tmp/**)",
+      "Bash(gh repo clone msitarzewski/agency-agents -- --depth 1)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

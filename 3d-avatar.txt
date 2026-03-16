@@ -1,0 +1,273 @@
+Here are all 13 prompts — just paste each one into Gemini one by one.
+
+  ---                                                                                                                        
+  BATCH 1 — Product & Engineering (Part 1)
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                             
+  The 6 characters:                                                                                                          
+  1. South Asian male, wavy dark hair, navy bomber jacket, excited grin, holding a glowing lightbulb — Startup Ideation
+  2. Latina female, long brown hair in ponytail, red blazer over white tee, determined smile, tiny rocket in hand — Product
+  Launch                                                                                                                     
+  3. Japanese male, neat short black hair, steel-gray turtleneck, calm focused look, blueprint scroll under arm — Systems    
+  Architect                                                                                                                  
+  4. West African female, short natural hair with gold clips, coral sweater, warm smile, holding a stylus pen — UX Designer  
+  5. Chinese male, messy dark quiff, round glasses, cream chunky hoodie, curious wide eyes, tiny laptop — Full-Stack       
+  Developer                                                                                                                  
+  6. Arab female, dark hijab with teal accent, olive cardigan, thoughtful smile, small python snake plushie on shoulder —    
+  Python Expert                                                                                                              
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels.
+                                                                                                                             
+  ---                                                       
+  BATCH 2 — Product & Engineering (Part 2)                                                                                   
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Black male, short beard, thick-rimmed glasses, charcoal henley, scrutinizing look with one raised eyebrow, magnifying   
+  glass — Code Reviewer                                                                                                   
+  2. Japanese female, shoulder-length hair with bangs, oversized purple hoodie, intense focused squint, holding a tiny bug   
+  net — Debugger                                                                                                          
+  3. Eastern European female, blonde bob, sage green blouse, organized confident smile, clipboard in hand — Sprint Planner   
+  4. Nigerian male, clean fade haircut, navy polo shirt, reassuring smile, tiny Gantt chart floating beside him — Project 
+  Manager                                                                                                                    
+  5. Italian female, wavy brown hair in messy bun, denim apron over striped tee, cheerful grin, paint roller in hand — Home  
+  Renovation                                                                                                                 
+  6. Swedish male, sandy blonde messy hair, graphic tee with pixel art, playful smirk, holding a tiny game controller — Game 
+  Designer                                                                                                                  
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels.
+                                                                                                                             
+  ---                                                       
+  BATCH 3 — Product & Engineering (Part 3) + Research (Part 1)                                                               
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Indian female, long dark braid, mustard yellow cardigan, analytical smile, holding phone showing an app — UI/UX Feedback
+  2. Egyptian male, short curly dark hair, black zip-up jacket, focused calm expression, tiny server rack beside him — DevOps
+   Engineer                                                                                                                  
+  3. Chinese female, sleek black hair in low bun, tortoise-shell glasses, white lab coat, thoughtful gaze, stack of papers — 
+  Deep Researcher                                                                                                            
+  4. Nigerian female, natural afro with reading glasses on head, burgundy turtleneck, warm scholarly smile, open book —      
+  Academic Researcher                                                                                                  
+  5. Scandinavian male, light brown hair, steel-blue vest over white shirt, skeptical raised eyebrow, checkmark stamp — Fact 
+  Checker                                                                                                                   
+  6. Somali female, long dark hair with gold headband, teal blazer, knowing smile, holographic trend chart floating — Trends 
+  Analyst                                                                                                                   
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels.
+                                                                                                                             
+  ---                                                       
+  BATCH 4 — Research (Part 2)                                                                                                
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Russian male, sharp jawline, dark swept-back hair, black turtleneck, sly confident look, binoculars around neck —
+  Competitive Intel                                                                                                   
+  2. Indian female, dark hair in high ponytail, denim jacket, alert curious eyes, tiny spider web design on shoulder — Web   
+  Intelligence                                                                                                            
+  3. Brazilian male, short dark curly hair, round glasses, lavender blazer, thoughtful smile, bar chart floating — Data      
+  Analyst                                                                                                              
+  4. Swedish female, strawberry blonde wavy hair, rainbow-striped scarf, creative bright smile, paint palette — Data Viz     
+  Designer                                                                                                              
+  5. Ghanaian male, short hair with graying temples, charcoal suit jacket, wise calm expression, chess piece in hand —       
+  Strategy Advisor                                                                                                    
+  6. Danish female, light brown hair in loose waves, soft pink blouse, gentle reassuring smile, balance scale — Decision     
+  Scientist                                                                                                             
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels.
+                                                                                                                             
+  ---                                                       
+  BATCH 5 — Research (Part 3) + Sales                                                                                        
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                                             
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Taiwanese male, neat side-parted hair, navy suit with pocket square, sharp analytical look, magnifying glass over
+  document — Due Diligence                                                                                            
+  2. Russian female, platinum blonde bob, emerald green blazer, confident look, pie chart floating beside her — Market Sizing
+  3. Mexican male, slicked-back dark hair, white dress shirt rolled sleeves, charming big smile, handshake gesture — Sales   
+  Rep                                                                                                                        
+  4. Japanese female, straight black hair with side part, pearl earrings, cream blazer, composed look, stock ticker —        
+  Investment Analyst                                                                                                         
+  5. Ghanaian male, short hair, warm brown cardigan, friendly approachable smile, piggy bank in hand — Personal Finance      
+  6. Iranian female, dark wavy hair, olive trench coat, professional smile, tiny house model in palm — Real Estate Analyst
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                                                                                             
+  ---                                                                                                                        
+  BATCH 6 — Sales (Part 2) + Marketing (Part 1)                                                                              
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Norwegian male, light beard, navy knit sweater, thoughtful calculating look, price tag floating — Pricing Strategist    
+  2. South African female, braided updo with beads, plum blazer, persuasive warm smile, scroll document — Proposal Writer
+  3. Puerto Rican female, long wavy dark hair, colorful oversized jacket, bright creative smile, paintbrush and pen — Content
+   Creator                                                                                                                   
+  4. Nigerian male, neat haircut, tailored blue suit, professional confident smile, tiny LinkedIn badge — LinkedIn Strategist
+  5. Pakistani female, dark hair in loose bun, orange headphones around neck, warm laugh, tiny microphone — Podcast Producer 
+  6. French male, messy brown hair, tan trench coat, inquisitive sharp eyes, notepad and pen — Journalist                    
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                                                                                             
+  ---                                                                                                                        
+  BATCH 7 — Marketing (Part 2)                                                                                               
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                                             
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Korean female, straight black hair with bangs, minimalist white blouse, focused gentle expression, documentation book —
+  Technical Writer                                                                                                          
+  2. French female, chestnut hair in elegant chignon, reading glasses, burgundy scarf, discerning half-smile, red pen —      
+  Senior Editor                                                                                                        
+  3. Algerian male, short dark hair, light blue button-up, friendly approachable grin, floating envelope — Email Specialist  
+  4. Chinese-American female, dyed purple streaks in black hair, oversized graphic hoodie, laughing expression, phone — Meme
+  Creator                                                                                                                    
+  5. Czech male, slicked dark hair, smart black glasses, olive polo shirt, analytical look, search magnifying glass — SEO    
+  Expert                                                                                                                     
+  6. Senegalese female, long braids with gold cuffs, vibrant yellow top, energetic smile, phone with hearts floating — Social
+   Media                                                                                                                     
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels.
+                                                                                                                             
+  ---                                                       
+  BATCH 8 — Marketing (Part 3) + Operations (Part 1)                                                                         
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                                             
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. French male, tousled brown hair, denim jacket, creative smirk, megaphone in hand — Ad Copywriter
+  2. Japanese female, short bob with side sweep, soft pink cardigan, gentle organized smile, newspaper roll — Newsletter
+  Curator                                                                                                                    
+  3. Colombian male, dark curly hair, maroon bomber jacket, animated storytelling expression, clapperboard — Video           
+  Scriptwriter                                                                                                               
+  4. Swedish female, light blonde hair in neat low bun, cream turtleneck, warm reliable smile, clipboard and coffee cup —    
+  Executive Assistant                                                                                                    
+  5. Ghanaian male, short hair, olive green sweater, attentive listening expression, tiny notebook with pen — Meeting Notes  
+  6. Bangladeshi female, dark hair with headset on, soft blue top, empathetic kind smile, heart floating — Customer Support
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                                                                                             
+  ---                                                                                                                        
+  BATCH 9 — Operations (Part 2)                                                                                              
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Nigerian male, clean-cut hair, gray blazer over black tee, welcoming open smile, handshake gesture — Recruiter
+  2. Greek female, dark hair pulled back, tortoise-shell glasses, navy blazer, serious but warm expression, gavel — Legal
+  Advisor                                                                                                                    
+  3. Kenyan female, natural hair with colorful headwrap, mustard blouse, encouraging bright smile, resume paper — Career     
+  Documents                                                                                                                  
+  4. French male, salt-and-pepper short hair, charcoal blazer with pocket square, charismatic smile, tiny microphone — Speech
+   Coach                                                                                                                     
+  5. Chinese female, straight hair with blunt bangs, pastel pink blazer, savvy determined look, shopping bag — E-Commerce    
+  6. Ghanaian male, short hair with reading glasses, warm brown vest over white shirt, patient kind smile, chalkboard —  
+  Education                                                                                                                  
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                                                                                             
+  ---                                                       
+  BATCH 10 — Health & Lifestyle                                                                                              
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Brazilian male, athletic build, short dark hair, teal athletic jacket, towel on shoulder, energetic grin, dumbbell —
+  Fitness Coach                                                                                                          
+  2. Swedish female, soft wavy blonde hair, cozy sage cardigan, serene peaceful smile, tiny lotus flower — Mental Wellness   
+  3. Spanish female, dark curly hair with flour dusting, white apron over red top, joyful smile, wooden spoon — Recipe    
+  Planner                                                                                                                    
+  4. Omani male, neat dark hair, linen shirt with rolled sleeves, adventurous smile, tiny globe in hand — Travel Planner     
+  5. Nigerian female, short natural hair with gold earrings, warm orange blazer, inspiring confident smile, compass — Life   
+  Coach                                                                                                                      
+  6. French female, light brown wavy hair, soft lavender sweater, gentle sweet smile, baby rattle — Baby Name Expert         
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                            
+  ---                                                                                                                        
+  BATCH 11 — Creative & Fun (Part 1)                        
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Chinese-American female, edgy short black hair with red tips, leather jacket, mischievous smirk, tiny flame — Comedy
+  Roast                                                                                                                  
+  2. Indian male, dark wavy hair, purple velvet jacket, mystical dreamy gaze, crescent moon floating — Dream Analyst         
+  3. Mixed-race female, long dark hair with silver streak, black cape collar, dramatic mysterious smile, quill pen — Dark
+  Storyteller                                                                                                                
+  4. Mexican female, long dark hair with celestial hair pins, deep purple shawl, enigmatic smile, crystal ball — Fortune     
+  Teller                                                                                                                     
+  5. Black male, fresh fade with designs, gold chain, black bomber jacket, fierce confident expression, microphone — Rap     
+  Battle                                                                                                                
+  6. Ambiguous ethnicity female, silver-blue short hair, futuristic white jacket, curious amused look, tiny UFO — Alien      
+  Anthropologist                                            
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels.
+                                                                                                                             
+  ---                                                       
+  BATCH 12 — Creative & Fun (Part 2)
+  Character sheet of 6 cute Pixar-style 3D chibi avatars arranged in a 3x2 grid on a pure white background.                  
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 6 characters:                                                                                                          
+  1. Filipino female, dark hair with green highlights, black crop hoodie, playful wink, tiny skull charm — Toxic Trait
+  Analyst                                                                                                             
+  2. Danish male, sandy blonde wavy hair, pastel pink button-up, charming warm smile, tiny heart arrow — Dating Profile      
+  3. Russian female, auburn hair in messy bun, vintage round glasses, storytelling animated expression, film reel — Movie
+  Plot Creator                                                                                                               
+  4. Japanese-Brazilian male, long dark hair tied back, acoustic guitar strap on shoulder, soulful gentle look, music notes —
+   Songwriter                                                                                                                
+  5. Norwegian female, long platinum blonde hair, cozy blue knit sweater, soft dreamy smile, tiny teddy bear — Story Writer  
+  6. German male, sandy messy hair, mischievous raised eyebrows, green hoodie, shifty playful grin, speech bubble — Excuse 
+  Generator                                                                                                                  
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                                                                                             
+  ---                                                       
+  BATCH 13 — Creative & Fun (Part 3) — Final batch                                                                           
+  Character sheet of 4 cute Pixar-style 3D chibi avatars arranged in a 2x2 grid on a pure white background.
+                                                                                                           
+  Each character has super-deformed proportions: oversized round head, tiny body, big expressive eyes with light reflections,
+   unique facial expression matching their personality, flawless smooth 3D skin, soft cinematic studio lighting.             
+                                                                                                                
+  The 4 characters:                                                                                                          
+  1. French female, soft brown waves, white lace blouse, sincere gentle expression, olive branch in hand — Apology Expert
+  2. Italian male, dark curly hair, futuristic silver jacket, visionary hopeful gaze, tiny telescope — Future Self Coach 
+  3. Iranian female, dark hair in sleek ponytail, sharp red blazer, fierce articulate expression, trophy — Debate Champion   
+  4. Swedish male, platinum blonde undercut, black turtleneck, contemplative creative look, headphones on, floating notes —  
+  Music Composer                                                                                                             
+                                                                                                                             
+  All characters same art style, same chibi proportions, same white background. Clean minimalist render, no text, no labels. 
+                                                                                                                             
+  ---                                                       
+  That's all 76 agents across 13 prompts. Paste them into Gemini one at a time, save each image as batch-01.png through      
+  batch-13.png into public/avatars/. Once you have them all, let me know and I'll wire them into the card UI.

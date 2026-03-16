@@ -277,17 +277,18 @@ export default function TodayPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <h2 style={{
-              fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.04em",
-              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+              fontSize: 32, fontWeight: 900, margin: 0, letterSpacing: "-0.04em",
+              background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #FF3399 100%)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
               Agent Studio
             </h2>
             <span style={{
-              fontSize: 10, fontWeight: 700, color: P.indigo,
-              backgroundColor: P.indigoLight, padding: "3px 8px", borderRadius: 20,
+              fontSize: 10, fontWeight: 700, color: "#fff",
+              background: P.purpleGrad, padding: "4px 10px", borderRadius: 20,
               letterSpacing: "0.04em",
+              boxShadow: `0 2px 8px ${P.purple}30`,
             }}>
               {agents.length} AGENTS
             </span>
@@ -302,15 +303,15 @@ export default function TodayPage() {
         {/* Team collaboration — coming soon */}
         <div className="team-badge" style={{
           padding: "10px 16px", borderRadius: 14,
-          background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(124,58,237,0.08))",
-          border: "1px solid rgba(99,102,241,0.12)",
+          background: "linear-gradient(135deg, rgba(139,61,255,0.06), rgba(209,70,239,0.06))",
+          border: "1px solid rgba(139,61,255,0.12)",
           animation: "fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both",
           display: "flex", alignItems: "center", gap: 10,
           cursor: "default",
         }}>
           <div style={{
             width: 28, height: 28, borderRadius: 8,
-            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+            background: "linear-gradient(135deg, #8B3DFF, #D946EF)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 13,
             animation: "floatY 3s ease-in-out infinite",
@@ -327,7 +328,7 @@ export default function TodayPage() {
           </div>
           <span style={{
             fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
-            background: "linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899, #7C3AED, #4F46E5)",
+            background: "linear-gradient(90deg, #8B3DFF, #D946EF, #FF3399, #D946EF, #8B3DFF)",
             backgroundSize: "200% 100%",
             animation: "shimmer 3s linear infinite",
             color: "#fff", letterSpacing: "0.05em",
@@ -442,7 +443,7 @@ export default function TodayPage() {
               <div style={{
                 position: "absolute", right: 0, top: 0, bottom: 8,
                 width: 80, pointerEvents: "none",
-                background: "linear-gradient(to right, transparent, #EBE2FE)",
+                background: "linear-gradient(to right, transparent, #F8F9FC)",
               }} />
               <button
                 onClick={() => {
@@ -484,19 +485,21 @@ export default function TodayPage() {
         className="create-bar"
         onClick={() => { setPreviewAgent(null); setCreateAgentId(null); setShowCreateModal(true); }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12), 0 4px 20px rgba(0,0,0,0.06)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139,61,255,0.15), 0 8px 24px rgba(0,0,0,0.06)";
+          e.currentTarget.style.transform = "translateY(-1px)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = "0 0 0 2px rgba(124,58,237,0.08), 0 1px 4px rgba(0,0,0,0.04)";
+          e.currentTarget.style.boxShadow = P.shadow;
+          e.currentTarget.style.transform = "translateY(0)";
         }}
         style={{
-          marginBottom: 28, padding: "16px 22px", borderRadius: 16,
+          marginBottom: 28, padding: "18px 24px", borderRadius: 16,
           backgroundColor: "#fff",
-          border: "2px solid rgba(124,58,237,0.25)",
+          border: `2px solid ${P.border}`,
           fontSize: 15, color: P.text,
-          cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+          cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           display: "flex", alignItems: "center", gap: 14,
-          boxShadow: "0 0 0 2px rgba(124,58,237,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+          boxShadow: P.shadow,
         }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={P.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -624,16 +627,16 @@ export default function TodayPage() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginTop: 48, marginBottom: 32, padding: "18px 24px",
           borderRadius: 18,
-          background: "linear-gradient(135deg, #6366F108, #8B5CF608)",
+          background: `linear-gradient(135deg, ${P.purple}08, ${P.pink}08)`,
           border: `1.5px solid ${P.border}`,
           textDecoration: "none",
           cursor: "pointer",
           transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "#6366F140";
+          e.currentTarget.style.borderColor = P.purple + "40";
           e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 8px 24px rgba(99,102,241,0.08)";
+          e.currentTarget.style.boxShadow = `0 8px 24px ${P.purple}15`;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = P.border;
@@ -711,7 +714,7 @@ export default function TodayPage() {
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
                 padding: "4px 10px", borderRadius: 6,
-                backgroundColor: P.sidebar, fontSize: 11, color: P.textTer,
+                backgroundColor: P.purpleSoft, fontSize: 11, color: P.purple,
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 marginBottom: 20,
               }}>
@@ -795,7 +798,7 @@ export default function TodayPage() {
             {/* Top gradient accent */}
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 4,
-              background: "linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899)",
+              background: `linear-gradient(90deg, ${P.purple}, #D946EF, ${P.pink})`,
               borderRadius: "24px 24px 0 0",
             }} />
 
@@ -803,12 +806,12 @@ export default function TodayPage() {
             <div style={{
               width: 72, height: 72, borderRadius: 20, margin: "0 auto 20px",
               background: authPrompt === "login"
-                ? "linear-gradient(135deg, #4F46E5, #7C3AED)"
+                ? `linear-gradient(135deg, ${P.purple}, #D946EF)`
                 : "linear-gradient(135deg, #F59E0B, #F97316)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 32,
               boxShadow: authPrompt === "login"
-                ? "0 8px 24px rgba(99,102,241,0.3)"
+                ? `0 8px 24px ${P.purple}4D`
                 : "0 8px 24px rgba(245,158,11,0.3)",
               animation: "floatY 3s ease-in-out infinite",
             }}>
@@ -840,11 +843,11 @@ export default function TodayPage() {
                 display: "inline-flex", alignItems: "center", gap: 8,
                 padding: "14px 32px", borderRadius: 14,
                 background: authPrompt === "login"
-                  ? "linear-gradient(135deg, #4F46E5, #7C3AED)"
+                  ? `linear-gradient(135deg, ${P.purple}, #D946EF)`
                   : "linear-gradient(135deg, #F59E0B, #F97316)",
                 color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none",
                 boxShadow: authPrompt === "login"
-                  ? "0 4px 20px rgba(99,102,241,0.35)"
+                  ? `0 4px 20px ${P.purple}59`
                   : "0 4px 20px rgba(245,158,11,0.35)",
                 transition: "all 0.2s",
               }}
@@ -870,7 +873,7 @@ export default function TodayPage() {
               <div style={{
                 height: "100%",
                 width: `${((10 - authCountdown) / 10) * 100}%`,
-                background: "linear-gradient(90deg, #4F46E5, #7C3AED)",
+                background: `linear-gradient(90deg, ${P.purple}, #D946EF)`,
                 borderRadius: 2,
                 transition: "width 1s linear",
               }} />
