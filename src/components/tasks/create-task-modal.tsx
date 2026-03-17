@@ -540,7 +540,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                         }}
                       >
                         {/* Avatar */}
-                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
+                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} slug={agent.slug} />
                         <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2, marginTop: 8 }}>{agent.name}</div>
                         <div style={{ fontSize: 10, color: P.textTer, lineHeight: 1.3 }}>{reason}</div>
                       </div>
@@ -648,7 +648,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                       )}
 
                       <div style={{ margin: "0 auto 8px" }}>
-                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} />
+                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={52} slug={agent.slug} />
                       </div>
 
                       <div style={{ fontSize: 12, fontWeight: 700, color: P.text, marginBottom: 2 }}>
@@ -812,7 +812,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                           {i + 1}
                         </div>
 
-                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={42} />
+                        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={42} slug={agent.slug} />
 
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{agent.name}</div>

@@ -6,6 +6,7 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP, SPECIALIST_CATEGORY_IDS, isTemplateAgent } from "@/lib/agent-categories";
 import { P, F } from "@/lib/palette";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 
 
 const SPECIALIST_CATEGORIES = AGENT_CATEGORIES.filter(c => SPECIALIST_CATEGORY_IDS.includes(c.id));
@@ -604,17 +605,29 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router, ca
       {/* Card body */}
       <div style={{ padding: "20px 20px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
         {/* Icon area */}
-        <div style={{
-          width: 56, height: 56, borderRadius: 16,
-          background: `linear-gradient(135deg, ${accentColor}12, ${accentColor}06)`,
-          border: `1.5px solid ${accentColor}15`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 32,
-          transition: "all 0.3s ease",
-          animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
-        }}>
-          {agent.icon || ""}
-        </div>
+        {(() => {
+          const av = getAgentAvatar(agent.slug);
+          return av ? (
+            <img src={av} alt="" style={{
+              width: 56, height: 56, borderRadius: 16, objectFit: "cover",
+              border: `1.5px solid ${accentColor}15`,
+              transition: "all 0.3s ease",
+              animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
+            }} />
+          ) : (
+            <div style={{
+              width: 56, height: 56, borderRadius: 16,
+              background: `linear-gradient(135deg, ${accentColor}12, ${accentColor}06)`,
+              border: `1.5px solid ${accentColor}15`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 32,
+              transition: "all 0.3s ease",
+              animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
+            }}>
+              {agent.icon || ""}
+            </div>
+          );
+        })()}
 
         {/* Text content */}
         <div>

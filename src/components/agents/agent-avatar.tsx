@@ -1,12 +1,15 @@
+import { getAgentAvatar } from "@/lib/agent-avatars";
+
 interface AgentAvatarProps {
   icon: string;
   color: string;
   gradient?: string;
   size?: "sm" | "md" | "lg" | number;
   avatarUrl?: string | null;
+  slug?: string;
 }
 
-export function AgentAvatar({ icon, color, gradient, size = "md", avatarUrl }: AgentAvatarProps) {
+export function AgentAvatar({ icon, color, gradient, size = "md", avatarUrl, slug }: AgentAvatarProps) {
   const s = typeof size === "number"
     ? { wh: size, radius: size > 32 ? 14 : 8, fontSize: size * 0.5 }
     : size === "sm"
@@ -15,10 +18,12 @@ export function AgentAvatar({ icon, color, gradient, size = "md", avatarUrl }: A
         ? { wh: 44, radius: 14, fontSize: 22 }
         : { wh: 28, radius: 8, fontSize: 14 };
 
-  if (avatarUrl) {
+  const resolvedUrl = avatarUrl || (slug ? getAgentAvatar(slug) : null);
+
+  if (resolvedUrl) {
     return (
       <img
-        src={avatarUrl}
+        src={resolvedUrl}
         alt=""
         style={{
           width: s.wh,

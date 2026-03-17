@@ -29,6 +29,7 @@ export interface TaskWithAgent extends Task {
   agent: {
     id: string;
     name: string;
+    slug: string;
     icon: string;
     color: string;
     gradient: string;

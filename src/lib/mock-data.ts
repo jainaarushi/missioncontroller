@@ -118,6 +118,7 @@ export function getAgentSummary(id: string) {
   return {
     id: agent.id,
     name: agent.name,
+    slug: agent.slug,
     icon: agent.icon,
     color: agent.color,
     gradient: agent.gradient,
@@ -223,7 +224,7 @@ function seedDemoTasks() {
       sort_order: mockTasks.length,
       priority: dt.priority,
       agent: dt.agent
-        ? { id: dt.agent.id, name: dt.agent.name, icon: dt.agent.icon, color: dt.agent.color, gradient: dt.agent.gradient }
+        ? { id: dt.agent.id, name: dt.agent.name, slug: dt.agent.slug, icon: dt.agent.icon, color: dt.agent.color, gradient: dt.agent.gradient }
         : null,
     };
     mockTasks.push(task);

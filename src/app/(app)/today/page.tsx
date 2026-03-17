@@ -13,6 +13,7 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P, F, FS, FM } from "@/lib/palette";
 import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
 
@@ -169,14 +170,26 @@ function SpecialistCardH({ s, onClick }: {
           <div style={{ position: "absolute", top: 9, right: 11, zIndex: 2 }}>
             <Pill color={s.color1} bg={`${s.color1}22`} size={8}>{s.badge}</Pill>
           </div>
-          <div style={{
-            width: 40, height: 40, borderRadius: 11,
-            background: `linear-gradient(135deg, ${s.color1}, ${s.color2})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20, border: `2.5px solid ${P.bg3}`,
-            position: "absolute", bottom: -16, left: 14,
-            boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
-          }}>{s.emoji}</div>
+          {(() => {
+            const av = getAgentAvatar(s.slug);
+            return av ? (
+              <img src={av} alt="" style={{
+                width: 40, height: 40, borderRadius: 11, objectFit: "cover",
+                border: `2.5px solid ${P.bg3}`,
+                position: "absolute", bottom: -16, left: 14,
+                boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
+              }} />
+            ) : (
+              <div style={{
+                width: 40, height: 40, borderRadius: 11,
+                background: `linear-gradient(135deg, ${s.color1}, ${s.color2})`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 20, border: `2.5px solid ${P.bg3}`,
+                position: "absolute", bottom: -16, left: 14,
+                boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
+              }}>{s.emoji}</div>
+            );
+          })()}
         </div>
 
         <div style={{ padding: "24px 14px 0", position: "relative", zIndex: 1 }}>
@@ -455,7 +468,7 @@ export default function TodayPage() {
       sort_order: 0,
       priority: "normal",
       agent: firstAgent
-        ? { id: firstAgent.id, name: firstAgent.name, icon: firstAgent.icon, color: firstAgent.color, gradient: firstAgent.gradient }
+        ? { id: firstAgent.id, name: firstAgent.name, slug: firstAgent.slug, icon: firstAgent.icon, color: firstAgent.color, gradient: firstAgent.gradient }
         : null,
     };
 

@@ -21,6 +21,7 @@ type CommandItem = {
   icon?: string;
   color?: string;
   gradient?: string;
+  slug?: string;
   href?: string;
   action?: () => void;
 };
@@ -76,6 +77,7 @@ export function CommandPalette({ tasks, agents }: CommandPaletteProps) {
     icon: a.icon,
     color: a.color,
     gradient: a.gradient,
+    slug: a.slug,
     href: "/agents",
   }));
 
@@ -280,6 +282,7 @@ export function CommandPalette({ tasks, agents }: CommandPaletteProps) {
                           color={item.color || ""}
                           gradient={item.gradient}
                           size={24}
+                          slug={item.slug}
                         />
                       ) : (
                         <span style={{ fontSize: 15, width: 24, textAlign: "center" }}>

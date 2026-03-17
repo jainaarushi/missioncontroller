@@ -1,20 +1,10 @@
 // Shared avatar image mapping for all agents
-// 12 chibi character images distributed across all agent slugs
+// 100 specialist character avatars distributed across all agent slugs
 
-const AVATAR_POOL = [
-  "/avatars/batch1-1.png",
-  "/avatars/batch1-2.png",
-  "/avatars/batch1-3.png",
-  "/avatars/batch1-4.png",
-  "/avatars/batch1-5.png",
-  "/avatars/batch1-6.png",
-  "/avatars/batch2-1.png",
-  "/avatars/batch2-2.png",
-  "/avatars/batch2-3.png",
-  "/avatars/batch2-4.png",
-  "/avatars/batch2-5.png",
-  "/avatars/batch2-6.png",
-];
+const AVATAR_POOL: string[] = [];
+for (let i = 1; i <= 100; i++) {
+  AVATAR_POOL.push(`/agents/specialists/avatar-${String(i).padStart(3, "0")}.png`);
+}
 
 // All agent slugs from AGENT_CATEGORY_MAP
 const ALL_SLUGS = [
@@ -58,8 +48,7 @@ const ALL_SLUGS = [
   "freelance-bid-writer", "side-hustle-matcher", "contract-reviewer",
 ];
 
-// Deterministic mapping: each slug gets an avatar based on its position
-// This ensures the same avatar is always shown for the same agent
+// Deterministic mapping: each slug gets a unique avatar (100 avatars for ~59 slugs)
 export const AGENT_AVATAR_MAP: Record<string, string> = {};
 for (let i = 0; i < ALL_SLUGS.length; i++) {
   AGENT_AVATAR_MAP[ALL_SLUGS[i]] = AVATAR_POOL[i % AVATAR_POOL.length];

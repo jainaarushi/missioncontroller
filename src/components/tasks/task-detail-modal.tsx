@@ -610,7 +610,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
                 {agent && (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 10px 3px 3px", borderRadius: 20, backgroundColor: agent.color + "12" }}>
-                    <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
+                    <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} slug={agent.slug} />
                     <span style={{ fontSize: 12.5, fontWeight: 700, color: agent.color }}>{agent.name}</span>
                   </div>
                 )}
@@ -678,7 +678,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <AgentAvatar icon={a.icon} color={a.color} gradient={a.gradient} size={32} />
+                      <AgentAvatar icon={a.icon} color={a.color} gradient={a.gradient} size={32} slug={a.slug} />
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{a.name}</div>
                         <div style={{ fontSize: 11.5, color: P.textTer }}>{a.description}</div>

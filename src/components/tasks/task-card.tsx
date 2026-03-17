@@ -168,7 +168,7 @@ export function TaskCard({
             border: `1px solid ${agent.color}15`,
             transition: "all 0.3s",
           }}>
-            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
+            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} slug={agent.slug} />
             <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 600 }}>{task.current_step || "Working..."}</span>
             <span style={{ display: "inline-flex", gap: 3 }}>
               {[0, 1, 2].map((i) => <span key={i} style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: agent.color, animation: `bounce 1.2s ease-in-out ${i * 0.15}s infinite` }} />)}
@@ -184,7 +184,7 @@ export function TaskCard({
             border: `1px solid ${agent.color}20`,
             transition: "all 0.3s",
           }}>
-            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
+            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} slug={agent.slug} />
             <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 800 }}>Mission complete — debrief ready</span>
             <span style={{ fontSize: 14 }}>→</span>
           </div>
@@ -198,7 +198,7 @@ export function TaskCard({
             border: `1px solid ${agent.color}10`,
             transition: "all 0.3s",
           }}>
-            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} />
+            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={22} slug={agent.slug} />
             <span style={{ fontSize: 12.5, color: agent.color, fontWeight: 600 }}>{agent.name}</span>
           </div>
         )}

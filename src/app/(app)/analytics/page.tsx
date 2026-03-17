@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = agent.color + "40"; e.currentTarget.style.backgroundColor = agent.color + "12"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.bg; }}
               >
-                <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={30} />
+                <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={30} slug={agent.slug} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: P.text }}>{agent.name}</div>
                   <div style={{ fontSize: 11, color: P.textTer }}>

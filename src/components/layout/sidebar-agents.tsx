@@ -37,7 +37,7 @@ export function SidebarAgents({ agents, workingTasks }: SidebarAgentsProps) {
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.025)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size="sm" />
+            <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size="sm" slug={agent.slug} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: P.text }}>{agent.name}</div>
               <div style={{ fontSize: 10.5, color: P.textTer }}>{agent.description}</div>

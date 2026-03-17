@@ -32,7 +32,7 @@ export async function listTasks(
 
   let query = supabase
     .from("tasks")
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .eq("user_id", userId)
     .order("sort_order", { ascending: true });
 
@@ -59,7 +59,7 @@ export async function getTaskById(
 
   const { data: task, error } = await supabase
     .from("tasks")
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .eq("id", taskId)
     .eq("user_id", userId)
     .single();
@@ -102,7 +102,7 @@ export async function createTask(
       section: data.section || "today",
       priority: data.priority || "normal",
     })
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .single();
 
   if (error) throw new Error(error.message);
@@ -126,7 +126,7 @@ export async function updateTaskById(
     .update(data)
     .eq("id", taskId)
     .eq("user_id", userId)
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .single();
 
   if (error) return null;
@@ -192,7 +192,7 @@ export async function assignAgent(
     .update({ agent_id: agentId, status: "todo" })
     .eq("id", taskId)
     .eq("user_id", userId)
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .single();
 
   if (error) return null;
@@ -223,7 +223,7 @@ export async function approveTask(
     })
     .eq("id", taskId)
     .eq("user_id", userId)
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .single();
 
   if (error) return null;
@@ -288,7 +288,7 @@ export async function reviseTask(
     })
     .eq("id", taskId)
     .eq("user_id", userId)
-    .select("*, agent:agents(id, name, icon, color, gradient)")
+    .select("*, agent:agents(id, name, slug, icon, color, gradient)")
     .single();
 
   if (error) return null;

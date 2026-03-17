@@ -21,12 +21,7 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
       )}
     >
       <div className="flex items-start gap-4">
-        <span
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-          style={{ background: agent.gradient }}
-        >
-          {agent.icon}
-        </span>
+        <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={48} slug={agent.slug} />
         <div className="min-w-0 flex-1">
           <h3 className="font-[family-name:var(--font-display)] text-base font-semibold text-ink">
             {agent.name}
