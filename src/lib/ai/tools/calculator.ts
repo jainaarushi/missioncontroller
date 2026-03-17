@@ -8,8 +8,7 @@ const calculatorParams = z.object({
     ),
   label: z
     .string()
-    .optional()
-    .describe("A label for this calculation (e.g., 'Monthly mortgage payment')"),
+    .describe("A label for this calculation (e.g., 'Monthly mortgage payment'). Use empty string if not needed."),
 });
 
 export function createCalculatorTool() {

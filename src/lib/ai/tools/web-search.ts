@@ -4,14 +4,10 @@ const webSearchParams = z.object({
   query: z.string().describe("Search query"),
   search_depth: z
     .enum(["basic", "advanced"])
-    .optional()
-    .default("basic")
-    .describe("basic = fast, advanced = more thorough"),
+    .describe("Search depth: 'basic' for fast results, 'advanced' for more thorough"),
   max_results: z
     .number()
-    .optional()
-    .default(5)
-    .describe("Max results to return (1-10)"),
+    .describe("Max results to return (1-10), use 5 for default"),
 });
 
 export function createWebSearchTool(tavilyApiKey: string) {
@@ -26,8 +22,8 @@ export function createWebSearchTool(tavilyApiKey: string) {
         body: JSON.stringify({
           api_key: tavilyApiKey,
           query,
-          search_depth,
-          max_results: Math.min(max_results, 10),
+          search_depth: search_depth || "basic",
+          max_results: Math.min(max_results || 5, 10),
           include_answer: true,
           include_raw_content: false,
         }),

@@ -4,9 +4,7 @@ const deepResearchParams = z.object({
   topic: z.string().describe("The research topic or question"),
   depth: z
     .number()
-    .optional()
-    .default(2)
-    .describe("Research depth: 1=quick (3 queries), 2=moderate (5 queries), 3=thorough (7 queries)"),
+    .describe("Research depth: 1=quick (3 queries), 2=moderate (5 queries), 3=thorough (7 queries). Use 2 for default."),
 });
 
 export function createDeepResearchTool(tavilyApiKey: string) {
@@ -14,7 +12,8 @@ export function createDeepResearchTool(tavilyApiKey: string) {
     description:
       "Perform deep multi-step web research on a topic. Searches multiple queries from different angles, deduplicates, and compiles sources. Use this for thorough research tasks.",
     parameters: deepResearchParams,
-    execute: async ({ topic, depth }: z.infer<typeof deepResearchParams>) => {
+    execute: async ({ topic, depth: rawDepth }: z.infer<typeof deepResearchParams>) => {
+      const depth = rawDepth || 2;
       const allResults: Array<{ title: string; url: string; content: string }> = [];
 
       const queries = [

@@ -453,12 +453,28 @@ export async function runMultiAgentPipeline(
             coreSystem += `\n\nYou also have access to external MCP tools: ${mcpToolNames}. Use them when relevant to the task.`;
           }
 
-          const result = await generateText({
-            model: aiModel,
-            system: coreSystem,
-            prompt: userMessage,
-            ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
-          });
+          // Try with tools first; if the provider rejects the tool schema (e.g. Gemini),
+          // fall back to a plain generateText call without tools.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let result: any;
+          let usedTools = false;
+          try {
+            result = await generateText({
+              model: aiModel,
+              system: coreSystem,
+              prompt: userMessage,
+              ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
+            });
+            usedTools = hasTools;
+          } catch (toolErr) {
+            // Tool-related failure — retry without tools
+            console.warn(`[Pipeline ${taskId}] generateText with tools failed (${provider}), retrying without tools:`, toolErr instanceof Error ? toolErr.message : toolErr);
+            result = await generateText({
+              model: aiModel,
+              system: coreSystem,
+              prompt: userMessage,
+            });
+          }
 
           const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
           totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
@@ -478,8 +494,8 @@ export async function runMultiAgentPipeline(
             coreText = allTexts.join("\n\n");
           }
 
-          // If STILL no text, collect tool results and make a follow-up synthesis call
-          if (!coreText) {
+          // If STILL no text and we used tools, collect tool results and make a follow-up synthesis call
+          if (!coreText && usedTools) {
             const toolContext: string[] = [];
             try {
               if (result.steps) {
@@ -531,7 +547,7 @@ export async function runMultiAgentPipeline(
           draftOutput = coreText;
           finalOutput = coreText;
 
-          const toolCallCount = result.steps?.reduce((acc, s) => acc + (s.toolCalls?.length || 0), 0) || 0;
+          const toolCallCount = result.steps?.reduce((acc: number, s: { toolCalls?: unknown[] }) => acc + (s.toolCalls?.length || 0), 0) || 0;
           if (toolCallCount > 0) {
             await persistTaskUpdate(userId, taskId, {
               current_step: `[${block.agentName}] ${step.description} (${toolCallCount} tool calls)`,

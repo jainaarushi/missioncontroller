@@ -4,9 +4,7 @@ const duckDuckGoParams = z.object({
   query: z.string().describe("Search query"),
   max_results: z
     .number()
-    .optional()
-    .default(5)
-    .describe("Max results to return (1-10)"),
+    .describe("Max results to return (1-10), defaults to 5 if not specified"),
 });
 
 interface DDGResult {
@@ -25,7 +23,7 @@ export function createDuckDuckGoSearchTool() {
       "Search the web for current information using DuckDuckGo. Free, no API key required. Returns relevant results with snippets.",
     parameters: duckDuckGoParams,
     execute: async ({ query, max_results }: z.infer<typeof duckDuckGoParams>) => {
-      const limit = Math.min(max_results, 10);
+      const limit = Math.min(max_results || 5, 10);
 
       try {
         // Use DuckDuckGo HTML lite — reliable, no JS needed
