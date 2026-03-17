@@ -51,15 +51,20 @@ export async function POST(
   let teamAgentIds: string[] = [];
   let customPipeline: PipelineStep[] | null = null;
   try {
-    const body = await _request.json();
-    if (body.team && Array.isArray(body.team)) {
-      teamAgentIds = body.team;
-    }
-    if (body.customPipeline && Array.isArray(body.customPipeline)) {
-      // Validate: must have at least one core step
-      const hasCore = body.customPipeline.some((s: PipelineStep) => s.isCore || s.isCore2);
-      if (hasCore) {
-        customPipeline = body.customPipeline;
+    const contentType = _request.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const text = await _request.text();
+      if (text && text.trim() !== "" && text.trim() !== "{}") {
+        const body = JSON.parse(text);
+        if (body.team && Array.isArray(body.team)) {
+          teamAgentIds = body.team;
+        }
+        if (body.customPipeline && Array.isArray(body.customPipeline)) {
+          const hasCore = body.customPipeline.some((s: PipelineStep) => s.isCore || s.isCore2);
+          if (hasCore) {
+            customPipeline = body.customPipeline;
+          }
+        }
       }
     }
   } catch {

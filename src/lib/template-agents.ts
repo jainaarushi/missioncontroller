@@ -19,6 +19,8 @@ export interface TemplateRunConfig {
   tagline: string;
   agents: TemplateAgent[];
   quickFills: string[];
+  inputLabel: string;
+  inputPlaceholder: string;
 }
 
 /* ─── Category metadata (shared) ─── */
@@ -519,17 +521,61 @@ export const TEMPLATE_RUNS: Record<string, string> = {
 
 /* ─── Quick-fill suggestions per template category ─── */
 const QUICK_FILLS: Record<string, string[]> = {
-  career: ["Senior React dev, remote London", "Junior Python dev, first job", "Product Manager, Series B startup"],
-  finance_personal: ["Monthly budget for $5k income", "Student loans + credit card debt", "Optimize tax deductions for freelancer"],
-  legal_personal: ["Landlord won't return deposit", "Wrongful parking ticket", "Review standard NDA"],
-  housing: ["2BR apartment, $2k budget, Brooklyn", "Moving from NYC to Austin", "First-time homebuyer checklist"],
-  health_personal: ["Persistent headaches for 2 weeks", "Compare family health plans", "Weekly meal prep, 1800 cal/day"],
-  education: ["STEM scholarships for sophomores", "Study plan for SAT in 3 months", "College essays for engineering"],
-  shopping: ["Best laptop under $1500 for dev", "Return defective AirPods Pro", "Wedding gift, $100 budget"],
-  freelance: ["Freelance web dev proposal", "Calculate hourly rate as designer", "Review client contract"],
-  parenting: ["Biblical boy names, unique", "Best elementary schools in Austin", "Summer STEM camps for 10yo"],
-  travel_events: ["London to Tokyo, cheapest month", "Weekend birthday party for 30", "10-day road trip, California coast"],
-  personal_growth: ["Build morning routine for productivity", "Start daily journaling habit", "Improve networking at events"],
+  career: [
+    "I'm a Senior React/Node.js developer with 5 years experience, looking for remote roles in fintech paying $130-160k. Strong in TypeScript, AWS, and system design.",
+    "Junior Python developer graduating in May, looking for my first role in data engineering or backend development. I know Python, SQL, and basic AWS.",
+    "Product Manager with 3 years at a Series B startup, looking to transition to a larger company. Experience in B2B SaaS, growth, and data-driven product decisions.",
+  ],
+  finance_personal: [
+    "I earn $5,200/month after tax. Rent is $1,800, car payment $350, student loans $280/month. I want to save for a house down payment in 2 years and build an emergency fund.",
+    "I have $18k in student loans at 6.5% and $4k on a credit card at 22% APR. Monthly income is $4,000. I want to be debt-free in 3 years.",
+    "Self-employed freelance designer earning $90k/year. I work from home, have a dedicated office, and need help finding deductions for equipment, software, and health insurance.",
+  ],
+  legal_personal: [
+    "My landlord is keeping my $2,500 security deposit despite no damage to the apartment. I lived there for 2 years in San Francisco. I have move-in and move-out photos.",
+    "I received a wrongful parking ticket for $150 in NYC. My car was legally parked and I have a photo with the street sign showing it was allowed. How do I contest this?",
+    "I need to review a standard NDA from a potential client. It's for a 6-month consulting engagement. I want to make sure the non-compete and IP clauses are reasonable.",
+  ],
+  housing: [
+    "Looking for a 2BR apartment in Brooklyn, budget $2,000-2,500/month. Need laundry in-building, pet-friendly (small dog), and within 30 min commute to Midtown Manhattan.",
+    "Moving from NYC to Austin, TX in 3 months. Family of 3. Need to coordinate selling furniture, hiring movers, and finding a temporary rental.",
+    "First-time homebuyer in Denver, CO. Budget $400-500k. Looking for a 3BR single family home with a yard. Pre-approved for a conventional mortgage at 6.5%.",
+  ],
+  health_personal: [
+    "I've had persistent tension headaches for 2 weeks, usually in the afternoon. I work at a computer 8+ hours a day. No nausea or vision changes. Taking ibuprofen daily.",
+    "Family of 4, comparing health insurance plans for open enrollment. We need good pediatric coverage, mental health benefits, and a reasonable deductible under $3,000.",
+    "I want to meal prep for the week. Target: 1,800 cal/day, high protein (150g+). I'm lactose intolerant and don't eat pork. Budget: $80/week for groceries. Cooking time: 2 hours on Sunday.",
+  ],
+  education: [
+    "Sophomore engineering student at a state university, GPA 3.7. Looking for STEM scholarships for the 2026-27 school year. I have financial need and am first-generation.",
+    "Preparing for the SAT in 3 months. Current practice score: 1200, target: 1400+. Weaker in math (algebra, geometry). Can study 1.5 hours per day on weekdays.",
+    "Writing college application essays for 5 engineering programs (MIT, Stanford, Georgia Tech, Michigan, Purdue). I have a robotics club background and interned at a startup.",
+  ],
+  shopping: [
+    "Looking for the best laptop under $1,500 for software development. Need: 16GB+ RAM, good keyboard, Linux-friendly, 14-inch screen. Current candidates: ThinkPad, MacBook Air, Framework.",
+    "Need to return defective AirPods Pro purchased 3 weeks ago from the Apple Store. Right earbud has crackling noise. I have the receipt and original packaging.",
+    "Finding a wedding gift for $100 budget. Couple is in their late 20s, loves cooking and hiking. They live in a small apartment. Already checked their registry.",
+  ],
+  freelance: [
+    "I'm a freelance web developer bidding on a Next.js e-commerce project. Client budget is $8-12k, timeline is 6 weeks. I specialize in Shopify headless and have 3 similar portfolio pieces.",
+    "Need to calculate my hourly rate as a freelance UX/UI designer. Based in Chicago, 4 years experience, specializing in mobile apps. Currently charging $75/hr but think I'm underpriced.",
+    "Reviewing a client contract for a 3-month design engagement. Fixed fee of $15k with 30/30/40 payment schedule. Concerned about the IP assignment and revision limits clauses.",
+  ],
+  parenting: [
+    "Looking for unique biblical boy names that work well internationally. My partner is French so it needs to sound good in both English and French. Last name is 2 syllables.",
+    "Researching elementary schools in Austin, TX (78704 zip code). Looking for strong STEM programs, diversity, and active parent community. Open to public and charter schools.",
+    "Finding summer STEM camps for my 10-year-old daughter in the Bay Area. She loves coding (Scratch) and robotics. Budget: $500-1000 per week. Preferably 2+ weeks in July.",
+  ],
+  travel_events: [
+    "Planning a trip from London to Tokyo. Flexible on dates within Sept-Oct 2026. 2 travelers, economy class. Willing to do a layover if it saves $200+. We have BA Avios points.",
+    "Planning a 30th birthday party for 30 people. Budget $2,000. Venue: NYC. Theme: casual cocktail. Need venue, catering, and music recommendations for a Saturday evening in April.",
+    "10-day road trip along the California coast, starting from San Francisco to San Diego. 2 adults, 1 dog. Budget: $3,000 including hotels. Want scenic stops, good food, and dog-friendly beaches.",
+  ],
+  personal_growth: [
+    "I want to build a productive morning routine. Currently I wake at 8am and rush to work by 9. I want to wake at 6am and include exercise, reading, and planning. I've failed at this 3 times before.",
+    "Starting a daily journaling practice. I tend to overthink and have anxiety. Looking for guided prompts that help with gratitude, reflection, and goal-setting. Prefer 10-15 min sessions.",
+    "I want to improve my professional networking skills. I'm an introvert software engineer who struggles with small talk at meetups and conferences. I have 3 tech events coming up this month.",
+  ],
 };
 
 /* ─── Taglines per template ─── */
@@ -616,6 +662,43 @@ const TAGLINES: Record<string, string> = {
   "pet-care-advisor": "Research your pet's breed and build a care plan.",
 };
 
+/* ─── Template-specific input labels and placeholders ─── */
+const INPUT_PROMPTS: Record<string, { label: string; placeholder: string }> = {
+  "resume-optimizer": { label: "Paste your resume or describe your experience", placeholder: "Paste your full resume text here, OR describe:\n- Your current role and years of experience\n- Key skills and technologies\n- Target job titles you're applying for\n- Any specific job posting you want to optimize for" },
+  "job-hunter": { label: "Describe what you're looking for", placeholder: "Include:\n- Your skills and experience level (e.g. 5 years React/Node.js)\n- Desired role (e.g. Senior Frontend Engineer)\n- Location preference (e.g. remote, NYC, London)\n- Salary range (e.g. $120-150k)\n- Industry preferences (e.g. fintech, healthtech)" },
+  "auto-applier": { label: "Paste the job posting and your background", placeholder: "Paste the full job description, then add your background:\n- Your current resume summary\n- Key achievements and metrics\n- Why you're interested in this role" },
+  "interview-coach": { label: "Tell us about the interview", placeholder: "Include:\n- Company name and role you're interviewing for\n- Interview stage (phone screen, technical, final round)\n- Your relevant experience for this role\n- Any specific concerns or areas you want help with" },
+  "salary-negotiator": { label: "Describe your negotiation situation", placeholder: "Include:\n- Your current or offered salary\n- Role and company name\n- Years of experience\n- Location\n- Any competing offers\n- What you'd like to negotiate (base, equity, benefits)" },
+  "linkedin-optimizer": { label: "Paste your current LinkedIn profile", placeholder: "Paste your LinkedIn headline, summary, and experience sections.\nOR describe:\n- Your current role and industry\n- Target audience (recruiters, clients, etc.)\n- Key skills to highlight" },
+  "budget-builder": { label: "Describe your financial situation", placeholder: "Include:\n- Monthly income (after tax)\n- Major recurring expenses (rent, utilities, loans)\n- Financial goals (save for house, pay off debt, etc.)\n- Any specific spending categories to track" },
+  "subscription-killer": { label: "List your current subscriptions", placeholder: "List all your subscriptions with monthly costs:\n- Streaming (Netflix, Spotify, etc.)\n- Software (Adobe, Microsoft, etc.)\n- Memberships (gym, clubs, etc.)\n- Any other recurring charges\n\nNote which ones you use regularly vs. rarely." },
+  "tax-deduction-finder": { label: "Describe your tax situation", placeholder: "Include:\n- Employment type (W-2, 1099, self-employed)\n- Industry/profession\n- Major expenses (home office, education, medical)\n- Filing status (single, married, etc.)\n- Any significant life changes this year" },
+  "lease-reviewer": { label: "Paste your lease agreement", placeholder: "Paste the full lease text or key sections you're concerned about.\nInclude:\n- Type of property (apartment, house, commercial)\n- Lease duration and monthly rent\n- Any specific clauses that worry you" },
+  "dispute-fighter": { label: "Describe your dispute", placeholder: "Include:\n- What company/entity the dispute is with\n- What happened (timeline of events)\n- Amount in dispute\n- What resolution you want\n- Any evidence or documentation you have" },
+  "medical-bill-auditor": { label: "Describe your medical bills", placeholder: "Include:\n- Total amount billed\n- Type of procedure/visit\n- Insurance coverage status\n- Any specific charges that seem too high\n- Your insurance provider and plan type" },
+  "meal-prep-planner": { label: "Describe your meal planning needs", placeholder: "Include:\n- Daily calorie target\n- Dietary restrictions (vegetarian, gluten-free, etc.)\n- Budget per week for groceries\n- Number of people eating\n- Cooking skill level and available time\n- Foods you love or hate" },
+  "study-plan-maker": { label: "Describe what you're studying", placeholder: "Include:\n- Subject or exam you're preparing for\n- Current knowledge level\n- Target date (exam date, deadline)\n- Hours available per day/week\n- Learning style preferences\n- Specific topics or chapters to cover" },
+  "apartment-scout": { label: "Describe what you're looking for", placeholder: "Include:\n- City/neighborhood preferences\n- Budget range (monthly rent)\n- Number of bedrooms/bathrooms\n- Must-haves (parking, laundry, pets, etc.)\n- Commute requirements\n- Move-in timeline" },
+  "wedding-planner": { label: "Describe your wedding", placeholder: "Include:\n- Approximate date and location\n- Guest count\n- Total budget\n- Style/theme preferences\n- Must-have elements (live band, outdoor, etc.)\n- What's already booked vs. still needed" },
+  "flight-deal-hunter": { label: "Describe your travel plans", placeholder: "Include:\n- Origin and destination cities\n- Flexible dates or specific dates\n- Number of travelers\n- Class preference (economy, business)\n- Budget limit\n- Any airline preferences or loyalty programs" },
+  "contract-reviewer": { label: "Paste the contract", placeholder: "Paste the full contract text or key sections.\nInclude:\n- Type of contract (freelance, employment, NDA, etc.)\n- Your role (are you the contractor or client?)\n- Any specific terms that concern you" },
+  "dating-profile": { label: "Describe yourself and what you're looking for", placeholder: "Include:\n- Which platform (Tinder, Hinge, Bumble, etc.)\n- Your age, location, profession\n- Hobbies and interests\n- What you're looking for (casual, serious, etc.)\n- Paste your current bio if you have one\n- What makes you unique" },
+};
+
+const CATEGORY_INPUT_PROMPTS: Record<string, { label: string; placeholder: string }> = {
+  career: { label: "Describe your career situation", placeholder: "Include your current role, years of experience, skills, and what you're looking for. The more detail you provide, the better the results." },
+  finance_personal: { label: "Describe your financial situation", placeholder: "Include relevant financial details like income, expenses, debts, and your goals. Be specific about amounts and timelines." },
+  legal_personal: { label: "Describe your legal situation", placeholder: "Include what happened, who's involved, relevant dates, amounts, and what outcome you want. The more context you provide, the better." },
+  housing: { label: "Describe your housing needs", placeholder: "Include location, budget, size requirements, must-haves, and timeline. The more specific you are, the better the recommendations." },
+  health_personal: { label: "Describe your health goals", placeholder: "Include relevant health details, goals, constraints, and preferences. Be as specific as possible for personalized advice." },
+  education: { label: "Describe your learning goals", placeholder: "Include what you're studying, your current level, timeline, and specific goals. The more detail, the better the plan." },
+  shopping: { label: "Describe what you need", placeholder: "Include the product/item, your budget, must-have features, and any preferences. Be specific about requirements." },
+  freelance: { label: "Describe your freelance situation", placeholder: "Include your skills, the project/client details, rates, and what you need help with. Be specific." },
+  parenting: { label: "Describe your family situation", placeholder: "Include your children's ages, location, budget, and specific needs or preferences." },
+  travel_events: { label: "Describe your plans", placeholder: "Include dates, destination, budget, number of people, and any specific requirements or preferences." },
+  personal_growth: { label: "Describe your goals", placeholder: "Include what you want to improve, your current habits, available time, and what's worked or hasn't worked before." },
+};
+
 /* ─── Helper: get category for a slug ─── */
 export function getTemplateCategory(slug: string): string {
   for (const cat of TEMPLATE_CATEGORIES) {
@@ -690,6 +773,7 @@ export function getTemplateRunConfig(slug: string): TemplateRunConfig {
 
   const quickFills = QUICK_FILLS[catId] || QUICK_FILLS.career;
   const tagline = TAGLINES[slug] || "Describe your task and let the agent pipeline handle the rest.";
+  const inputPrompt = INPUT_PROMPTS[slug] || CATEGORY_INPUT_PROMPTS[catId] || { label: "Describe your task in detail", placeholder: "The more detail you provide, the better the results. Include relevant context, goals, constraints, and preferences." };
 
   return {
     estimatedTime: "45s",
@@ -697,5 +781,7 @@ export function getTemplateRunConfig(slug: string): TemplateRunConfig {
     tagline,
     agents,
     quickFills,
+    inputLabel: inputPrompt.label,
+    inputPlaceholder: inputPrompt.placeholder,
   };
 }

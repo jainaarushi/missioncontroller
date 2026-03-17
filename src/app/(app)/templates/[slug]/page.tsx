@@ -136,6 +136,7 @@ export default function TemplateRunPage() {
   const [authPrompt, setAuthPrompt] = useState<"login" | "apikey" | null>(null);
   const [authCountdown, setAuthCountdown] = useState(10);
   const [isStarting, setIsStarting] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Poll task while running (keep polling briefly after done to get final step states)
@@ -198,6 +199,7 @@ export default function TemplateRunPage() {
   const handleRun = useCallback(async () => {
     if (!taskInput.trim() || !agent || isStarting) return;
     setIsStarting(true);
+    setRunError(null);
 
     try {
       // 1. Create task
@@ -205,7 +207,7 @@ export default function TemplateRunPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: taskInput.slice(0, 120),
+          title: `[${agent.name}] ${taskInput.slice(0, 100)}`,
           description: taskInput,
           section: "today",
         }),
@@ -213,6 +215,7 @@ export default function TemplateRunPage() {
 
       if (!createRes.ok) {
         if (createRes.status === 401) { setAuthPrompt("login"); return; }
+        setRunError("Failed to create task. Please try again.");
         return;
       }
 
@@ -227,23 +230,30 @@ export default function TemplateRunPage() {
       });
       if (!assignRes.ok) {
         if (assignRes.status === 401) { setAuthPrompt("login"); return; }
+        setRunError("Failed to assign agent. Please try again.");
         return;
       }
 
-      // 3. Start execution — await to ensure steps are created before polling
-      const runRes = await fetch(`/api/tasks/${data.id}/run`, { method: "POST" });
+      // 3. Start execution — send empty JSON body to avoid .json() parse errors
+      const runRes = await fetch(`/api/tasks/${data.id}/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       if (!runRes.ok) {
         if (runRes.status === 401) { setAuthPrompt("login"); return; }
         if (runRes.status === 402) { setAuthPrompt("apikey"); return; }
-        // Other errors (400, 429, 500) — set to running so polling picks up failed status
+        const errBody = await runRes.json().catch(() => null);
+        setRunError(errBody?.error || `Pipeline failed to start (${runRes.status}). Check your API key in Settings.`);
+        return;
       }
 
       // 4. NOW set running phase — steps exist on the backend
       setPhase("running");
       setElapsed(0);
       setSelectedAgentId(config.agents[0]?.id || null);
-    } catch {
-      // Network error
+    } catch (err) {
+      setRunError(`Network error: ${err instanceof Error ? err.message : "Could not reach server"}`);
     } finally {
       setIsStarting(false);
     }
@@ -345,12 +355,12 @@ export default function TemplateRunPage() {
           {/* Task input card */}
           <div style={{ background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 18, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
             <div style={{ padding: "24px 28px 20px" }}>
-              <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>What&apos;s your task?</div>
+              <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{config.inputLabel}</div>
               <div style={{ fontSize: 12.5, color: P.textSec, marginBottom: 20, lineHeight: 1.6 }}>{config.tagline}</div>
               <textarea
                 value={taskInput}
                 onChange={e => setTaskInput(e.target.value)}
-                rows={5}
+                rows={8}
                 style={{
                   width: "100%", background: P.bg3, border: `1px solid ${P.border}`,
                   borderRadius: 12, padding: "14px 16px", color: P.text, fontFamily: F,
@@ -359,30 +369,36 @@ export default function TemplateRunPage() {
                 }}
                 onFocus={e => e.target.style.borderColor = P.violet + "88"}
                 onBlur={e => e.target.style.borderColor = P.border}
-                placeholder="Describe your background, preferences, and goals..."
+                placeholder={config.inputPlaceholder}
               />
+              {runError && (
+                <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", fontSize: 12, color: "#ef4444", lineHeight: 1.6 }}>
+                  {runError}
+                </div>
+              )}
             </div>
 
             {/* Quick fills */}
             <div style={{ padding: "0 28px 20px" }}>
-              <div style={{ fontSize: 10, color: P.textTer, marginBottom: 8 }}>Quick fill &#8594;</div>
+              <div style={{ fontSize: 10, color: P.textTer, marginBottom: 8 }}>Try an example &#8594;</div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {config.quickFills.map(s => (
-                  <button key={s} onClick={() => setTaskInput(s)} style={{
-                    fontSize: 11, padding: "4px 12px", borderRadius: 100,
+                {config.quickFills.map((s, i) => (
+                  <button key={i} onClick={() => setTaskInput(s)} style={{
+                    fontSize: 11, padding: "5px 12px", borderRadius: 100,
                     background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec,
                     cursor: "pointer", fontFamily: F, transition: "all 0.15s",
+                    maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = `${P.violet}18`; e.currentTarget.style.borderColor = `${P.violet}55`; e.currentTarget.style.color = P.violet2; }}
                   onMouseLeave={e => { e.currentTarget.style.background = P.bg4; e.currentTarget.style.borderColor = P.border2; e.currentTarget.style.color = P.textSec; }}>
-                    {s}
+                    {s.length > 40 ? s.slice(0, 40) + "..." : s}
                   </button>
                 ))}
               </div>
             </div>
 
             <div style={{ padding: "16px 28px", background: P.bg3, borderTop: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontSize: 11, color: P.textSec }}>Using your Claude API key &middot; Results in ~{config.estimatedTime}</div>
+              <div style={{ fontSize: 11, color: P.textSec }}>Using your API key &middot; Results in ~{config.estimatedTime}</div>
               <button onClick={handleRun} disabled={!taskInput.trim() || isStarting}
                 style={{
                   display: "flex", alignItems: "center", gap: 9, padding: "11px 24px", borderRadius: 11,
