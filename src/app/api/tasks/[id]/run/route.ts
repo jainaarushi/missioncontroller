@@ -481,37 +481,46 @@ export async function runMultiAgentPipeline(
           // If STILL no text, collect tool results and make a follow-up synthesis call
           if (!coreText) {
             const toolContext: string[] = [];
-            if (result.steps) {
-              for (const s of result.steps) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const calls = (s as any).toolCalls || [];
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const results = (s as any).toolResults || [];
-                for (const tc of calls) {
-                  toolContext.push(`[Tool: ${tc.toolName}] Args: ${JSON.stringify(tc.args).slice(0, 500)}`);
-                }
-                for (const tr of results) {
-                  const output = typeof tr.output === "string" ? tr.output : JSON.stringify(tr.output);
-                  toolContext.push(`[Result from ${tr.toolName}]: ${output.slice(0, 2000)}`);
+            try {
+              if (result.steps) {
+                for (const s of result.steps) {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const calls = (s as any).toolCalls || [];
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const results = (s as any).toolResults || [];
+                  for (const tc of calls) {
+                    const name = tc?.toolName || "unknown";
+                    const args = tc?.args ? JSON.stringify(tc.args) : "{}";
+                    toolContext.push(`[Tool: ${name}] Args: ${args.slice(0, 500)}`);
+                  }
+                  for (const tr of results) {
+                    const name = tr?.toolName || "unknown";
+                    const raw = tr?.output ?? tr?.result ?? "";
+                    const output = typeof raw === "string" ? raw : JSON.stringify(raw || "");
+                    toolContext.push(`[Result from ${name}]: ${output.slice(0, 2000)}`);
+                  }
                 }
               }
+            } catch (extractErr) {
+              console.error("Error extracting tool results for synthesis:", extractErr);
             }
 
-            if (toolContext.length > 0) {
-              // Make a follow-up call without tools to synthesize the research
-              await persistTaskUpdate(userId, taskId, {
-                current_step: `[${block.agentName}] Synthesizing research findings...`,
-              });
-              const synthesisResult = await generateText({
-                model: aiModel,
-                system: coreSystem,
-                prompt: `${userMessage}\n\nHere is what was found during research:\n\n${toolContext.join("\n\n")}\n\nBased on all the research above, provide a comprehensive, well-structured response to the original task. Use markdown formatting with headers and bullet points.`,
-              });
-              coreText = synthesisResult.text || "";
-              const sUsage = synthesisResult.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
-              totalTokensIn += sUsage?.inputTokens || sUsage?.promptTokens || 0;
-              totalTokensOut += sUsage?.outputTokens || sUsage?.completionTokens || 0;
-            }
+            // Make a follow-up call without tools to synthesize a response
+            await persistTaskUpdate(userId, taskId, {
+              current_step: `[${block.agentName}] Synthesizing response...`,
+            });
+            const synthesisPrompt = toolContext.length > 0
+              ? `${userMessage}\n\nHere is what was found during research:\n\n${toolContext.join("\n\n")}\n\nBased on all the research above, provide a comprehensive, well-structured response to the original task. Use markdown formatting with headers and bullet points.`
+              : userMessage;
+            const synthesisResult = await generateText({
+              model: aiModel,
+              system: coreSystem,
+              prompt: synthesisPrompt,
+            });
+            coreText = synthesisResult.text || "";
+            const sUsage = synthesisResult.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+            totalTokensIn += sUsage?.inputTokens || sUsage?.promptTokens || 0;
+            totalTokensOut += sUsage?.outputTokens || sUsage?.completionTokens || 0;
           }
 
           // Last resort: if no text at all, note this
