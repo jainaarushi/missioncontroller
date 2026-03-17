@@ -460,23 +460,67 @@ export async function runMultiAgentPipeline(
             ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
           });
 
-          // result.text can be empty when the model's last step was a tool call.
-          // Extract text from intermediate steps as fallback.
+          const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+          totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
+          totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
+
+          // In AI SDK v6, result.text is from the FINAL step only.
+          // When tools are used and the model ends on a tool call, text is empty.
+          // Collect text from all steps, then fall back to a synthesis call.
           let coreText = result.text || "";
+
+          // Try extracting text from all intermediate steps
           if (!coreText && result.steps && result.steps.length > 0) {
-            const stepTexts: string[] = [];
+            const allTexts: string[] = [];
             for (const s of result.steps) {
-              if (s.text) stepTexts.push(s.text);
+              if (s.text) allTexts.push(s.text);
             }
-            coreText = stepTexts.join("\n\n");
+            coreText = allTexts.join("\n\n");
+          }
+
+          // If STILL no text, collect tool results and make a follow-up synthesis call
+          if (!coreText) {
+            const toolContext: string[] = [];
+            if (result.steps) {
+              for (const s of result.steps) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const calls = (s as any).toolCalls || [];
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const results = (s as any).toolResults || [];
+                for (const tc of calls) {
+                  toolContext.push(`[Tool: ${tc.toolName}] Args: ${JSON.stringify(tc.args).slice(0, 500)}`);
+                }
+                for (const tr of results) {
+                  const output = typeof tr.output === "string" ? tr.output : JSON.stringify(tr.output);
+                  toolContext.push(`[Result from ${tr.toolName}]: ${output.slice(0, 2000)}`);
+                }
+              }
+            }
+
+            if (toolContext.length > 0) {
+              // Make a follow-up call without tools to synthesize the research
+              await persistTaskUpdate(userId, taskId, {
+                current_step: `[${block.agentName}] Synthesizing research findings...`,
+              });
+              const synthesisResult = await generateText({
+                model: aiModel,
+                system: coreSystem,
+                prompt: `${userMessage}\n\nHere is what was found during research:\n\n${toolContext.join("\n\n")}\n\nBased on all the research above, provide a comprehensive, well-structured response to the original task. Use markdown formatting with headers and bullet points.`,
+              });
+              coreText = synthesisResult.text || "";
+              const sUsage = synthesisResult.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
+              totalTokensIn += sUsage?.inputTokens || sUsage?.promptTokens || 0;
+              totalTokensOut += sUsage?.outputTokens || sUsage?.completionTokens || 0;
+            }
+          }
+
+          // Last resort: if no text at all, note this
+          if (!coreText) {
+            coreText = `*The AI model processed your request but did not produce text output. This may happen with certain tool configurations. Please try running again.*`;
           }
 
           draftOutput = coreText;
           finalOutput = coreText;
-
-          const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
-          totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
-          totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
 
           const toolCallCount = result.steps?.reduce((acc, s) => acc + (s.toolCalls?.length || 0), 0) || 0;
           if (toolCallCount > 0) {
@@ -541,10 +585,13 @@ export async function runMultiAgentPipeline(
     const cost = calculateCost(totalTokensIn, totalTokensOut, modelId);
     const duration = Math.round((Date.now() - startTime) / 1000);
 
+    // Debug: log output length and step outputs
+    console.log(`[Pipeline ${taskId}] Done. finalOutput length: ${finalOutput.length}, tokens: ${totalTokensIn}+${totalTokensOut}, steps with output: ${steps.filter(s => s.output).length}/${steps.length}`);
+
     await persistTaskUpdate(userId, taskId, {
       status: "review",
       progress: 100,
-      output: finalOutput,
+      output: finalOutput || "No output was generated. Please try running this template again.",
       cost_usd: cost,
       tokens_in: totalTokensIn,
       tokens_out: totalTokensOut,
