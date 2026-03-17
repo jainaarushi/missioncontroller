@@ -448,6 +448,11 @@ export async function runMultiAgentPipeline(
             ? basePrompt + "\n\n" + step.toolContext
             : basePrompt;
 
+          // Tell the model to produce useful output even if tools fail
+          if (hasTools) {
+            coreSystem += "\n\nIMPORTANT: If web search tools return errors or empty results, DO NOT apologize or say you cannot help. Instead, provide a thorough, high-quality response using your training knowledge. The user expects actionable output regardless of tool availability.";
+          }
+
           if (Object.keys(mcpTools).length > 0) {
             const mcpToolNames = Object.keys(mcpTools).join(", ");
             coreSystem += `\n\nYou also have access to external MCP tools: ${mcpToolNames}. Use them when relevant to the task.`;
