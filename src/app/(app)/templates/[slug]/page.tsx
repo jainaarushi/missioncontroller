@@ -138,10 +138,10 @@ export default function TemplateRunPage() {
   const [isStarting, setIsStarting] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Poll task while running
+  // Poll task while running (keep polling briefly after done to get final step states)
   const { task } = useTask(
     phase !== "input" ? taskId : null,
-    { refreshInterval: phase === "running" ? 1500 : 0 }
+    { refreshInterval: phase === "running" ? 1500 : phase === "done" ? 2000 : 0 }
   );
 
   // Derive agent statuses from task steps
@@ -149,6 +149,8 @@ export default function TemplateRunPage() {
   const agentStatuses = config.agents.map(a => deriveAgentStatus(a, steps));
   const allDone = agentStatuses.length > 0 && agentStatuses.every(s => s === "done");
   const doneCount = agentStatuses.filter(s => s === "done").length;
+  // taskDone is based on the actual task status from the API — more reliable than allDone
+  const taskDone = phase === "done" && task != null && (task.status === "review" || task.status === "done" || task.status === "failed");
   const agentStatusKey = agentStatuses.join(",");
 
   // Auto-select running agent
@@ -247,9 +249,12 @@ export default function TemplateRunPage() {
     }
   }, [taskInput, agent, config.agents, isStarting]);
 
+  const [copied, setCopied] = useState(false);
   const handleExport = useCallback(() => {
     if (task?.output) {
       navigator.clipboard.writeText(task.output);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   }, [task]);
 
@@ -416,7 +421,7 @@ export default function TemplateRunPage() {
         <div style={{ flex: 1, maxWidth: 300, marginLeft: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
             <span style={{ fontSize: 10, color: P.textSec }}>
-              {allDone ? "Complete" : `Step ${doneCount + 1} of ${config.agents.length}`}
+              {taskDone ? "Complete" : `Step ${doneCount + 1} of ${config.agents.length}`}
             </span>
             <span style={{ fontSize: 10, color: P.textSec }}>
               {task ? `${task.progress}%` : `${Math.round((doneCount / config.agents.length) * 100)}%`}
@@ -425,7 +430,7 @@ export default function TemplateRunPage() {
           <div style={{ height: 3, background: P.bg4, borderRadius: 100, overflow: "hidden" }}>
             <div style={{
               height: "100%",
-              background: allDone ? P.lime : `linear-gradient(90deg, ${P.violet}, ${P.lime})`,
+              background: taskDone ? P.lime : `linear-gradient(90deg, ${P.violet}, ${P.lime})`,
               borderRadius: 100,
               width: task ? `${task.progress}%` : `${(doneCount / config.agents.length) * 100}%`,
               transition: "width 0.6s ease",
@@ -442,9 +447,9 @@ export default function TemplateRunPage() {
             tokensIn={task?.tokens_in || 0}
             tokensOut={task?.tokens_out || 0}
           />
-          {allDone && (
-            <button onClick={handleExport} style={{ padding: "7px 16px", borderRadius: 9, background: P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F }}>
-              Export Results &#8599;
+          {taskDone && task?.status !== "failed" && (
+            <button onClick={handleExport} style={{ padding: "7px 16px", borderRadius: 9, background: copied ? P.green : P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F, transition: "background 0.2s" }}>
+              {copied ? "\u2713 Copied!" : "Export Results \u2197"}
             </button>
           )}
         </div>
@@ -467,7 +472,7 @@ export default function TemplateRunPage() {
             />
           ))}
 
-          {allDone && (
+          {taskDone && task?.status !== "failed" && (
             <div style={{ marginTop: 20, padding: "14px 16px", background: `${P.lime}0c`, border: `1px solid ${P.lime}33`, borderRadius: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: P.lime, marginBottom: 3 }}>All done!</div>
               <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.6 }}>
@@ -517,7 +522,7 @@ export default function TemplateRunPage() {
 
               {/* Output area */}
               <div style={{ flex: 1, overflowY: "auto", padding: "22px" }}>
-                {currentAgentStatus === "idle" ? (
+                {currentAgentStatus === "idle" && !taskDone ? (
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, opacity: 0.4 }}>
                     <div style={{ fontSize: 36 }}>{currentAgent.icon}</div>
                     <div style={{ fontSize: 13, color: P.textTer, fontFamily: F }}>Waiting to start...</div>
@@ -536,7 +541,7 @@ export default function TemplateRunPage() {
                       >
                         <ReactMarkdown>{currentAgentOutput}</ReactMarkdown>
                       </div>
-                    ) : phase === "done" && task?.output ? (
+                    ) : task?.output ? (
                       <div
                         className="prose prose-invert prose-sm max-w-none"
                         style={{
@@ -584,7 +589,7 @@ export default function TemplateRunPage() {
             <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.08em", color: P.textTer, marginBottom: 12 }}>Live Log</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {config.agents.map((a, i) => {
-                const status = agentStatuses[i];
+                const status = taskDone ? "done" : agentStatuses[i];
                 if (status === "idle") return null;
                 return (
                   <div key={a.id} style={{ padding: "8px 10px", background: P.bg3, borderRadius: 8, border: `1px solid ${status === "running" ? a.color + "44" : P.border}` }}>
@@ -605,14 +610,16 @@ export default function TemplateRunPage() {
           </div>
 
           {/* Bottom - done actions */}
-          {allDone && (
+          {taskDone && (
             <div style={{ padding: "14px 16px", borderTop: `1px solid ${P.border}`, display: "flex", flexDirection: "column", gap: 8 }}>
               <button onClick={handleRunAgain} style={{ padding: "9px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
                 &#8634; Run Again
               </button>
-              <button onClick={handleExport} style={{ padding: "9px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
-                &#8599; Export Results
-              </button>
+              {task?.status !== "failed" && (
+                <button onClick={handleExport} style={{ padding: "9px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
+                  &#8599; Export Results
+                </button>
+              )}
             </div>
           )}
         </div>
