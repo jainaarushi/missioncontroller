@@ -264,13 +264,17 @@ export default function TemplateRunPage() {
   }, [taskInput, agent, config.agents, isStarting]);
 
   const [copied, setCopied] = useState(false);
+  // Collect all available output: task.output first, then per-step outputs as fallback
+  const exportableOutput = task?.output
+    || steps.map(s => s.output).filter(Boolean).join("\n\n")
+    || "";
   const handleExport = useCallback(() => {
-    if (task?.output) {
-      navigator.clipboard.writeText(task.output);
+    if (exportableOutput) {
+      navigator.clipboard.writeText(exportableOutput);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  }, [task]);
+  }, [exportableOutput]);
 
   const handleRunAgain = useCallback(() => {
     setPhase("input");
@@ -282,13 +286,14 @@ export default function TemplateRunPage() {
   const currentAgentIdx = currentAgent ? config.agents.indexOf(currentAgent) : -1;
   const currentAgentStatus = currentAgentIdx >= 0 ? agentStatuses[currentAgentIdx] : "idle";
 
-  // Get output for the current agent's steps
-  const currentAgentOutput = currentAgent
+  // Get output for the current agent's steps, falling back to task.output when done
+  const perStepOutput = currentAgent
     ? currentAgent.stepIndices
         .map(i => steps[i]?.output)
         .filter(Boolean)
         .join("\n\n")
     : "";
+  const currentAgentOutput = perStepOutput || (taskDone ? (task?.output || "") : "");
 
   const templateName = agent?.name || slug.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
   const templateIcon = agent?.icon || pipeline[0]?.icon || "🤖";
@@ -555,23 +560,23 @@ export default function TemplateRunPage() {
                         style={{
                           animation: "tpl-fadeUp 0.4s ease both",
                           padding: "16px 18px", background: P.bg3, borderRadius: 12,
-                          border: `1px solid ${P.border}`,
+                          border: `1px solid ${task?.status === "failed" ? "rgba(239,68,68,0.3)" : P.border}`,
                           fontSize: 12.5, lineHeight: 1.7, color: P.textSec,
                         }}
                       >
                         <ReactMarkdown>{currentAgentOutput}</ReactMarkdown>
                       </div>
-                    ) : task?.output ? (
-                      <div
-                        className="prose prose-invert prose-sm max-w-none"
-                        style={{
-                          animation: "tpl-fadeUp 0.4s ease both",
-                          padding: "16px 18px", background: P.bg3, borderRadius: 12,
-                          border: `1px solid ${task.status === "failed" ? "rgba(239,68,68,0.3)" : P.border}`,
-                          fontSize: 12.5, lineHeight: 1.7, color: P.textSec,
-                        }}
-                      >
-                        <ReactMarkdown>{task.output}</ReactMarkdown>
+                    ) : taskDone ? (
+                      <div style={{
+                        padding: "20px", background: P.bg3, borderRadius: 12,
+                        border: `1px solid ${P.border}`, textAlign: "center",
+                      }}>
+                        <div style={{ fontSize: 13, color: P.textSec, marginBottom: 8 }}>
+                          Pipeline completed. Output is loading...
+                        </div>
+                        <div style={{ fontSize: 11, color: P.textTer }}>
+                          If output doesn&apos;t appear, try clicking &quot;Run Again&quot;.
+                        </div>
                       </div>
                     ) : null}
                     {currentAgentStatus === "running" && (

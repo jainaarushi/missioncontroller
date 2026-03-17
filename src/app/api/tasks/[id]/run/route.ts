@@ -460,8 +460,19 @@ export async function runMultiAgentPipeline(
             ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
           });
 
-          draftOutput = result.text;
-          finalOutput = result.text;
+          // result.text can be empty when the model's last step was a tool call.
+          // Extract text from intermediate steps as fallback.
+          let coreText = result.text || "";
+          if (!coreText && result.steps && result.steps.length > 0) {
+            const stepTexts: string[] = [];
+            for (const s of result.steps) {
+              if (s.text) stepTexts.push(s.text);
+            }
+            coreText = stepTexts.join("\n\n");
+          }
+
+          draftOutput = coreText;
+          finalOutput = coreText;
 
           const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
           totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
@@ -477,10 +488,12 @@ export async function runMultiAgentPipeline(
           steps[globalStepIdx].status = "done";
           steps[globalStepIdx].completed_at = new Date().toISOString();
           steps[globalStepIdx].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
-          steps[globalStepIdx].output = result.text;
+          steps[globalStepIdx].output = coreText;
 
-        } else if (step.isCore2 && draftOutput) {
-          const refinePrompt = (step.core2Prompt || "Improve and polish this output:\n\n") + draftOutput;
+        } else if (step.isCore2) {
+          // Use draftOutput from isCore, or fall back to the original task description
+          const contextForRefine = draftOutput || description || title;
+          const refinePrompt = (step.core2Prompt || "Improve and polish this output:\n\n") + contextForRefine;
           const core2System = step.specialistSlug
             ? (getSpecialistPrompt(step.specialistSlug) || blockSystemPrompt)
             : blockSystemPrompt;
@@ -491,7 +504,8 @@ export async function runMultiAgentPipeline(
             prompt: refinePrompt,
           });
 
-          finalOutput = result.text;
+          const core2Text = result.text || draftOutput || "";
+          finalOutput = core2Text;
           const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
           totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
           totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
@@ -499,7 +513,7 @@ export async function runMultiAgentPipeline(
           steps[globalStepIdx].status = "done";
           steps[globalStepIdx].completed_at = new Date().toISOString();
           steps[globalStepIdx].tokens_used = (usage?.inputTokens || usage?.promptTokens || 0) + (usage?.outputTokens || usage?.completionTokens || 0);
-          steps[globalStepIdx].output = result.text;
+          steps[globalStepIdx].output = core2Text;
 
         } else {
           await delay(step.duration);
