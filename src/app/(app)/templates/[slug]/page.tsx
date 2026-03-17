@@ -135,10 +135,11 @@ export default function TemplateRunPage() {
   const [elapsed, setElapsed] = useState(0);
   const [authPrompt, setAuthPrompt] = useState<"login" | "apikey" | null>(null);
   const [authCountdown, setAuthCountdown] = useState(10);
+  const [isStarting, setIsStarting] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Poll task while running
-  const { task, mutate: mutateTask } = useTask(
+  const { task } = useTask(
     phase !== "input" ? taskId : null,
     { refreshInterval: phase === "running" ? 1500 : 0 }
   );
@@ -148,6 +149,7 @@ export default function TemplateRunPage() {
   const agentStatuses = config.agents.map(a => deriveAgentStatus(a, steps));
   const allDone = agentStatuses.length > 0 && agentStatuses.every(s => s === "done");
   const doneCount = agentStatuses.filter(s => s === "done").length;
+  const agentStatusKey = agentStatuses.join(",");
 
   // Auto-select running agent
   useEffect(() => {
@@ -155,7 +157,8 @@ export default function TemplateRunPage() {
     if (runningIdx !== -1) {
       setSelectedAgentId(config.agents[runningIdx].id);
     }
-  }, [agentStatuses, config.agents]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentStatusKey]);
 
   // Switch to done phase (including failed)
   useEffect(() => {
@@ -191,16 +194,16 @@ export default function TemplateRunPage() {
   }, [authPrompt, router]);
 
   const handleRun = useCallback(async () => {
-    if (!taskInput.trim() || !agent) return;
+    if (!taskInput.trim() || !agent || isStarting) return;
+    setIsStarting(true);
 
     try {
-      // Create task
+      // 1. Create task
       const createRes = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: taskInput.slice(0, 120),
-          agent_ids: [agent.id],
           description: taskInput,
           section: "today",
         }),
@@ -214,28 +217,35 @@ export default function TemplateRunPage() {
       const data = await createRes.json();
       setTaskId(data.id);
 
-      // Assign agent to task (required before running)
+      // 2. Assign agent to task (required before running)
       const assignRes = await fetch(`/api/tasks/${data.id}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_id: agent.id }),
       });
-      if (!assignRes.ok) return;
+      if (!assignRes.ok) {
+        if (assignRes.status === 401) { setAuthPrompt("login"); return; }
+        return;
+      }
 
-      setPhase("running");
-      setElapsed(0);
-      setSelectedAgentId(config.agents[0]?.id || null);
-
-      // Start execution
+      // 3. Start execution — await to ensure steps are created before polling
       const runRes = await fetch(`/api/tasks/${data.id}/run`, { method: "POST" });
       if (!runRes.ok) {
         if (runRes.status === 401) { setAuthPrompt("login"); return; }
         if (runRes.status === 402) { setAuthPrompt("apikey"); return; }
+        // Other errors (400, 429, 500) — set to running so polling picks up failed status
       }
+
+      // 4. NOW set running phase — steps exist on the backend
+      setPhase("running");
+      setElapsed(0);
+      setSelectedAgentId(config.agents[0]?.id || null);
     } catch {
       // Network error
+    } finally {
+      setIsStarting(false);
     }
-  }, [taskInput, agent, config.agents]);
+  }, [taskInput, agent, config.agents, isStarting]);
 
   const handleExport = useCallback(() => {
     if (task?.output) {
@@ -263,6 +273,20 @@ export default function TemplateRunPage() {
 
   const templateName = agent?.name || slug.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
   const templateIcon = agent?.icon || pipeline[0]?.icon || "🤖";
+
+  // Show not-found if agents loaded but slug doesn't match any template
+  if (agents.length > 0 && !agent && !TEMPLATE_PIPELINES[slug]) {
+    return (
+      <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
+        <div style={{ fontSize: 48 }}>🤖</div>
+        <div style={{ fontSize: 20, fontWeight: 700 }}>Template not found</div>
+        <div style={{ fontSize: 13, color: P.textSec }}>The template &quot;{slug}&quot; doesn&apos;t exist.</div>
+        <button onClick={() => router.push("/templates")} style={{ marginTop: 8, padding: "10px 20px", borderRadius: 10, background: P.lime, color: "#0a0a0d", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F }}>
+          Browse Templates
+        </button>
+      </div>
+    );
+  }
 
   /* ── INPUT SCREEN ── */
   if (phase === "input") return (
@@ -354,16 +378,17 @@ export default function TemplateRunPage() {
 
             <div style={{ padding: "16px 28px", background: P.bg3, borderTop: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: 11, color: P.textSec }}>Using your Claude API key &middot; Results in ~{config.estimatedTime}</div>
-              <button onClick={handleRun} disabled={!taskInput.trim()}
+              <button onClick={handleRun} disabled={!taskInput.trim() || isStarting}
                 style={{
                   display: "flex", alignItems: "center", gap: 9, padding: "11px 24px", borderRadius: 11,
-                  background: taskInput.trim() ? P.lime : P.bg5,
-                  color: taskInput.trim() ? "#0a0a0d" : P.textTer,
+                  background: taskInput.trim() && !isStarting ? P.lime : P.bg5,
+                  color: taskInput.trim() && !isStarting ? "#0a0a0d" : P.textTer,
                   fontSize: 13, fontWeight: 700, border: "none",
-                  cursor: taskInput.trim() ? "pointer" : "not-allowed",
+                  cursor: taskInput.trim() && !isStarting ? "pointer" : "not-allowed",
                   fontFamily: F, transition: "all 0.2s",
+                  opacity: isStarting ? 0.7 : 1,
                 }}>
-                <span>&#9654;</span> Run {templateName}
+                <span>{isStarting ? "\u23F3" : "\u25B6"}</span> {isStarting ? "Starting..." : `Run ${templateName}`}
               </button>
             </div>
           </div>
@@ -568,7 +593,7 @@ export default function TemplateRunPage() {
                       <span style={{ fontSize: 10.5, fontWeight: 700, color: a.color, fontFamily: F }}>{a.name}</span>
                     </div>
                     <div style={{ fontSize: 10, color: P.textSec, lineHeight: 1.5, fontFamily: FM }}>
-                      {status === "running" ? "&#x27F3; Processing..." : `\u2713 ${a.outputLabel}`}
+                      {status === "running" ? "\u27F3 Processing..." : `\u2713 ${a.outputLabel}`}
                     </div>
                   </div>
                 );
