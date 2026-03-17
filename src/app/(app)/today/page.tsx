@@ -564,17 +564,25 @@ export default function TodayPage() {
         </div>
 
         {/* Ready-to-run Templates */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
+        <div style={{
+          background: P.bg2, border: `1px solid ${P.border}`, borderRadius: 16,
+          padding: "18px 20px 20px", position: "relative", overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute", left: -60, bottom: -60, width: 200, height: 200,
+            background: `radial-gradient(circle, ${P.lime}08 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 15 }}>
             <div>
-              <h2 style={{ fontSize: 13.5, fontWeight: 700, fontFamily: F, marginBottom: 2, margin: 0 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: F, marginBottom: 3, margin: 0, color: P.text }}>
                 🗂️ Ready-to-run Templates
               </h2>
-              <div style={{ fontSize: 11, color: P.textSec }}>Click Use to start a new job with this pipeline</div>
+              <div style={{ fontSize: 11.5, color: P.textSec }}>Click Use to start a new job with this pipeline</div>
             </div>
-            <a href="/templates" style={{ fontSize: 11, color: P.textSec, textDecoration: "none", fontFamily: F }}>Browse all →</a>
+            <a href="/templates" style={{ fontSize: 11.5, color: P.lime2, textDecoration: "none", fontFamily: F, fontWeight: 600 }}>Browse all →</a>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 11 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
             {RECOMMENDED_SLUGS.map((slug) => {
               const agent = agents.find((a) => a.slug === slug);
               if (!agent) return null;
@@ -606,12 +614,12 @@ export default function TodayPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
             <div>
-              <h2 style={{ fontSize: 13.5, fontWeight: 700, fontFamily: F, marginBottom: 2, margin: 0 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: F, marginBottom: 3, margin: 0, color: P.text }}>
                 🤝 Hire a Specialist
               </h2>
-              <div style={{ fontSize: 11, color: P.textSec }}>Expert agents — hover any card for full profile</div>
+              <div style={{ fontSize: 11.5, color: P.textSec }}>Expert agents — hover any card for full profile</div>
             </div>
-            <a href="/agents" style={{ fontSize: 11, color: P.textSec, textDecoration: "none", fontFamily: F }}>Meet all →</a>
+            <a href="/agents" style={{ fontSize: 11.5, color: P.lime2, textDecoration: "none", fontFamily: F, fontWeight: 600 }}>Meet all →</a>
           </div>
           <div style={{
             display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8,
@@ -968,11 +976,11 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
       onMouseLeave={() => setHov(false)}
       onClick={onUse}
       style={{
-        background: P.bg2, border: `1px solid ${hov ? P.border2 : P.border}`,
+        background: P.bg3, border: `1px solid ${hov ? P.border2 : P.border}`,
         borderRadius: 15, overflow: "hidden", cursor: "pointer",
         display: "flex", flexDirection: "column",
         transform: hov ? "translateY(-3px)" : "none",
-        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.5)" : "none",
+        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.5)" : "0 2px 8px rgba(0,0,0,0.2)",
         transition: "all 0.2s", minWidth: 0,
       }}
     >
@@ -990,27 +998,27 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
               fontSize: 16, flexShrink: 0,
             }}>{agent.icon}</div>
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, marginBottom: 2 }}>{agent.name}</div>
-              <Pill color={cat.color} bg={cat.catBg} size={9}>{cat.label}</Pill>
+              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: F, marginBottom: 2, color: P.text }}>{agent.name}</div>
+              <Pill color={cat.color} bg={cat.catBg} size={9.5}>{cat.label}</Pill>
             </div>
           </div>
           <span style={{ fontSize: 11, color: P.amber, fontWeight: 700 }}>★ {rating}</span>
         </div>
 
         {/* Description */}
-        <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
+        <div style={{ fontSize: 11.5, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
           {agent.description}
         </div>
 
         {/* Pipeline agent preview */}
         {pipeline.length > 0 && (
           <div style={{
-            padding: "9px 11px", background: P.bg3,
+            padding: "9px 11px", background: P.bg4,
             borderRadius: 8, border: `1px solid ${P.border}`, marginBottom: 10,
           }}>
             <div style={{
-              fontSize: 9, textTransform: "uppercase" as const,
-              letterSpacing: "0.08em", color: P.textTer, marginBottom: 6,
+              fontSize: 9.5, textTransform: "uppercase" as const,
+              letterSpacing: "0.08em", color: P.textSec, fontWeight: 600, marginBottom: 6,
             }}>
               {pipeline.length} agents
             </div>
@@ -1018,8 +1026,8 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
               {pipeline.map((step, i) => (
                 <span key={step.label}>
                   <span style={{
-                    fontSize: 9, padding: "2px 6px", borderRadius: 4,
-                    background: P.bg4, border: `1px solid ${step.color}33`,
+                    fontSize: 9.5, padding: "3px 7px", borderRadius: 5,
+                    background: `${step.color}15`, border: `1px solid ${step.color}33`,
                     color: step.color, fontFamily: F, fontWeight: 600,
                   }}>
                     {step.icon} {step.label}
@@ -1039,7 +1047,7 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
           marginTop: "auto", paddingTop: 9,
           borderTop: `1px solid ${P.border}`,
         }}>
-          <span style={{ fontSize: 10, color: P.textTer }}>{runs} runs</span>
+          <span style={{ fontSize: 10.5, color: P.textSec, fontWeight: 500 }}>{runs} runs</span>
           <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
             fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
             background: P.lime, color: "#0b0b0e", border: "none",
