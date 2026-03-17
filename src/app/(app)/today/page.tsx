@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { TaskSection } from "@/components/tasks/task-section";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
 import { CreateTaskModal } from "@/components/tasks/create-task-modal";
@@ -284,6 +284,7 @@ function JobRow({ task, onClick }: { task: TaskWithAgent; onClick: () => void })
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
   const { agents } = useAgents();
+  const router = useRouter();
   const [selectedTask, setSelectedTask] = useState<TaskWithAgent | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -580,9 +581,7 @@ export default function TodayPage() {
                   runs={runs}
                   pipeline={pipeline}
                   onUse={() => {
-                    setCreateAgentId(agent.id);
-                    setPreviewAgent(null);
-                    setShowCreateModal(true);
+                    router.push(`/templates/${slug}`);
                   }}
                 />
               );

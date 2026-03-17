@@ -1,12 +1,28 @@
-"use client";
+// Template agent configs — maps pipeline steps to virtual "agents" for the run page UI
+// Each template has 3-4 virtual agents that cover the 5 backend pipeline steps
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useAgents } from "@/lib/hooks/use-agents";
-import { P, F, FS } from "@/lib/palette";
+export interface TemplateAgent {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  role: string;
+  model: string;
+  mcpTools: string[];
+  outputLabel: string;
+  stepIndices: number[]; // Maps to pipeline step indices (0-based, 5 steps per tmpl_*)
+}
 
-/* ─── Category metadata ─── */
-const CATEGORY_META: Record<string, { label: string; color: string; catBg: string }> = {
+export interface TemplateRunConfig {
+  estimatedTime: string;
+  estimatedCost: string;
+  tagline: string;
+  agents: TemplateAgent[];
+  quickFills: string[];
+}
+
+/* ─── Category metadata (shared) ─── */
+export const CATEGORY_META: Record<string, { label: string; color: string; catBg: string }> = {
   career: { label: "Career", color: "#60a5fa", catBg: "rgba(96,165,250,0.13)" },
   finance_personal: { label: "Finance", color: "#4ade80", catBg: "rgba(74,222,128,0.10)" },
   legal_personal: { label: "Legal", color: "#c084fc", catBg: "rgba(192,132,252,0.10)" },
@@ -21,7 +37,7 @@ const CATEGORY_META: Record<string, { label: string; color: string; catBg: strin
 };
 
 /* ─── Template categories with slugs ─── */
-const TEMPLATE_CATEGORIES: { id: string; title: string; slugs: string[] }[] = [
+export const TEMPLATE_CATEGORIES: { id: string; title: string; slugs: string[] }[] = [
   { id: "career", title: "Career & Job Search", slugs: ["job-hunter", "auto-applier", "resume-optimizer", "interview-coach", "salary-negotiator", "linkedin-optimizer", "career-pivoter", "remote-job-finder", "portfolio-builder", "networking-coach"] },
   { id: "finance_personal", title: "Money & Bills", slugs: ["subscription-killer", "bill-negotiator", "tax-deduction-finder", "credit-score-coach", "deal-spotter", "debt-snowball", "budget-builder", "crypto-tax-helper", "retirement-planner", "cashback-maximizer"] },
   { id: "legal_personal", title: "Legal & Rights", slugs: ["dispute-fighter", "benefits-finder", "lease-reviewer", "immigration-helper", "small-claims-advisor", "tenant-rights", "will-planner", "traffic-ticket"] },
@@ -36,7 +52,7 @@ const TEMPLATE_CATEGORIES: { id: string; title: string; slugs: string[] }[] = [
 ];
 
 /* ─── Pipeline agent preview data per template ─── */
-const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; color: string }[]> = {
+export const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; color: string }[]> = {
   "resume-optimizer": [
     { icon: "🔍", label: "ATS Scanner", color: "#fb923c" },
     { icon: "🏷️", label: "Keyword Analyzer", color: "#c084fc" },
@@ -445,7 +461,7 @@ const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; color: s
 };
 
 /* ─── Ratings and runs per template ─── */
-const TEMPLATE_RATINGS: Record<string, number> = {
+export const TEMPLATE_RATINGS: Record<string, number> = {
   "job-hunter": 4.9, "auto-applier": 4.7, "resume-optimizer": 4.8, "interview-coach": 4.8,
   "salary-negotiator": 4.7, "linkedin-optimizer": 4.6, "career-pivoter": 4.7, "remote-job-finder": 4.6,
   "portfolio-builder": 4.5, "networking-coach": 4.6,
@@ -473,7 +489,7 @@ const TEMPLATE_RATINGS: Record<string, number> = {
   "social-skills": 4.4, "dating-profile": 4.6, "pet-care-advisor": 4.7,
 };
 
-const TEMPLATE_RUNS: Record<string, string> = {
+export const TEMPLATE_RUNS: Record<string, string> = {
   "job-hunter": "5.2k", "auto-applier": "3.8k", "resume-optimizer": "6.1k", "interview-coach": "3.1k",
   "salary-negotiator": "2.4k", "linkedin-optimizer": "2.9k", "career-pivoter": "1.8k", "remote-job-finder": "2.6k",
   "portfolio-builder": "1.5k", "networking-coach": "1.7k",
@@ -501,218 +517,185 @@ const TEMPLATE_RUNS: Record<string, string> = {
   "social-skills": "0.9k", "dating-profile": "1.6k", "pet-care-advisor": "1.3k",
 };
 
-/* ─── Pill component ─── */
-function Pill({ children, color = P.lime, bg = "rgba(197,241,53,0.13)", size = 10 }: {
-  children: React.ReactNode; color?: string; bg?: string; size?: number;
-}) {
-  return (
-    <span style={{
-      fontSize: size, fontWeight: 700, padding: "3px 10px", borderRadius: 100,
-      background: bg, color, letterSpacing: "0.04em", whiteSpace: "nowrap",
-    }}>{children}</span>
-  );
+/* ─── Quick-fill suggestions per template category ─── */
+const QUICK_FILLS: Record<string, string[]> = {
+  career: ["Senior React dev, remote London", "Junior Python dev, first job", "Product Manager, Series B startup"],
+  finance_personal: ["Monthly budget for $5k income", "Student loans + credit card debt", "Optimize tax deductions for freelancer"],
+  legal_personal: ["Landlord won't return deposit", "Wrongful parking ticket", "Review standard NDA"],
+  housing: ["2BR apartment, $2k budget, Brooklyn", "Moving from NYC to Austin", "First-time homebuyer checklist"],
+  health_personal: ["Persistent headaches for 2 weeks", "Compare family health plans", "Weekly meal prep, 1800 cal/day"],
+  education: ["STEM scholarships for sophomores", "Study plan for SAT in 3 months", "College essays for engineering"],
+  shopping: ["Best laptop under $1500 for dev", "Return defective AirPods Pro", "Wedding gift, $100 budget"],
+  freelance: ["Freelance web dev proposal", "Calculate hourly rate as designer", "Review client contract"],
+  parenting: ["Biblical boy names, unique", "Best elementary schools in Austin", "Summer STEM camps for 10yo"],
+  travel_events: ["London to Tokyo, cheapest month", "Weekend birthday party for 30", "10-day road trip, California coast"],
+  personal_growth: ["Build morning routine for productivity", "Start daily journaling habit", "Improve networking at events"],
+};
+
+/* ─── Taglines per template ─── */
+const TAGLINES: Record<string, string> = {
+  "job-hunter": "Find matching jobs from across the web based on your skills, experience, and preferences.",
+  "auto-applier": "Auto-tailor your resume and cover letter for each job posting.",
+  "resume-optimizer": "Optimize your resume for ATS systems and human recruiters.",
+  "interview-coach": "Prepare for your next interview with company-specific questions and coached answers.",
+  "salary-negotiator": "Research market rates and build a negotiation strategy.",
+  "linkedin-optimizer": "Optimize your LinkedIn profile for recruiter search and engagement.",
+  "career-pivoter": "Map your skills to new industries and build a transition plan.",
+  "remote-job-finder": "Find remote-friendly roles that match your skills and preferences.",
+  "portfolio-builder": "Structure and present your work to impress hiring managers.",
+  "networking-coach": "Build a networking strategy with personalized outreach templates.",
+  "budget-builder": "Create a personalized budget based on your income and spending patterns.",
+  "subscription-killer": "Find and cancel subscriptions you don't use anymore.",
+  "bill-negotiator": "Get scripts and strategies to lower your bills.",
+  "tax-deduction-finder": "Find tax deductions you might be missing.",
+  "credit-score-coach": "Analyze your credit factors and get an improvement plan.",
+  "deal-spotter": "Find the best deals and coupons for what you want to buy.",
+  "debt-snowball": "Create a debt payoff strategy optimized for your situation.",
+  "crypto-tax-helper": "Calculate gains and generate tax reports for crypto transactions.",
+  "retirement-planner": "Project your retirement savings and optimize your strategy.",
+  "cashback-maximizer": "Optimize credit card rewards for your spending categories.",
+  "lease-reviewer": "Review your lease for red flags, missing protections, and unfair terms.",
+  "dispute-fighter": "Build a legal case and draft dispute letters.",
+  "benefits-finder": "Find government benefits you may be eligible for.",
+  "immigration-helper": "Research visa options and build a document checklist.",
+  "small-claims-advisor": "Evaluate your case and get a filing guide.",
+  "tenant-rights": "Research your tenant rights and get an action plan.",
+  "will-planner": "Map your assets and draft a basic will structure.",
+  "traffic-ticket": "Analyze your ticket and draft a response.",
+  "apartment-scout": "Find apartments matching your budget and preferences.",
+  "moving-coordinator": "Plan your move with task lists and mover comparisons.",
+  "utility-optimizer": "Compare utility plans and find savings.",
+  "roommate-matcher": "Build a compatibility profile and draft a roommate agreement.",
+  "home-inspector": "Create a home inspection checklist and spot issues.",
+  "renovation-planner": "Scope your renovation, estimate costs, and plan the timeline.",
+  "neighborhood-scout": "Research neighborhoods for safety, amenities, and livability.",
+  "medical-bill-auditor": "Scan medical bills for errors and find savings.",
+  "insurance-comparer": "Compare insurance plans and get a recommendation.",
+  "symptom-researcher": "Research symptoms and get a structured report for your doctor.",
+  "prescription-saver": "Find the cheapest prices for your prescriptions.",
+  "meal-prep-planner": "Plan weekly meals with nutrition targets and a grocery list.",
+  "sleep-optimizer": "Analyze your sleep habits and build a better routine.",
+  "therapy-finder": "Find therapists that match your needs and insurance.",
+  "supplement-advisor": "Research supplements based on your health goals.",
+  "allergy-navigator": "Map allergens and build a safe diet plan.",
+  "scholarship-hunter": "Find scholarships matching your profile and draft applications.",
+  "college-advisor": "Research colleges, score fit, and plan applications.",
+  "study-plan-maker": "Create a study schedule based on your syllabus and goals.",
+  "essay-coach": "Plan, draft, and polish your essay.",
+  "skill-roadmap": "Map learning goals to resources and build a timeline.",
+  "language-tutor": "Assess your level and build a practice plan.",
+  "return-assistant": "Check return policies and draft return letters.",
+  "car-buy-negotiator": "Research prices and get negotiation scripts.",
+  "warranty-claimer": "Check warranty coverage and draft claim letters.",
+  "tech-buyer": "Compare specs, read reviews, and find the best deal.",
+  "grocery-optimizer": "Build an optimized grocery list with price comparisons.",
+  "gift-finder": "Find the perfect gift based on interests and budget.",
+  "freelance-bid-writer": "Analyze the project and write a winning bid.",
+  "side-hustle-matcher": "Match your skills to side income opportunities.",
+  "contract-reviewer": "Parse contracts for risks and write a summary.",
+  "invoice-generator": "Collect project details and generate a professional invoice.",
+  "client-proposal": "Analyze the brief and write a compelling proposal.",
+  "rate-calculator": "Research market rates and calculate your optimal pricing.",
+  "baby-name-picker": "Research names with meanings, popularity, and compatibility.",
+  "school-chooser": "Compare schools by ratings, programs, and fit.",
+  "chore-organizer": "Map household tasks and build a fair schedule.",
+  "college-savings": "Project costs and optimize your 529 plan.",
+  "childcare-finder": "Find and compare childcare providers.",
+  "summer-camp-finder": "Find camps matching your child's interests.",
+  "flight-deal-hunter": "Scan fares across dates and airlines for the best deals.",
+  "wedding-planner": "Plan your wedding budget, vendors, and timeline.",
+  "party-planner": "Plan the theme, vendors, and checklist for your event.",
+  "visa-advisor": "Research visa requirements and build an application guide.",
+  "road-trip-planner": "Plan your route, stops, and create an itinerary.",
+  "packing-assistant": "Check weather and build a smart packing list.",
+  "habit-tracker": "Analyze habits and design a tracking system.",
+  "journaling-coach": "Get reflection prompts and build a journaling practice.",
+  "morning-routine": "Design a morning routine optimized for your goals.",
+  "social-skills": "Assess skills and get practice scenarios.",
+  "dating-profile": "Analyze and rewrite your dating profile.",
+  "pet-care-advisor": "Research your pet's breed and build a care plan.",
+};
+
+/* ─── Helper: get category for a slug ─── */
+export function getTemplateCategory(slug: string): string {
+  for (const cat of TEMPLATE_CATEGORIES) {
+    if (cat.slugs.includes(slug)) return cat.id;
+  }
+  return "career";
 }
 
-/* ─── FTabs — filter tabs matching reference ─── */
-function FTabs({ tabs, active, onChange }: {
-  tabs: string[]; active: string; onChange: (t: string) => void;
-}) {
-  return (
-    <div style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap" }}>
-      {tabs.map((t) => (
-        <button key={t} onClick={() => onChange(t)} style={{
-          padding: "5px 12px", borderRadius: 100, fontSize: 11,
-          cursor: "pointer", fontFamily: F, fontWeight: active === t ? 700 : 500,
-          border: `1px solid ${active === t ? P.lime : P.border}`,
-          background: active === t ? P.lime : P.bg3,
-          color: active === t ? "#0b0b0e" : P.textSec,
-          transition: "all 0.15s",
-        }}>{t}</button>
-      ))}
-    </div>
-  );
+/* ─── Helper: derive agent status from pipeline steps ─── */
+export function deriveAgentStatus(
+  agent: TemplateAgent,
+  steps: { status: string }[]
+): "idle" | "running" | "done" | "error" {
+  const agentSteps = agent.stepIndices.map(i => steps[i]).filter(Boolean);
+  if (agentSteps.length === 0) return "idle";
+  if (agentSteps.some(s => s.status === "failed")) return "error";
+  if (agentSteps.some(s => s.status === "working")) return "running";
+  if (agentSteps.every(s => s.status === "done")) return "done";
+  return "idle";
 }
 
-/* ─── TemplateCard — compact card matching reference exactly ─── */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
-  agent: { id: string; icon: string; name: string; description: string | null; slug?: string };
-  cat: { label: string; color: string; catBg: string };
-  rating: number;
-  runs: string;
-  pipeline: { icon: string; label: string; color: string }[];
-  onUse: () => void;
-}) {
-  const [hov, setHov] = useState(false);
+/* ─── Main: get run config for a template ─── */
+export function getTemplateRunConfig(slug: string): TemplateRunConfig {
+  const pipeline = TEMPLATE_PIPELINES[slug] || [];
+  const catId = getTemplateCategory(slug);
 
-  return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      onClick={onUse}
-      style={{
-        background: P.bg2, border: `1px solid ${hov ? P.border2 : P.border}`,
-        borderRadius: 15, overflow: "hidden", cursor: "pointer",
-        display: "flex", flexDirection: "column",
-        transform: hov ? "translateY(-3px)" : "none",
-        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.5)" : "none",
-        transition: "all 0.2s", minWidth: 0,
-      }}
-    >
-      {/* Gradient stripe */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}44)` }} />
-
-      <div style={{ padding: "13px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Header: icon + name + category pill + rating */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 9,
-              background: cat.catBg,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, flexShrink: 0,
-            }}>{agent.icon}</div>
-            <div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, marginBottom: 2 }}>{agent.name}</div>
-              <Pill color={cat.color} bg={cat.catBg} size={9}>{cat.label}</Pill>
-            </div>
-          </div>
-          <span style={{ fontSize: 11, color: P.amber, fontWeight: 700 }}>★ {rating}</span>
-        </div>
-
-        {/* Description */}
-        <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
-          {agent.description}
-        </div>
-
-        {/* Pipeline agent preview */}
-        {pipeline.length > 0 && (
-          <div style={{
-            padding: "9px 11px", background: P.bg3,
-            borderRadius: 8, border: `1px solid ${P.border}`, marginBottom: 10,
-          }}>
-            <div style={{
-              fontSize: 9, textTransform: "uppercase" as const,
-              letterSpacing: "0.08em", color: P.textTer, marginBottom: 6,
-            }}>
-              {pipeline.length} agents
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-              {pipeline.map((step, i) => (
-                <span key={step.label}>
-                  <span style={{
-                    fontSize: 9, padding: "2px 6px", borderRadius: 4,
-                    background: P.bg4, border: `1px solid ${step.color}33`,
-                    color: step.color, fontFamily: F, fontWeight: 600,
-                  }}>
-                    {step.icon} {step.label}
-                  </span>
-                  {i < pipeline.length - 1 && (
-                    <span style={{ color: P.textTer, fontSize: 9, margin: "0 1px" }}>›</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Footer: runs + Use Template button */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: "auto", paddingTop: 9,
-          borderTop: `1px solid ${P.border}`,
-        }}>
-          <span style={{ fontSize: 10, color: P.textTer }}>{runs} runs</span>
-          <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
-            fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
-            background: P.lime, color: "#0b0b0e", border: "none",
-            cursor: "pointer", fontFamily: F,
-          }}>
-            Use Template →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Templates Page ─── */
-export default function TemplatesPage() {
-  const { agents } = useAgents();
-  const router = useRouter();
-  const [filter, setFilter] = useState("All");
-
-  // Build unique category labels for tabs
-  const categoryTabs = useMemo(() => {
-    return ["All", ...TEMPLATE_CATEGORIES.map(c => c.title)];
-  }, []);
-
-  // Filter categories by selected tab
-  const filteredCategories = useMemo(() => {
-    if (filter === "All") return TEMPLATE_CATEGORIES;
-    return TEMPLATE_CATEGORIES.filter(c => c.title === filter);
-  }, [filter]);
-
-  // Get all template agents in a flat list for the selected filter
-  const allFilteredAgents = useMemo(() => {
-    const result: { agent: typeof agents[0]; catId: string }[] = [];
-    for (const cat of filteredCategories) {
-      for (const slug of cat.slugs) {
-        const agent = agents.find(a => a.slug === slug);
-        if (agent) result.push({ agent, catId: cat.id });
-      }
+  // Build virtual agents from pipeline preview data
+  // Each tmpl_* pipeline has 5 steps. Distribute steps across agents.
+  const agentCount = pipeline.length || 3;
+  const agents: TemplateAgent[] = pipeline.map((p, i) => {
+    // Distribute 5 steps across agents
+    let stepIndices: number[];
+    if (agentCount === 3) {
+      // 3 agents: [0,1], [2,3], [4]
+      if (i === 0) stepIndices = [0, 1];
+      else if (i === 1) stepIndices = [2, 3];
+      else stepIndices = [4];
+    } else if (agentCount === 4) {
+      // 4 agents: [0], [1,2], [3], [4]
+      if (i === 0) stepIndices = [0];
+      else if (i === 1) stepIndices = [1, 2];
+      else if (i === 2) stepIndices = [3];
+      else stepIndices = [4];
+    } else {
+      // Fallback: evenly distribute
+      const stepsPerAgent = Math.ceil(5 / agentCount);
+      const start = i * stepsPerAgent;
+      stepIndices = Array.from({ length: stepsPerAgent }, (_, j) => start + j).filter(j => j < 5);
     }
-    return result;
-  }, [filteredCategories, agents]);
 
-  function handleUseTemplate(slug: string) {
-    router.push(`/templates/${slug}`);
+    return {
+      id: `a${i + 1}`,
+      name: p.label,
+      icon: p.icon,
+      color: p.color,
+      role: `Handles ${p.label.toLowerCase()} for this pipeline.`,
+      model: "claude-sonnet-4",
+      mcpTools: [],
+      outputLabel: p.label,
+      stepIndices,
+    };
+  });
+
+  // If no pipeline data, generate generic 3-agent config
+  if (agents.length === 0) {
+    agents.push(
+      { id: "a1", name: "Researcher", icon: "🔍", color: "#60a5fa", role: "Researches the topic.", model: "claude-sonnet-4", mcpTools: [], outputLabel: "Research", stepIndices: [0, 1] },
+      { id: "a2", name: "Analyzer", icon: "📊", color: "#f5a623", role: "Analyzes the data.", model: "claude-sonnet-4", mcpTools: [], outputLabel: "Analysis", stepIndices: [2, 3] },
+      { id: "a3", name: "Writer", icon: "✍️", color: "#4ade80", role: "Writes the final output.", model: "claude-sonnet-4", mcpTools: [], outputLabel: "Report", stepIndices: [4] },
+    );
   }
 
-  return (
-    <div style={{ padding: "20px 26px" }}>
-      {/* Header — matches reference: serif italic heading */}
-      <div style={{ marginBottom: 18 }}>
-        <h2 style={{
-          fontFamily: FS, fontSize: 22, fontWeight: 400, lineHeight: 1.2, marginBottom: 5,
-        }}>
-          Pre-built <span style={{ fontStyle: "italic", color: P.lime2 }}>agent pipelines</span> — ready to run.
-        </h2>
-        <div style={{ fontSize: 11.5, color: P.textSec }}>
-          Click &quot;Use Template&quot; to launch an AI agent pipeline for your task.
-        </div>
-      </div>
+  const quickFills = QUICK_FILLS[catId] || QUICK_FILLS.career;
+  const tagline = TAGLINES[slug] || "Describe your task and let the agent pipeline handle the rest.";
 
-      {/* Filter tabs */}
-      <FTabs tabs={categoryTabs} active={filter} onChange={setFilter} />
-
-      {/* Template cards grid */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        gap: 12,
-      }}>
-        {allFilteredAgents.map(({ agent, catId }) => {
-          const slug = agent.slug || "";
-          const cat = CATEGORY_META[catId] || { label: catId, color: P.textSec, catBg: `${P.textSec}15` };
-          const pipeline = TEMPLATE_PIPELINES[slug] || [];
-          const rating = TEMPLATE_RATINGS[slug] || 4.5;
-          const runs = TEMPLATE_RUNS[slug] || "1.0k";
-
-          return (
-            <TemplateCard
-              key={agent.id}
-              agent={agent}
-              cat={cat}
-              rating={rating}
-              runs={runs}
-              pipeline={pipeline}
-              onUse={() => handleUseTemplate(slug)}
-            />
-          );
-        })}
-      </div>
-
-    </div>
-  );
+  return {
+    estimatedTime: "45s",
+    estimatedCost: "$0.06",
+    tagline,
+    agents,
+    quickFills,
+  };
 }

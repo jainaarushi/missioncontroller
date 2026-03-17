@@ -7,9 +7,10 @@ interface TaskDetail extends TaskWithAgent {
   steps: TaskStep[];
 }
 
-export function useTask(id: string | null) {
+export function useTask(id: string | null, options?: { refreshInterval?: number }) {
   const { data, error, isLoading, mutate } = useSWR<TaskDetail>(
-    id ? `/api/tasks/${id}` : null
+    id ? `/api/tasks/${id}` : null,
+    { refreshInterval: options?.refreshInterval || 0 }
   );
 
   // Supabase realtime subscription for this specific task
