@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { decryptApiKey } from "./encrypt";
+import { getMockUserKeys } from "@/lib/mock-data";
 
 export interface UserToolKeys {
   tavily?: string;
@@ -9,7 +10,15 @@ export interface UserToolKeys {
 }
 
 export async function getUserToolKeys(userId: string): Promise<UserToolKeys> {
-  if (!isSupabaseEnabled()) return {};
+  // ── Local / no-Supabase mode: read from in-memory store ──
+  if (!isSupabaseEnabled()) {
+    const keys = getMockUserKeys(userId);
+    const result: UserToolKeys = {};
+    if (keys.tavily_api_key) result.tavily = keys.tavily_api_key;
+    if (keys.firecrawl_api_key) result.firecrawl = keys.firecrawl_api_key;
+    if (keys.serp_api_key) result.serp = keys.serp_api_key;
+    return result;
+  }
 
   const supabase = await createClient();
   if (!supabase) return {};

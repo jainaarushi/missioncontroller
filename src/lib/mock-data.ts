@@ -85,6 +85,52 @@ export function deleteMockSteps(taskId: string) {
   _stepStore.delete(taskId);
 }
 
+// ─── In-memory API key store (for local/demo mode without Supabase) ───
+interface MockUserKeys {
+  ai_provider: string;
+  openai_api_key: string | null;
+  gemini_api_key: string | null;
+  anthropic_api_key: string | null;
+  wispr_api_key: string | null;
+  tavily_api_key: string | null;
+  firecrawl_api_key: string | null;
+  serp_api_key: string | null;
+}
+
+const _userKeys = new Map<string, MockUserKeys>();
+
+function getOrCreateUserKeys(userId: string): MockUserKeys {
+  if (!_userKeys.has(userId)) {
+    _userKeys.set(userId, {
+      ai_provider: "openai",
+      openai_api_key: null,
+      gemini_api_key: null,
+      anthropic_api_key: null,
+      wispr_api_key: null,
+      tavily_api_key: null,
+      firecrawl_api_key: null,
+      serp_api_key: null,
+    });
+  }
+  return _userKeys.get(userId)!;
+}
+
+export function getMockUserKeys(userId: string): MockUserKeys {
+  return getOrCreateUserKeys(userId);
+}
+
+export function setMockUserKey(userId: string, column: string, value: string | null) {
+  const keys = getOrCreateUserKeys(userId);
+  if (column in keys) {
+    (keys as unknown as Record<string, string | null>)[column] = value;
+  }
+}
+
+export function setMockAIProvider(userId: string, provider: string) {
+  const keys = getOrCreateUserKeys(userId);
+  keys.ai_provider = provider;
+}
+
 // ─── Running tasks lock: prevents concurrent pipeline runs on the same task ───
 const _runningTasks = new Set<string>();
 

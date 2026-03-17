@@ -3,14 +3,31 @@ import { getAuthUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { encryptApiKey, decryptApiKey, maskApiKey } from "@/lib/ai/encrypt";
+import { getMockUserKeys, setMockUserKey, setMockAIProvider } from "@/lib/mock-data";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   const user = await getAuthUser();
-  if (user.isDemo) return NextResponse.json({ openai: null, gemini: null, anthropic: null, wispr: null, provider: "openai" });
 
+  // ── Local / no-Supabase mode: read from in-memory store ──
   if (!isSupabaseEnabled()) {
-    return NextResponse.json({ openai: null, gemini: null, anthropic: null, provider: "openai" });
+    const keys = getMockUserKeys(user.id);
+
+    function mockKeyInfo(raw: string | null) {
+      if (!raw) return null;
+      return { hasKey: true, maskedKey: maskApiKey(raw) };
+    }
+
+    return NextResponse.json({
+      openai: mockKeyInfo(keys.openai_api_key),
+      gemini: mockKeyInfo(keys.gemini_api_key),
+      anthropic: mockKeyInfo(keys.anthropic_api_key),
+      wispr: mockKeyInfo(keys.wispr_api_key),
+      tavily: mockKeyInfo(keys.tavily_api_key),
+      firecrawl: mockKeyInfo(keys.firecrawl_api_key),
+      serp: mockKeyInfo(keys.serp_api_key),
+      provider: keys.ai_provider,
+    });
   }
 
   const supabase = await createClient();
@@ -44,7 +61,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (user.isDemo) return NextResponse.json({ error: "Sign up to save your API key", login: true }, { status: 401 });
 
   // Rate limit: 5 key saves per minute
   const rl = rateLimit(`apikey:${user.id}`, { maxRequests: 5, windowMs: 60_000 });
@@ -78,8 +94,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid Firecrawl key. Must start with fc-" }, { status: 400 });
   }
 
+  // ── Local / no-Supabase mode: store in memory (plain text, ephemeral) ──
   if (!isSupabaseEnabled()) {
-    return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+    const columnMap: Record<string, string> = {
+      openai: "openai_api_key",
+      gemini: "gemini_api_key",
+      anthropic: "anthropic_api_key",
+      wispr: "wispr_api_key",
+      tavily: "tavily_api_key",
+      firecrawl: "firecrawl_api_key",
+      serp: "serp_api_key",
+    };
+    setMockUserKey(user.id, columnMap[provider], api_key);
+    const llmProviders = ["openai", "gemini", "anthropic"];
+    if (llmProviders.includes(provider)) setMockAIProvider(user.id, provider);
+
+    return NextResponse.json({
+      success: true,
+      maskedKey: maskApiKey(api_key),
+      provider,
+    });
   }
 
   const supabase = await createClient();
@@ -122,13 +156,23 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const user = await getAuthUser();
-  if (user.isDemo) return NextResponse.json({ error: "Sign up first", login: true }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
   const provider = searchParams.get("provider") || "openai";
 
+  // ── Local / no-Supabase mode ──
   if (!isSupabaseEnabled()) {
-    return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+    const columnMap: Record<string, string> = {
+      openai: "openai_api_key",
+      gemini: "gemini_api_key",
+      anthropic: "anthropic_api_key",
+      wispr: "wispr_api_key",
+      tavily: "tavily_api_key",
+      firecrawl: "firecrawl_api_key",
+      serp: "serp_api_key",
+    };
+    setMockUserKey(user.id, columnMap[provider] || "openai_api_key", null);
+    return NextResponse.json({ success: true });
   }
 
   const supabase = await createClient();
