@@ -157,9 +157,9 @@ export default function TemplateRunPage() {
     }
   }, [agentStatuses, config.agents]);
 
-  // Switch to done phase
+  // Switch to done phase (including failed)
   useEffect(() => {
-    if (task && (task.status === "review" || task.status === "done") && phase === "running") {
+    if (task && (task.status === "review" || task.status === "done" || task.status === "failed") && phase === "running") {
       setPhase("done");
       if (timerRef.current) clearInterval(timerRef.current);
     }
@@ -213,6 +213,15 @@ export default function TemplateRunPage() {
 
       const data = await createRes.json();
       setTaskId(data.id);
+
+      // Assign agent to task (required before running)
+      const assignRes = await fetch(`/api/tasks/${data.id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_id: agent.id }),
+      });
+      if (!assignRes.ok) return;
+
       setPhase("running");
       setElapsed(0);
       setSelectedAgentId(config.agents[0]?.id || null);
@@ -441,6 +450,14 @@ export default function TemplateRunPage() {
               </div>
             </div>
           )}
+          {task?.status === "failed" && (
+            <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#ef4444", marginBottom: 3 }}>Pipeline failed</div>
+              <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.6 }}>
+                {task.current_step || "An error occurred. Check your API key in Settings."}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* CENTER - Agent output */}
@@ -493,6 +510,18 @@ export default function TemplateRunPage() {
                         }}
                       >
                         <ReactMarkdown>{currentAgentOutput}</ReactMarkdown>
+                      </div>
+                    ) : phase === "done" && task?.output ? (
+                      <div
+                        className="prose prose-invert prose-sm max-w-none"
+                        style={{
+                          animation: "tpl-fadeUp 0.4s ease both",
+                          padding: "16px 18px", background: P.bg3, borderRadius: 12,
+                          border: `1px solid ${task.status === "failed" ? "rgba(239,68,68,0.3)" : P.border}`,
+                          fontSize: 12.5, lineHeight: 1.7, color: P.textSec,
+                        }}
+                      >
+                        <ReactMarkdown>{task.output}</ReactMarkdown>
                       </div>
                     ) : null}
                     {currentAgentStatus === "running" && (
