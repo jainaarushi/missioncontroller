@@ -168,7 +168,7 @@ function SpecialistCardH({ s, onClick }: {
         }}>
           <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 75% 35%, ${s.color1}25 0%, transparent 65%)` }} />
           <div style={{ position: "absolute", top: 9, right: 11, zIndex: 2 }}>
-            <Pill color={s.color1} bg={`${s.color1}22`} size={8}>{s.badge}</Pill>
+            <Pill color={s.color1} bg={`${s.color1}30`} size={9}>{s.badge}</Pill>
           </div>
           {(() => {
             const av = getAgentAvatar(s.slug);
@@ -194,20 +194,20 @@ function SpecialistCardH({ s, onClick }: {
 
         <div style={{ padding: "24px 14px 0", position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, color: P.text, marginBottom: 1 }}>{s.role}</div>
-            <div style={{ fontSize: 10, color: P.textSec }}>
+            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: F, color: P.text, marginBottom: 2 }}>{s.role}</div>
+            <div style={{ fontSize: 10.5, color: P.textSec }}>
               {s.xp} · <span style={{ color: s.color1 }}>{s.specialty}</span>
             </div>
           </div>
           <div style={{ height: 1, background: `linear-gradient(90deg, ${s.color1}44, transparent)`, margin: "8px 0" }} />
 
           {/* Skills */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 9 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 9 }}>
             {s.skills.slice(0, 3).map((sk) => (
               <span key={sk} style={{
-                fontSize: 9, padding: "2px 7px", borderRadius: 4,
-                background: P.bg4, border: `1px solid ${P.border}`,
-                color: P.textSec, fontFamily: F,
+                fontSize: 9.5, padding: "3px 8px", borderRadius: 5,
+                background: P.bg5, border: `1px solid ${P.border2}`,
+                color: P.text, fontFamily: F, fontWeight: 500,
               }}>{sk}</span>
             ))}
           </div>
@@ -220,7 +220,7 @@ function SpecialistCardH({ s, onClick }: {
                 textAlign: "center", border: `1px solid ${P.border}`,
               }}>
                 <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: s.color1, lineHeight: 1 }}>{v}</div>
-                <div style={{ fontSize: 8, color: P.textTer, marginTop: 2, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{k}</div>
+                <div style={{ fontSize: 8.5, color: P.textSec, marginTop: 2, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{k}</div>
               </div>
             ))}
           </div>
@@ -268,10 +268,10 @@ function JobRow({ task, onClick }: { task: TaskWithAgent; onClick: () => void })
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: 12, fontWeight: 600, fontFamily: F,
+          fontSize: 13, fontWeight: 600, fontFamily: F, color: P.text,
           marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>{task.title}</div>
-        <div style={{ fontSize: 10.5, color: P.textSec }}>
+        <div style={{ fontSize: 11, color: P.textSec }}>
           {task.agent?.name || "Unassigned"} {task.current_step ? `· ${task.current_step}` : ""}
         </div>
       </div>
@@ -286,7 +286,7 @@ function JobRow({ task, onClick }: { task: TaskWithAgent; onClick: () => void })
         }} />
       </div>
       <Pill color={statusColor} bg={statusBg} size={9.5}>{statusLabel}</Pill>
-      <div style={{ fontSize: 10.5, color: P.textTer, flexShrink: 0 }}>
+      <div style={{ fontSize: 10.5, color: P.textSec, flexShrink: 0 }}>
         ${cost < 0.01 ? cost.toFixed(4) : cost.toFixed(2)}
       </div>
     </div>
@@ -539,10 +539,10 @@ export default function TodayPage() {
             pointerEvents: "none",
           }} />
           <div>
-            <div style={{ fontFamily: FS, fontSize: 17, fontWeight: 400, lineHeight: 1.2 }}>
+            <div style={{ fontFamily: FS, fontSize: 18, fontWeight: 500, lineHeight: 1.2, color: P.text }}>
               Good morning. <span style={{ fontStyle: "italic", color: P.lime2 }}>What are we shipping?</span>
             </div>
-            <div style={{ fontSize: 11, color: P.textSec, marginTop: 3 }}>
+            <div style={{ fontSize: 12, color: P.textSec, marginTop: 4 }}>
               50+ specialist agents · pre-built pipelines · results in seconds.
             </div>
           </div>
@@ -556,8 +556,8 @@ export default function TodayPage() {
                 textAlign: "center", padding: "8px 14px",
                 background: P.bg3, border: `1px solid ${P.border}`, borderRadius: 9,
               }}>
-                <div style={{ fontSize: 17, fontWeight: 700, color: s.c, lineHeight: 1, fontFamily: F }}>{s.num}</div>
-                <div style={{ fontSize: 9, color: P.textTer, marginTop: 3, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>{s.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: s.c, lineHeight: 1, fontFamily: F }}>{s.num}</div>
+                <div style={{ fontSize: 9.5, color: P.textSec, marginTop: 3, textTransform: "uppercase" as const, letterSpacing: "0.07em", fontWeight: 600 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -642,8 +642,8 @@ export default function TodayPage() {
         {runningJobs.length > 0 && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <h2 style={{ fontSize: 13.5, fontWeight: 700, fontFamily: F, margin: 0 }}>🟢 Running Jobs</h2>
-              <a href="/analytics" style={{ fontSize: 11, color: P.textSec, textDecoration: "none", fontFamily: F }}>View all →</a>
+              <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: F, margin: 0, color: P.text }}>🟢 Running Jobs</h2>
+              <a href="/analytics" style={{ fontSize: 11.5, color: P.lime2, textDecoration: "none", fontFamily: F, fontWeight: 600 }}>View all →</a>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {runningJobs.slice(0, 3).map((t) => (
