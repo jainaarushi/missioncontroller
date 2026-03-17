@@ -198,6 +198,10 @@ export default function TemplateRunPage() {
 
   const handleRun = useCallback(async () => {
     if (!taskInput.trim() || !agent || isStarting) return;
+    if (taskInput.length > 50000) {
+      setRunError("Input is too long (max 50,000 characters).");
+      return;
+    }
     setIsStarting(true);
     setRunError(null);
 

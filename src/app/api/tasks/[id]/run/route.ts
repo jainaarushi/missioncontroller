@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
+import { getTask, getAgent, updateTask as updateMockTask, setMockSteps, getMockStepsLive, markTaskRunning, markTaskDone } from "@/lib/mock-data";
 import { getAuthUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
@@ -47,6 +47,11 @@ export async function POST(
     return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
   }
 
+  // Prevent concurrent runs on the same task
+  if (!markTaskRunning(id)) {
+    return NextResponse.json({ error: "This task is already running." }, { status: 409 });
+  }
+
   // Parse optional team and custom pipeline from request body
   let teamAgentIds: string[] = [];
   let customPipeline: PipelineStep[] | null = null;
@@ -80,10 +85,10 @@ export async function POST(
 
   if (isSupabaseEnabled()) {
     const task = await getTaskById(user.id, id);
-    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
+    if (!task) { markTaskDone(id); return NextResponse.json({ error: "Not found" }, { status: 404 }); }
+    if (!task.agent_id) { markTaskDone(id); return NextResponse.json({ error: "No agent assigned" }, { status: 400 }); }
     const agent = await getAgentById(user.id, task.agent_id);
-    if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    if (!agent) { markTaskDone(id); return NextResponse.json({ error: "Agent not found" }, { status: 404 }); }
     taskTitle = task.title;
     taskDescription = task.description;
     agentName = agent.name;
@@ -91,10 +96,10 @@ export async function POST(
     agentSystemPrompt = agent.system_prompt;
   } else {
     const task = getTask(id);
-    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (!task.agent_id) return NextResponse.json({ error: "No agent assigned" }, { status: 400 });
+    if (!task) { markTaskDone(id); return NextResponse.json({ error: "Not found" }, { status: 404 }); }
+    if (!task.agent_id) { markTaskDone(id); return NextResponse.json({ error: "No agent assigned" }, { status: 400 }); }
     const agent = getAgent(task.agent_id);
-    if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    if (!agent) { markTaskDone(id); return NextResponse.json({ error: "Agent not found" }, { status: 404 }); }
     taskTitle = task.title;
     taskDescription = task.description;
     agentName = agent.name;
@@ -165,11 +170,12 @@ export async function POST(
       stepCounter++;
     }
   }
-  mockSteps.set(id, steps);
+  setMockSteps(id, steps);
 
   await persistTaskUpdate(user.id, id, {
     status: "working",
     progress: 5,
+    output: null,
     started_at: new Date().toISOString(),
     current_step: teamMembers.length > 0
       ? `${agentName} starting (team of ${allSteps.length})`
@@ -180,6 +186,7 @@ export async function POST(
   const aiConfig = await getUserAIConfig(user.id);
 
   if (!aiConfig) {
+    markTaskDone(id);
     await persistTaskUpdate(user.id, id, {
       status: "todo",
       progress: 0,
@@ -204,6 +211,7 @@ export async function POST(
 
     for (const key of allRequiredKeys) {
       if (!toolKeys[key as keyof UserToolKeys]) {
+        markTaskDone(id);
         await persistTaskUpdate(user.id, id, {
           status: "todo",
           progress: 0,
@@ -552,6 +560,7 @@ export async function runMultiAgentPipeline(
       output: `## Error\n\n${failedAgent?.agentName || "Agent"} encountered an error.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key in Settings and try again.`,
     });
   } finally {
+    markTaskDone(taskId);
     if (mcpClosers.length > 0) {
       await closeMCPConnections(mcpClosers);
     }

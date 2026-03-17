@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getTaskById, updateTaskById, deleteTaskById } from "@/lib/data/tasks";
-import { mockSteps, getTask as getMockTask, updateTask as updateMockTask, deleteTask as deleteMockTask } from "@/lib/mock-data";
+import { getMockStepsSnapshot, getTask as getMockTask, updateTask as updateMockTask, deleteTask as deleteMockTask } from "@/lib/mock-data";
 import { updateTaskSchema } from "@/lib/validators/task";
 
 export async function GET(
@@ -15,16 +15,17 @@ export async function GET(
   if (user.isDemo) {
     const task = getMockTask(id);
     if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    const liveSteps = mockSteps.get(id);
-    return NextResponse.json({ ...task, steps: liveSteps || [] });
+    const steps = getMockStepsSnapshot(id);
+    return NextResponse.json({ ...task, steps: steps || [] });
   }
 
   const task = await getTaskById(user.id, id);
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const liveSteps = mockSteps.get(id);
-  if (liveSteps && liveSteps.length > 0) {
-    task.steps = liveSteps;
+  // Overlay in-memory steps (snapshot) — these are more up-to-date than DB during execution
+  const steps = getMockStepsSnapshot(id);
+  if (steps && steps.length > 0) {
+    task.steps = steps;
   }
 
   return NextResponse.json(task);

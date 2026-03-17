@@ -33,7 +33,71 @@ export const mockAgents: Agent[] = PRESET_AGENTS.map((preset, i) => ({
 // In-memory task store
 let taskIdCounter = 1;
 export const mockTasks: TaskWithAgent[] = [];
-export const mockSteps: Map<string, TaskStep[]> = new Map();
+
+// ─── Step Store: bounded, TTL-evicting, snapshot-safe ───
+const STEP_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const STEP_MAX_ENTRIES = 200;
+
+interface StepEntry {
+  steps: TaskStep[];
+  createdAt: number;
+}
+
+const _stepStore = new Map<string, StepEntry>();
+
+function evictStaleSteps() {
+  if (_stepStore.size <= STEP_MAX_ENTRIES) return;
+  const now = Date.now();
+  for (const [id, entry] of _stepStore) {
+    if (now - entry.createdAt > STEP_TTL_MS) {
+      _stepStore.delete(id);
+    }
+  }
+  // If still over limit, remove oldest entries
+  if (_stepStore.size > STEP_MAX_ENTRIES) {
+    const sorted = [..._stepStore.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt);
+    const toRemove = sorted.slice(0, _stepStore.size - STEP_MAX_ENTRIES);
+    for (const [id] of toRemove) _stepStore.delete(id);
+  }
+}
+
+/** Set live steps for a task (used by run route during execution). */
+export function setMockSteps(taskId: string, steps: TaskStep[]) {
+  evictStaleSteps();
+  _stepStore.set(taskId, { steps, createdAt: Date.now() });
+}
+
+/** Get a deep-copy snapshot of steps (safe for serialization, no reference leaks). */
+export function getMockStepsSnapshot(taskId: string): TaskStep[] | null {
+  const entry = _stepStore.get(taskId);
+  if (!entry) return null;
+  return entry.steps.map(s => ({ ...s }));
+}
+
+/** Get the live mutable steps array (only for the run route to mutate in-place). */
+export function getMockStepsLive(taskId: string): TaskStep[] | null {
+  const entry = _stepStore.get(taskId);
+  return entry ? entry.steps : null;
+}
+
+/** Remove steps for a task. */
+export function deleteMockSteps(taskId: string) {
+  _stepStore.delete(taskId);
+}
+
+// ─── Running tasks lock: prevents concurrent pipeline runs on the same task ───
+const _runningTasks = new Set<string>();
+
+export function markTaskRunning(taskId: string): boolean {
+  if (_runningTasks.has(taskId)) return false; // already running
+  _runningTasks.add(taskId);
+  return true;
+}
+
+export function markTaskDone(taskId: string) {
+  _runningTasks.delete(taskId);
+}
+
 
 export function createMockTask(title: string, section: string = "today", priority: string = "normal"): TaskWithAgent {
   const id = `t${String(taskIdCounter++).padStart(8, "0")}`;
@@ -144,7 +208,7 @@ export function deleteTask(id: string) {
   const idx = mockTasks.findIndex((t) => t.id === id);
   if (idx === -1) return false;
   mockTasks.splice(idx, 1);
-  mockSteps.delete(id);
+  deleteMockSteps(id);
   return true;
 }
 

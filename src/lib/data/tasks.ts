@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import {
   mockTasks,
-  mockSteps,
+  getMockStepsSnapshot,
+  deleteMockSteps,
   getTask,
   createMockTask,
   updateTask,
@@ -51,7 +52,7 @@ export async function getTaskById(
   if (!isSupabaseEnabled()) {
     const task = getTask(taskId);
     if (!task) return null;
-    return { ...task, steps: mockSteps.get(taskId) || [] };
+    return { ...task, steps: getMockStepsSnapshot(taskId) || [] };
   }
 
   const supabase = await createClient();
@@ -155,7 +156,7 @@ export async function deleteTaskById(
 
 export async function getTaskSteps(taskId: string): Promise<TaskStep[]> {
   if (!isSupabaseEnabled()) {
-    return mockSteps.get(taskId) || [];
+    return getMockStepsSnapshot(taskId) || [];
   }
 
   const supabase = await createClient();
@@ -244,7 +245,7 @@ export async function reviseTask(
     ]
       .join("")
       .trim();
-    mockSteps.delete(taskId);
+    deleteMockSteps(taskId);
     return updateTask(taskId, {
       description: updatedDescription,
       status: "todo" as TaskStatus,
