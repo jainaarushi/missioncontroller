@@ -122,7 +122,114 @@ export async function POST(
     if (member) teamMembers.push(member);
   }
 
-  // Build combined pipeline for multi-agent execution
+  // ── Check for deterministic node graph (new system) ──
+  const { getNodeGraph } = await import("@/lib/ai/nodes/graphs");
+  const nodeGraph = getNodeGraph(agentSlug);
+
+  if (nodeGraph && teamMembers.length === 0 && !customPipeline) {
+    // Use the new deterministic node engine
+    const { executeGraph } = await import("@/lib/ai/nodes/engine");
+
+    // Create steps from node graph
+    const nodeSteps: TaskStep[] = nodeGraph.nodes.map((node, i) => ({
+      id: `s-${id}-${i + 1}`,
+      task_id: id,
+      step_number: i + 1,
+      description: `[${agentName}] ${node.description}`,
+      status: i === 0 ? "working" as const : "pending" as const,
+      started_at: i === 0 ? new Date().toISOString() : null,
+      completed_at: null,
+      tokens_used: 0,
+    }));
+    setMockSteps(id, nodeSteps);
+
+    await persistTaskUpdate(user.id, id, {
+      status: "working",
+      progress: 5,
+      output: null,
+      started_at: new Date().toISOString(),
+      current_step: nodeGraph.nodes[0].description,
+    });
+
+    // Get AI config
+    const aiConfig = await getUserAIConfig(user.id);
+    if (!aiConfig) {
+      markTaskDone(id);
+      await persistTaskUpdate(user.id, id, { status: "todo", progress: 0, current_step: null });
+      return NextResponse.json({ error: "Add an API key in Settings to run agents", needsKey: true }, { status: 402 });
+    }
+
+    const toolKeys = await getUserToolKeys(user.id);
+
+    // Load MCP servers for this agent
+    const nodeMcpServers = await getUserMCPServers(user.id);
+
+    // Run node graph async (non-blocking)
+    (async () => {
+      const startTime = Date.now();
+      try {
+        const result = await executeGraph({
+          graph: nodeGraph,
+          taskId: id,
+          taskTitle: taskTitle,
+          taskDescription: taskDescription,
+          provider: aiConfig.provider,
+          apiKey: aiConfig.apiKey,
+          toolKeys,
+          steps: nodeSteps,
+          agentSlug,
+          mcpServers: nodeMcpServers,
+          onProgress: async (_stepIdx, progress, currentStep) => {
+            await persistTaskUpdate(user.id, id, {
+              progress: Math.min(progress, 95),
+              current_step: currentStep,
+            });
+          },
+        });
+
+        const duration = Math.round((Date.now() - startTime) / 1000);
+        const modelId = (await import("@/lib/ai/client")).PROVIDER_MODELS[aiConfig.provider].default;
+        const cost = (await import("@/lib/ai/cost")).calculateCost(result.tokensIn, result.tokensOut, modelId);
+
+        await persistTaskUpdate(user.id, id, {
+          status: "review",
+          progress: 100,
+          output: result.output,
+          output_format: "markdown",
+          cost_usd: cost,
+          tokens_in: result.tokensIn,
+          tokens_out: result.tokensOut,
+          duration_seconds: duration,
+          current_step: "Pipeline complete — ready for review",
+          completed_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error(`[NodeEngine] Pipeline failed for task ${id}:`, err);
+        const duration = Math.round((Date.now() - startTime) / 1000);
+        await persistTaskUpdate(user.id, id, {
+          status: "failed",
+          progress: 100,
+          current_step: `Pipeline failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+          duration_seconds: duration,
+          completed_at: new Date().toISOString(),
+        });
+      } finally {
+        markTaskDone(id);
+      }
+    })();
+
+    // Check for MCP recommendation (suggest integrations that would enhance this agent)
+    const nodeConfiguredTypes = nodeMcpServers.filter(s => s.enabled).map(s => s.serverType);
+    const nodeMcpRecommendation = getAgentMCPRecommendation(agentSlug, nodeConfiguredTypes);
+
+    return NextResponse.json({
+      status: "started",
+      engine: "node-graph",
+      ...(nodeMcpRecommendation ? { mcpHint: nodeMcpRecommendation.settingsHint } : {}),
+    });
+  }
+
+  // Build combined pipeline for multi-agent execution (legacy)
   const primaryPipeline = customPipeline || getPipeline(agentSlug);
 
   // For multi-agent: primary agent runs first, then each team member gets a handoff step

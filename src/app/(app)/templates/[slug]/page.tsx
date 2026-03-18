@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { useAgents } from "@/lib/hooks/use-agents";
@@ -14,72 +14,25 @@ import {
   TEMPLATE_RUNS,
   getTemplateRunConfig,
   getTemplateCategory,
-  deriveAgentStatus,
 } from "@/lib/template-agents";
-import type { TemplateAgent } from "@/lib/template-agents";
+import { getNodeGraph } from "@/lib/ai/nodes/graphs";
+import UsedPieces from "@/components/pipeline/used-pieces";
+import type { NodeStatus } from "@/lib/ai/nodes/types";
 import type { TaskStep } from "@/lib/types/task";
+import { MCP_SERVER_SUGGESTIONS, getAgentMCPRecommendation } from "@/lib/ai/mcp/suggestions";
 
-/* ─── AgentStep (left timeline) ─── */
-function AgentStep({ agent, status, isLast, onClick, isSelected }: {
-  agent: TemplateAgent;
-  status: "idle" | "running" | "done" | "error";
-  isLast: boolean;
-  onClick: () => void;
-  isSelected: boolean;
-}) {
-  const statusConfig = {
-    idle:    { color: P.textTer, bg: P.bg3, label: "Waiting" },
-    running: { color: P.amber, bg: `${P.amber}12`, label: "Running" },
-    done:    { color: P.lime, bg: `${P.lime}10`, label: "Done" },
-    error:   { color: "#ef4444", bg: "rgba(239,68,68,0.08)", label: "Error" },
-  };
-  const s = statusConfig[status];
-  const [hov, setHov] = useState(false);
+const PipelineGraph = lazy(() => import("@/components/pipeline/pipeline-graph"));
 
+/* ─── CSS Keyframes ─── */
+function InjectKeyframes() {
   return (
-    <div style={{ display: "flex", gap: 0, position: "relative" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 40, flexShrink: 0 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: "50%",
-          background: status === "running" ? `${agent.color}20` : status === "done" ? `${agent.color}18` : P.bg4,
-          border: `2px solid ${status === "idle" ? P.border2 : agent.color}`,
-          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0, zIndex: 1, position: "relative",
-          boxShadow: status === "running" ? `0 0 0 4px ${agent.color}20, 0 0 16px ${agent.color}44` : status === "done" ? `0 0 8px ${agent.color}30` : "none",
-          transition: "all 0.4s",
-        }}>
-          {status === "running" ? <span className="animate-spin" style={{ display: "block", fontSize: 13 }}>&#x27F3;</span> : status === "done" ? "\u2713" : agent.icon}
-        </div>
-        {!isLast && (
-          <div style={{ width: 2, flex: 1, minHeight: 20, background: status === "done" ? `linear-gradient(${agent.color}, ${agent.color}44)` : P.border, transition: "background 0.6s", marginTop: 2 }} />
-        )}
-      </div>
-
-      <div onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-        style={{
-          flex: 1, marginLeft: 10, marginBottom: isLast ? 0 : 16, padding: "12px 14px", borderRadius: 12,
-          background: isSelected ? s.bg : hov ? P.bg3 : P.bg2,
-          border: `1px solid ${isSelected ? agent.color + "55" : hov ? P.border2 : P.border}`,
-          cursor: "pointer", transition: "all 0.2s",
-        }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, color: status !== "idle" ? agent.color : P.text }}>{agent.name}</span>
-            {agent.mcpTools.length > 0 && (
-              <div style={{ display: "flex", gap: 3 }}>
-                {agent.mcpTools.map(t => <span key={t} style={{ fontSize: 8.5, padding: "1px 6px", borderRadius: 4, background: `${P.teal}15`, color: P.teal, border: `1px solid ${P.teal}33`, fontFamily: F }}>&#x1F50C; {t}</span>)}
-              </div>
-            )}
-          </div>
-          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 100, background: s.bg, color: s.color, border: `1px solid ${s.color}33`, letterSpacing: "0.04em" }}>{s.label}</span>
-        </div>
-        <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.55 }}>{agent.role}</div>
-        {status === "running" && (
-          <div style={{ marginTop: 8, height: 2, background: P.bg5, borderRadius: 100, overflow: "hidden" }}>
-            <div style={{ height: "100%", background: agent.color, borderRadius: 100, width: "100%", animation: "tpl-progress 1.4s ease-in-out infinite", transformOrigin: "left" }} />
-          </div>
-        )}
-      </div>
-    </div>
+    <style>{`
+      @keyframes tpl-progress { 0%{transform:scaleX(0) translateX(0)} 50%{transform:scaleX(0.7) translateX(30%)} 100%{transform:scaleX(0) translateX(200%)} }
+      @keyframes tpl-bounce { 0%,80%,100%{transform:scale(0.8);opacity:0.4} 40%{transform:scale(1.2);opacity:1} }
+      @keyframes tpl-fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+      .animate-spin { animation: spin 1s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    `}</style>
   );
 }
 
@@ -99,19 +52,6 @@ function CostTicker({ costUsd, tokensIn, tokensOut }: { costUsd: number; tokensI
   );
 }
 
-/* ─── CSS Keyframes (injected once) ─── */
-function InjectKeyframes() {
-  return (
-    <style>{`
-      @keyframes tpl-progress { 0%{transform:scaleX(0) translateX(0)} 50%{transform:scaleX(0.7) translateX(30%)} 100%{transform:scaleX(0) translateX(200%)} }
-      @keyframes tpl-bounce { 0%,80%,100%{transform:scale(0.8);opacity:0.4} 40%{transform:scale(1.2);opacity:1} }
-      @keyframes tpl-fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-      .animate-spin { animation: spin 1s linear infinite; }
-      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    `}</style>
-  );
-}
-
 /* ─── MAIN PAGE ─── */
 export default function TemplateRunPage() {
   const params = useParams();
@@ -120,6 +60,7 @@ export default function TemplateRunPage() {
 
   const { agents } = useAgents();
   const agent = agents.find(a => a.slug === slug);
+  const nodeGraph = getNodeGraph(slug);
 
   const config = getTemplateRunConfig(slug);
   const pipeline = TEMPLATE_PIPELINES[slug] || [];
@@ -128,42 +69,45 @@ export default function TemplateRunPage() {
   const catId = AGENT_CATEGORY_MAP[slug] || getTemplateCategory(slug);
   const cat = CATEGORY_META[catId] || CATEGORY_META.career;
 
-  const [phase, setPhase] = useState<"input" | "running" | "done">("input");
+  const [phase, setPhase] = useState<"preview" | "input" | "running" | "done">("preview");
   const [taskInput, setTaskInput] = useState("");
   const [taskId, setTaskId] = useState<string | null>(null);
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [authPrompt, setAuthPrompt] = useState<"login" | "apikey" | null>(null);
   const [authCountdown, setAuthCountdown] = useState(10);
   const [isStarting, setIsStarting] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
+  const [mcpHint, setMcpHint] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Poll task while running (keep polling briefly after done to get final step states)
+  // Find MCP integrations that enhance this template
+  const mcpRecommendation = getAgentMCPRecommendation(slug, []);
+  const relevantIntegrations = mcpRecommendation
+    ? MCP_SERVER_SUGGESTIONS.filter(s => mcpRecommendation.serverTypes.includes(s.type))
+    : [];
+
+  // Poll task while running
   const { task } = useTask(
-    phase !== "input" ? taskId : null,
+    phase === "running" || phase === "done" ? taskId : null,
     { refreshInterval: phase === "running" ? 1500 : phase === "done" ? 2000 : 0 }
   );
 
-  // Derive agent statuses from task steps
   const steps: TaskStep[] = task?.steps || [];
-  const agentStatuses = config.agents.map(a => deriveAgentStatus(a, steps));
-  const allDone = agentStatuses.length > 0 && agentStatuses.every(s => s === "done");
-  const doneCount = agentStatuses.filter(s => s === "done").length;
-  // taskDone is based on the actual task status from the API — more reliable than allDone
   const taskDone = phase === "done" && task != null && (task.status === "review" || task.status === "done" || task.status === "failed");
-  const agentStatusKey = agentStatuses.join(",");
 
-  // Auto-select running agent
-  useEffect(() => {
-    const runningIdx = agentStatuses.findIndex(s => s === "running");
-    if (runningIdx !== -1) {
-      setSelectedAgentId(config.agents[runningIdx].id);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agentStatusKey]);
+  // Derive node statuses from task steps (for node graph animation)
+  const nodeStatuses: NodeStatus[] = nodeGraph
+    ? nodeGraph.nodes.map((_, i) => {
+        const step = steps[i];
+        if (!step) return "idle";
+        if (step.status === "done") return "done";
+        if (step.status === "working") return "running";
+        if (step.status === "failed") return "failed";
+        return "idle";
+      })
+    : [];
 
-  // Switch to done phase (including failed)
+  // Switch to done phase
   useEffect(() => {
     if (task && (task.status === "review" || task.status === "done" || task.status === "failed") && phase === "running") {
       setPhase("done");
@@ -185,11 +129,7 @@ export default function TemplateRunPage() {
     setAuthCountdown(10);
     const iv = setInterval(() => {
       setAuthCountdown(c => {
-        if (c <= 1) {
-          clearInterval(iv);
-          router.push(authPrompt === "login" ? "/login" : "/settings");
-          return 0;
-        }
+        if (c <= 1) { clearInterval(iv); router.push(authPrompt === "login" ? "/login" : "/settings"); return 0; }
         return c - 1;
       });
     }, 1000);
@@ -198,47 +138,27 @@ export default function TemplateRunPage() {
 
   const handleRun = useCallback(async () => {
     if (!taskInput.trim() || !agent || isStarting) return;
-    if (taskInput.length > 50000) {
-      setRunError("Input is too long (max 50,000 characters).");
-      return;
-    }
+    if (taskInput.length > 50000) { setRunError("Input is too long (max 50,000 characters)."); return; }
     setIsStarting(true);
     setRunError(null);
 
     try {
-      // 1. Create task
       const createRes = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: `[${agent.name}] ${taskInput.slice(0, 100)}`,
-          description: taskInput,
-          section: "today",
-        }),
+        body: JSON.stringify({ title: `[${agent.name}] ${taskInput.slice(0, 100)}`, description: taskInput, section: "today" }),
       });
-
-      if (!createRes.ok) {
-        if (createRes.status === 401) { setAuthPrompt("login"); return; }
-        setRunError("Failed to create task. Please try again.");
-        return;
-      }
-
+      if (!createRes.ok) { if (createRes.status === 401) { setAuthPrompt("login"); return; } setRunError("Failed to create task."); return; }
       const data = await createRes.json();
       setTaskId(data.id);
 
-      // 2. Assign agent to task (required before running)
       const assignRes = await fetch(`/api/tasks/${data.id}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_id: agent.id }),
       });
-      if (!assignRes.ok) {
-        if (assignRes.status === 401) { setAuthPrompt("login"); return; }
-        setRunError("Failed to assign agent. Please try again.");
-        return;
-      }
+      if (!assignRes.ok) { if (assignRes.status === 401) { setAuthPrompt("login"); return; } setRunError("Failed to assign agent."); return; }
 
-      // 3. Start execution — send empty JSON body to avoid .json() parse errors
       const runRes = await fetch(`/api/tasks/${data.id}/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -248,58 +168,38 @@ export default function TemplateRunPage() {
         if (runRes.status === 401) { setAuthPrompt("login"); return; }
         if (runRes.status === 402) { setAuthPrompt("apikey"); return; }
         const errBody = await runRes.json().catch(() => null);
-        setRunError(errBody?.error || `Pipeline failed to start (${runRes.status}). Check your API key in Settings.`);
+        setRunError(errBody?.error || `Pipeline failed to start (${runRes.status}).`);
         return;
       }
 
-      // 4. NOW set running phase — steps exist on the backend
+      // Capture MCP hint from response
+      const runData = await runRes.json().catch(() => null);
+      if (runData?.mcpHint) setMcpHint(runData.mcpHint);
+
       setPhase("running");
       setElapsed(0);
-      setSelectedAgentId(config.agents[0]?.id || null);
     } catch (err) {
       setRunError(`Network error: ${err instanceof Error ? err.message : "Could not reach server"}`);
     } finally {
       setIsStarting(false);
     }
-  }, [taskInput, agent, config.agents, isStarting]);
+  }, [taskInput, agent, isStarting]);
 
   const [copied, setCopied] = useState(false);
-  // Collect all available output: task.output first, then per-step outputs as fallback
-  const exportableOutput = task?.output
-    || steps.map(s => s.output).filter(Boolean).join("\n\n")
-    || "";
+  const exportableOutput = task?.output || steps.map(s => s.output).filter(Boolean).join("\n\n") || "";
   const handleExport = useCallback(() => {
-    if (exportableOutput) {
-      navigator.clipboard.writeText(exportableOutput);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    if (exportableOutput) { navigator.clipboard.writeText(exportableOutput); setCopied(true); setTimeout(() => setCopied(false), 2000); }
   }, [exportableOutput]);
 
-  const handleRunAgain = useCallback(() => {
-    setPhase("input");
-    setTaskId(null);
-    setElapsed(0);
-  }, []);
-
-  const currentAgent = config.agents.find(a => a.id === selectedAgentId) || null;
-  const currentAgentIdx = currentAgent ? config.agents.indexOf(currentAgent) : -1;
-  const currentAgentStatus = currentAgentIdx >= 0 ? agentStatuses[currentAgentIdx] : "idle";
-
-  // Get output for the current agent's steps, falling back to task.output when done
-  const perStepOutput = currentAgent
-    ? currentAgent.stepIndices
-        .map(i => steps[i]?.output)
-        .filter(Boolean)
-        .join("\n\n")
-    : "";
-  const currentAgentOutput = perStepOutput || (taskDone ? (task?.output || "") : "");
+  const handleRunAgain = useCallback(() => { setPhase("input"); setTaskId(null); setElapsed(0); }, []);
 
   const templateName = agent?.name || slug.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
   const templateIcon = agent?.icon || pipeline[0]?.icon || "🤖";
+  const nodeCount = nodeGraph?.nodes.length || config.agents.length;
+  const doneSteps = nodeStatuses.filter(s => s === "done").length;
 
-  // Show not-found if agents loaded but slug doesn't match any template
-  if (agents.length > 0 && !agent && !TEMPLATE_PIPELINES[slug]) {
+  // Not found
+  if (agents.length > 0 && !agent && !TEMPLATE_PIPELINES[slug] && !nodeGraph) {
     return (
       <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
         <div style={{ fontSize: 48 }}>🤖</div>
@@ -312,23 +212,177 @@ export default function TemplateRunPage() {
     );
   }
 
-  /* ── INPUT SCREEN ── */
-  if (phase === "input") return (
-    <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column" }}>
+  /* ── PREVIEW SCREEN (Activepieces-style) ── */
+  if (phase === "preview") return (
+    <div style={{ height: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column" }}>
       <InjectKeyframes />
       {/* Header */}
-      <div style={{ padding: "16px 32px", borderBottom: `1px solid ${P.border}`, background: P.bg2, display: "flex", alignItems: "center", gap: 14 }}>
-        <button onClick={() => router.back()} style={{ fontSize: 12, color: P.textSec, background: "none", border: `1px solid ${P.border}`, borderRadius: 7, padding: "5px 11px", cursor: "pointer", fontFamily: F }}>
+      <div style={{ padding: "12px 24px", borderBottom: `1px solid ${P.border}`, background: P.bg2, display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+        <button onClick={() => router.push("/templates")} style={{ fontSize: 12, color: P.textSec, background: "none", border: `1px solid ${P.border}`, borderRadius: 7, padding: "5px 11px", cursor: "pointer", fontFamily: F }}>
+          &#8592; All Templates
+        </button>
+        <div style={{ fontSize: 15 }}>{templateIcon}</div>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>{templateName}</div>
+        <span style={{ fontSize: 11, color: P.textSec }}>{cat.label}</span>
+      </div>
+
+      {/* 2-panel layout */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        {/* LEFT panel — template info */}
+        <div style={{ width: 380, borderRight: `1px solid ${P.border}`, background: P.bg2, padding: "28px 24px", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Name + rating */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 28 }}>{templateIcon}</span>
+              <div>
+                <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>{templateName}</div>
+                <div style={{ fontSize: 11, color: P.textSec, marginTop: 2 }}>&#9733; {rating} &middot; {runs} runs</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats pills */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ padding: "8px 14px", borderRadius: 8, background: `${P.teal}10`, border: `1px solid ${P.teal}22` }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: P.teal }}>~{config.estimatedTime}</span>
+              <span style={{ fontSize: 10, color: P.textSec, marginLeft: 6 }}>Est. time</span>
+            </div>
+            <div style={{ padding: "8px 14px", borderRadius: 8, background: `${P.amber}10`, border: `1px solid ${P.amber}22` }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: P.amber }}>{config.estimatedCost}</span>
+              <span style={{ fontSize: 10, color: P.textSec, marginLeft: 6 }}>Est. cost</span>
+            </div>
+            <div style={{ padding: "8px 14px", borderRadius: 8, background: `${P.violet}10`, border: `1px solid ${P.violet}22` }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: P.violet2 }}>{nodeCount} steps</span>
+            </div>
+          </div>
+
+          {/* Use Template button */}
+          <button
+            onClick={() => setPhase("input")}
+            style={{
+              width: "100%", padding: "14px 20px", borderRadius: 12,
+              background: P.lime, color: "#0a0a0d", fontSize: 15, fontWeight: 800,
+              border: "none", cursor: "pointer", fontFamily: F,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              transition: "transform 0.15s, box-shadow 0.15s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 8px 24px ${P.lime}44`; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+          >
+            Use Template &#8594;
+          </button>
+
+          {/* About */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>About this template</div>
+            <div style={{ fontSize: 12.5, color: P.textSec, lineHeight: 1.7 }}>
+              {agent?.long_description || agent?.description || config.tagline}
+            </div>
+          </div>
+
+          {/* What's included */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>What&apos;s included</div>
+            <div style={{ padding: "12px 14px", borderRadius: 10, background: P.bg3, border: `1px solid ${P.border}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 14 }}>{templateIcon}</span>
+                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{templateName}</span>
+              </div>
+              {nodeGraph && (
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {nodeGraph.pieces.map(p => (
+                    <span key={p.name} style={{ fontSize: 14 }} title={p.name}>{p.icon}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Used Pieces */}
+          {nodeGraph && (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Used Pieces</div>
+              <UsedPieces pieces={nodeGraph.pieces} />
+            </div>
+          )}
+
+          {/* Supercharge with Integrations */}
+          {relevantIntegrations.length > 0 && (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Supercharge with Integrations</div>
+              <div style={{ fontSize: 11, color: P.textTer, marginBottom: 10, lineHeight: 1.5 }}>
+                {mcpRecommendation?.message}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {relevantIntegrations.map(s => (
+                  <button
+                    key={s.type}
+                    onClick={() => router.push("/settings")}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "8px 12px", borderRadius: 10,
+                      background: `${s.color}08`, border: `1.5px solid ${s.color}22`,
+                      cursor: "pointer", fontFamily: F, transition: "all 0.15s",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = s.color + "55"; e.currentTarget.style.background = s.color + "12"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = s.color + "22"; e.currentTarget.style.background = s.color + "08"; }}
+                  >
+                    <div style={{
+                      width: 24, height: 24, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
+                      backgroundColor: s.color + "18", color: s.color, fontSize: 9, fontWeight: 800,
+                    }}>
+                      {s.icon}
+                    </div>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: P.text }}>{s.name}</div>
+                      <div style={{ fontSize: 9, color: P.textTer }}>Connect in Settings</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT panel — Node graph */}
+        <div style={{ flex: 1, background: P.bg, position: "relative" }}>
+          {nodeGraph ? (
+            <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: P.textTer, fontSize: 13 }}>Loading graph...</div>}>
+              <PipelineGraph graph={nodeGraph} />
+            </Suspense>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {config.agents.map((a, i) => (
+                  <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: `${a.color}18`, border: `2px solid ${a.color}55`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{a.icon}</div>
+                    {i < config.agents.length - 1 && <div style={{ width: 28, height: 1.5, background: `linear-gradient(90deg, ${a.color}66, ${config.agents[i + 1].color}66)` }} />}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, color: P.textTer }}>Pipeline preview</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {authPrompt && <AuthOverlay type={authPrompt} countdown={authCountdown} onClose={() => setAuthPrompt(null)} />}
+    </div>
+  );
+
+  /* ── INPUT SCREEN ── */
+  if (phase === "input") return (
+    <div style={{ height: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column" }}>
+      <InjectKeyframes />
+      <div style={{ padding: "12px 24px", borderBottom: `1px solid ${P.border}`, background: P.bg2, display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+        <button onClick={() => setPhase("preview")} style={{ fontSize: 12, color: P.textSec, background: "none", border: `1px solid ${P.border}`, borderRadius: 7, padding: "5px 11px", cursor: "pointer", fontFamily: F }}>
           &#8592; Back
         </button>
-        <div style={{ fontSize: 16, marginRight: 2 }}>{templateIcon}</div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>{templateName}</div>
-          <div style={{ fontSize: 11, color: P.textSec }}>{cat.label} &middot; &#9733; {rating} &middot; {runs} runs</div>
-        </div>
+        <div style={{ fontSize: 15 }}>{templateIcon}</div>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>{templateName}</div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
           {[
-            { l: "Agents", v: String(config.agents.length), c: P.violet2 },
+            { l: "Steps", v: String(nodeCount), c: P.violet2 },
             { l: "Est. time", v: config.estimatedTime, c: P.teal },
             { l: "Est. cost", v: config.estimatedCost, c: P.amber },
           ].map(s => (
@@ -340,97 +394,116 @@ export default function TemplateRunPage() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
-        <div style={{ width: "100%", maxWidth: 680 }}>
-          {/* Agent pipeline preview */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 36 }}>
-            {config.agents.map((a, i) => (
-              <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: "50%",
-                    background: `${a.color}18`, border: `2px solid ${a.color}55`,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
-                  }}>{a.icon}</div>
-                  <span style={{ fontSize: 9.5, color: P.textSec, textAlign: "center", maxWidth: 70, lineHeight: 1.3, fontFamily: F }}>{a.name}</span>
-                </div>
-                {i < config.agents.length - 1 && (
-                  <div style={{ width: 28, height: 1.5, background: `linear-gradient(90deg, ${a.color}66, ${config.agents[i + 1].color}66)`, marginBottom: 18 }} />
+      {/* 2-panel: input on left, graph on right */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px", overflowY: "auto" }}>
+          <div style={{ width: "100%", maxWidth: 580 }}>
+            <div style={{ background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 18, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+              <div style={{ padding: "24px 28px 20px" }}>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{config.inputLabel}</div>
+                <div style={{ fontSize: 12.5, color: P.textSec, marginBottom: 20, lineHeight: 1.6 }}>{config.tagline}</div>
+                <textarea
+                  value={taskInput}
+                  onChange={e => setTaskInput(e.target.value)}
+                  rows={6}
+                  style={{
+                    width: "100%", background: P.bg3, border: `1px solid ${P.border}`,
+                    borderRadius: 12, padding: "14px 16px", color: P.text, fontFamily: F,
+                    fontSize: 13, lineHeight: 1.7, outline: "none", resize: "vertical", boxSizing: "border-box",
+                  }}
+                  onFocus={e => e.target.style.borderColor = P.violet + "88"}
+                  onBlur={e => e.target.style.borderColor = P.border}
+                  placeholder={config.inputPlaceholder}
+                />
+                {runError && (
+                  <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", fontSize: 12, color: "#ef4444" }}>
+                    {runError}
+                  </div>
                 )}
               </div>
-            ))}
-          </div>
 
-          {/* Task input card */}
-          <div style={{ background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 18, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
-            <div style={{ padding: "24px 28px 20px" }}>
-              <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{config.inputLabel}</div>
-              <div style={{ fontSize: 12.5, color: P.textSec, marginBottom: 20, lineHeight: 1.6 }}>{config.tagline}</div>
-              <textarea
-                value={taskInput}
-                onChange={e => setTaskInput(e.target.value)}
-                rows={8}
-                style={{
-                  width: "100%", background: P.bg3, border: `1px solid ${P.border}`,
-                  borderRadius: 12, padding: "14px 16px", color: P.text, fontFamily: F,
-                  fontSize: 13, lineHeight: 1.7, outline: "none", resize: "vertical", boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-                onFocus={e => e.target.style.borderColor = P.violet + "88"}
-                onBlur={e => e.target.style.borderColor = P.border}
-                placeholder={config.inputPlaceholder}
-              />
-              {runError && (
-                <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", fontSize: 12, color: "#ef4444", lineHeight: 1.6 }}>
-                  {runError}
+              <div style={{ padding: "0 28px 20px" }}>
+                <div style={{ fontSize: 10, color: P.textTer, marginBottom: 8 }}>Try an example &#8594;</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {config.quickFills.map((s, i) => (
+                    <button key={i} onClick={() => setTaskInput(s)} style={{
+                      fontSize: 11, padding: "5px 12px", borderRadius: 100,
+                      background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec,
+                      cursor: "pointer", fontFamily: F, transition: "all 0.15s",
+                      maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${P.violet}18`; e.currentTarget.style.borderColor = `${P.violet}55`; e.currentTarget.style.color = P.violet2; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = P.bg4; e.currentTarget.style.borderColor = P.border2; e.currentTarget.style.color = P.textSec; }}>
+                      {s.length > 40 ? s.slice(0, 40) + "..." : s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Integration badges */}
+              {relevantIntegrations.length > 0 && (
+                <div style={{ padding: "0 28px 12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 9.5, color: P.textTer, fontWeight: 600 }}>Works with:</span>
+                    {relevantIntegrations.map(s => (
+                      <button
+                        key={s.type}
+                        onClick={() => router.push("/settings")}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 4,
+                          padding: "3px 8px", borderRadius: 6,
+                          background: `${s.color}08`, border: `1px solid ${s.color}18`,
+                          cursor: "pointer", fontFamily: F, fontSize: 9, fontWeight: 700,
+                          color: s.color,
+                        }}
+                        title={`Connect ${s.name} in Settings for enhanced results`}
+                      >
+                        <span style={{
+                          width: 14, height: 14, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          backgroundColor: s.color + "15", fontSize: 7, fontWeight: 800,
+                        }}>
+                          {s.icon}
+                        </span>
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* Quick fills */}
-            <div style={{ padding: "0 28px 20px" }}>
-              <div style={{ fontSize: 10, color: P.textTer, marginBottom: 8 }}>Try an example &#8594;</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {config.quickFills.map((s, i) => (
-                  <button key={i} onClick={() => setTaskInput(s)} style={{
-                    fontSize: 11, padding: "5px 12px", borderRadius: 100,
-                    background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec,
-                    cursor: "pointer", fontFamily: F, transition: "all 0.15s",
-                    maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = `${P.violet}18`; e.currentTarget.style.borderColor = `${P.violet}55`; e.currentTarget.style.color = P.violet2; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = P.bg4; e.currentTarget.style.borderColor = P.border2; e.currentTarget.style.color = P.textSec; }}>
-                    {s.length > 40 ? s.slice(0, 40) + "..." : s}
-                  </button>
-                ))}
+              <div style={{ padding: "16px 28px", background: P.bg3, borderTop: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 11, color: P.textSec }}>Using your API key &middot; ~{config.estimatedTime}</div>
+                <button onClick={handleRun} disabled={!taskInput.trim() || isStarting}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 9, padding: "11px 24px", borderRadius: 11,
+                    background: taskInput.trim() && !isStarting ? P.lime : P.bg5,
+                    color: taskInput.trim() && !isStarting ? "#0a0a0d" : P.textTer,
+                    fontSize: 13, fontWeight: 700, border: "none",
+                    cursor: taskInput.trim() && !isStarting ? "pointer" : "not-allowed",
+                    fontFamily: F, opacity: isStarting ? 0.7 : 1,
+                  }}>
+                  <span>{isStarting ? "\u23F3" : "\u25B6"}</span> {isStarting ? "Starting..." : "Run Pipeline"}
+                </button>
               </div>
-            </div>
-
-            <div style={{ padding: "16px 28px", background: P.bg3, borderTop: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontSize: 11, color: P.textSec }}>Using your API key &middot; Results in ~{config.estimatedTime}</div>
-              <button onClick={handleRun} disabled={!taskInput.trim() || isStarting}
-                style={{
-                  display: "flex", alignItems: "center", gap: 9, padding: "11px 24px", borderRadius: 11,
-                  background: taskInput.trim() && !isStarting ? P.lime : P.bg5,
-                  color: taskInput.trim() && !isStarting ? "#0a0a0d" : P.textTer,
-                  fontSize: 13, fontWeight: 700, border: "none",
-                  cursor: taskInput.trim() && !isStarting ? "pointer" : "not-allowed",
-                  fontFamily: F, transition: "all 0.2s",
-                  opacity: isStarting ? 0.7 : 1,
-                }}>
-                <span>{isStarting ? "\u23F3" : "\u25B6"}</span> {isStarting ? "Starting..." : `Run ${templateName}`}
-              </button>
             </div>
           </div>
         </div>
+
+        {/* Right — graph preview (read-only) */}
+        {nodeGraph && (
+          <div style={{ width: 400, borderLeft: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
+            <Suspense fallback={null}>
+              <PipelineGraph graph={nodeGraph} />
+            </Suspense>
+          </div>
+        )}
       </div>
 
-      {/* Auth overlay */}
       {authPrompt && <AuthOverlay type={authPrompt} countdown={authCountdown} onClose={() => setAuthPrompt(null)} />}
     </div>
   );
 
-  /* ── RUN / DONE SCREEN ── */
+  /* ── RUNNING / DONE SCREEN ── */
   return (
     <div style={{ height: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column" }}>
       <InjectKeyframes />
@@ -442,14 +515,14 @@ export default function TemplateRunPage() {
         <div style={{ fontSize: 15 }}>{templateIcon}</div>
         <div style={{ fontSize: 13, fontWeight: 700 }}>{templateName}</div>
 
-        {/* Progress bar */}
+        {/* Progress */}
         <div style={{ flex: 1, maxWidth: 300, marginLeft: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
             <span style={{ fontSize: 10, color: P.textSec }}>
-              {taskDone ? "Complete" : `Step ${doneCount + 1} of ${config.agents.length}`}
+              {taskDone ? "Complete" : `Step ${doneSteps + 1} of ${nodeCount}`}
             </span>
             <span style={{ fontSize: 10, color: P.textSec }}>
-              {task ? `${task.progress}%` : `${Math.round((doneCount / config.agents.length) * 100)}%`}
+              {task ? `${task.progress}%` : `${Math.round((doneSteps / nodeCount) * 100)}%`}
             </span>
           </div>
           <div style={{ height: 3, background: P.bg4, borderRadius: 100, overflow: "hidden" }}>
@@ -457,7 +530,7 @@ export default function TemplateRunPage() {
               height: "100%",
               background: taskDone ? P.lime : `linear-gradient(90deg, ${P.violet}, ${P.lime})`,
               borderRadius: 100,
-              width: task ? `${task.progress}%` : `${(doneCount / config.agents.length) * 100}%`,
+              width: task ? `${task.progress}%` : `${(doneSteps / nodeCount) * 100}%`,
               transition: "width 0.6s ease",
             }} />
           </div>
@@ -467,190 +540,124 @@ export default function TemplateRunPage() {
           <div style={{ fontSize: 12, color: P.textSec, background: P.bg3, border: `1px solid ${P.border}`, borderRadius: 7, padding: "5px 11px", fontFamily: FM }}>
             &#9201; {task?.duration_seconds || elapsed}s
           </div>
-          <CostTicker
-            costUsd={task?.cost_usd || 0}
-            tokensIn={task?.tokens_in || 0}
-            tokensOut={task?.tokens_out || 0}
-          />
+          <CostTicker costUsd={task?.cost_usd || 0} tokensIn={task?.tokens_in || 0} tokensOut={task?.tokens_out || 0} />
           {taskDone && task?.status !== "failed" && (
-            <button onClick={handleExport} style={{ padding: "7px 16px", borderRadius: 9, background: copied ? P.green : P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F, transition: "background 0.2s" }}>
-              {copied ? "\u2713 Copied!" : "Export Results \u2197"}
+            <button onClick={handleExport} style={{ padding: "7px 16px", borderRadius: 9, background: copied ? P.green : P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F }}>
+              {copied ? "\u2713 Copied!" : "Export \u2197"}
             </button>
           )}
         </div>
       </div>
 
-      {/* Main 3-column layout */}
+      {/* Main 2-panel: output left, graph right */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-
-        {/* LEFT - Agent timeline */}
-        <div style={{ width: 320, borderRight: `1px solid ${P.border}`, background: P.bg2, padding: "22px 20px", overflowY: "auto", flexShrink: 0 }}>
-          <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.09em", color: P.textTer, marginBottom: 20 }}>Agent Execution</div>
-          {config.agents.map((a, i) => (
-            <AgentStep
-              key={a.id}
-              agent={a}
-              status={agentStatuses[i]}
-              isLast={i === config.agents.length - 1}
-              onClick={() => setSelectedAgentId(a.id)}
-              isSelected={selectedAgentId === a.id}
-            />
-          ))}
-
-          {taskDone && task?.status !== "failed" && (
-            <div style={{ marginTop: 20, padding: "14px 16px", background: `${P.lime}0c`, border: `1px solid ${P.lime}33`, borderRadius: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: P.lime, marginBottom: 3 }}>All done!</div>
-              <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.6 }}>
-                Pipeline completed in {task?.duration_seconds || elapsed}s.
-              </div>
-            </div>
-          )}
-          {task?.status === "failed" && (
-            <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#ef4444", marginBottom: 3 }}>Pipeline failed</div>
-              <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.6 }}>
-                {task.current_step || "An error occurred. Check your API key in Settings."}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* CENTER - Agent output */}
+        {/* LEFT — Step timeline + output */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          {currentAgent ? (
-            <>
-              {/* Agent header */}
-              <div style={{ padding: "16px 22px", borderBottom: `1px solid ${P.border}`, background: P.bg2, flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: "50%",
-                    background: `${currentAgent.color}20`, border: `2px solid ${currentAgent.color}55`,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
-                    boxShadow: currentAgentStatus === "running" ? `0 0 16px ${currentAgent.color}44` : "none",
-                    transition: "box-shadow 0.4s",
-                  }}>
-                    {currentAgentStatus === "running"
-                      ? <span className="animate-spin" style={{ display: "block" }}>&#x27F3;</span>
-                      : currentAgent.icon}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: currentAgentStatus !== "idle" ? currentAgent.color : P.text, transition: "color 0.3s" }}>{currentAgent.name}</div>
-                    <div style={{ fontSize: 11, color: P.textSec, marginTop: 1 }}>{currentAgent.role}</div>
-                  </div>
-                  <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                    <span style={{ fontSize: 10.5, padding: "3px 10px", borderRadius: 100, background: `${currentAgent.color}15`, color: currentAgent.color, border: `1px solid ${currentAgent.color}33`, fontFamily: F }}>
-                      {currentAgent.model}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Output area */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "22px" }}>
-                {currentAgentStatus === "idle" && !taskDone ? (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, opacity: 0.4 }}>
-                    <div style={{ fontSize: 36 }}>{currentAgent.icon}</div>
-                    <div style={{ fontSize: 13, color: P.textTer, fontFamily: F }}>Waiting to start...</div>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {currentAgentOutput ? (
-                      <div
-                        className="prose prose-invert prose-sm max-w-none"
-                        style={{
-                          animation: "tpl-fadeUp 0.4s ease both",
-                          padding: "16px 18px", background: P.bg3, borderRadius: 12,
-                          border: `1px solid ${task?.status === "failed" ? "rgba(239,68,68,0.3)" : P.border}`,
-                          fontSize: 12.5, lineHeight: 1.7, color: P.textSec,
-                        }}
-                      >
-                        <ReactMarkdown>{currentAgentOutput}</ReactMarkdown>
-                      </div>
-                    ) : taskDone ? (
-                      <div style={{
-                        padding: "20px", background: P.bg3, borderRadius: 12,
-                        border: `1px solid ${P.border}`, textAlign: "center",
-                      }}>
-                        <div style={{ fontSize: 13, color: P.textSec, marginBottom: 8 }}>
-                          Pipeline completed. Output is loading...
-                        </div>
-                        <div style={{ fontSize: 11, color: P.textTer }}>
-                          If output doesn&apos;t appear, try clicking &quot;Run Again&quot;.
-                        </div>
-                      </div>
-                    ) : null}
-                    {currentAgentStatus === "running" && (
-                      <div style={{ display: "flex", gap: 6, padding: "12px 14px", alignItems: "center" }}>
-                        {[0, 1, 2].map(i => (
-                          <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: currentAgent.color, animation: `tpl-bounce 1.2s ease ${i * 0.2}s infinite` }} />
-                        ))}
-                        <span style={{ fontSize: 11, color: P.textSec, marginLeft: 4 }}>Processing...</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, opacity: 0.4 }}>
-              <div style={{ fontSize: 40 }}>&#x1F448;</div>
-              <div style={{ fontSize: 13, color: P.textTer }}>Select an agent to inspect its output</div>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT - Task context + log */}
-        <div style={{ width: 260, borderLeft: `1px solid ${P.border}`, background: P.bg2, display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden" }}>
-          {/* Task */}
-          <div style={{ padding: "18px 16px", borderBottom: `1px solid ${P.border}` }}>
-            <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.08em", color: P.textTer, marginBottom: 10 }}>Your Task</div>
-            <div style={{ fontSize: 11.5, color: P.textSec, lineHeight: 1.65, background: P.bg3, padding: "10px 12px", borderRadius: 9, border: `1px solid ${P.border}` }}>
-              {taskInput}
-            </div>
-          </div>
-
-          {/* Live log */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-            <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.08em", color: P.textTer, marginBottom: 12 }}>Live Log</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {config.agents.map((a, i) => {
-                const status = taskDone ? "done" : agentStatuses[i];
-                if (status === "idle") return null;
+          {/* Step timeline */}
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${P.border}`, background: P.bg2, overflowX: "auto", flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              {(nodeGraph?.nodes || []).map((node, i) => {
+                const status = nodeStatuses[i] || "idle";
                 return (
-                  <div key={a.id} style={{ padding: "8px 10px", background: P.bg3, borderRadius: 8, border: `1px solid ${status === "running" ? a.color + "44" : P.border}` }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: status === "running" ? a.color : P.lime, flexShrink: 0, boxShadow: status === "running" ? `0 0 6px ${a.color}` : "none" }} />
-                      <span style={{ fontSize: 10.5, fontWeight: 700, color: a.color, fontFamily: F }}>{a.name}</span>
+                  <div key={node.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <div style={{
+                      padding: "5px 10px", borderRadius: 8, fontSize: 10.5, fontWeight: 600,
+                      background: status === "done" ? `${node.color}15` : status === "running" ? `${node.color}10` : P.bg3,
+                      color: status !== "idle" ? node.color : P.textTer,
+                      border: `1px solid ${status === "running" ? node.color + "55" : status === "done" ? node.color + "33" : P.border}`,
+                      whiteSpace: "nowrap", transition: "all 0.3s",
+                    }}>
+                      {status === "done" ? "✓" : status === "running" ? "⟳" : `${i + 1}`} {node.label}
                     </div>
-                    <div style={{ fontSize: 10, color: P.textSec, lineHeight: 1.5, fontFamily: FM }}>
-                      {status === "running" ? "\u27F3 Processing..." : `\u2713 ${a.outputLabel}`}
-                    </div>
+                    {i < (nodeGraph?.nodes.length || 0) - 1 && (
+                      <div style={{ width: 12, height: 1, background: status === "done" ? node.color + "66" : P.border }} />
+                    )}
                   </div>
                 );
               })}
-              {phase === "running" && agentStatuses.every(s => s === "idle") && (
-                <div style={{ fontSize: 11, color: P.textTer, textAlign: "center", padding: "20px 0" }}>Starting pipeline...</div>
-              )}
             </div>
           </div>
 
-          {/* Bottom - done actions */}
-          {taskDone && (
-            <div style={{ padding: "14px 16px", borderTop: `1px solid ${P.border}`, display: "flex", flexDirection: "column", gap: 8 }}>
-              <button onClick={handleRunAgain} style={{ padding: "9px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
-                &#8634; Run Again
+          {/* MCP integration hint */}
+          {mcpHint && !taskDone && (
+            <div style={{
+              margin: "0 20px", marginTop: 12, padding: "10px 14px", borderRadius: 10,
+              background: `${P.violet}08`, border: `1px solid ${P.violet}20`,
+              display: "flex", alignItems: "center", gap: 10,
+            }}>
+              <span style={{ fontSize: 14 }}>&#9889;</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.5 }}>{mcpHint}</div>
+              </div>
+              <button
+                onClick={() => router.push("/settings")}
+                style={{
+                  fontSize: 10, fontWeight: 700, color: P.violet2, background: `${P.violet}15`,
+                  border: `1px solid ${P.violet}30`, borderRadius: 6, padding: "4px 10px",
+                  cursor: "pointer", fontFamily: F, whiteSpace: "nowrap",
+                }}
+              >
+                Settings
               </button>
-              {task?.status !== "failed" && (
-                <button onClick={handleExport} style={{ padding: "9px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
-                  &#8599; Export Results
-                </button>
-              )}
+              <button
+                onClick={() => setMcpHint(null)}
+                style={{ background: "none", border: "none", color: P.textTer, cursor: "pointer", fontSize: 12, fontFamily: F }}
+              >
+                &#10005;
+              </button>
             </div>
           )}
+
+          {/* Output area */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "22px" }}>
+            {exportableOutput ? (
+              <div
+                className="prose prose-invert prose-sm max-w-none"
+                style={{
+                  animation: "tpl-fadeUp 0.4s ease both",
+                  padding: "16px 18px", background: P.bg3, borderRadius: 12,
+                  border: `1px solid ${task?.status === "failed" ? "rgba(239,68,68,0.3)" : P.border}`,
+                  fontSize: 12.5, lineHeight: 1.7, color: P.textSec,
+                }}
+              >
+                <ReactMarkdown>{exportableOutput}</ReactMarkdown>
+              </div>
+            ) : phase === "running" ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12 }}>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: P.violet, animation: `tpl-bounce 1.2s ease ${i * 0.2}s infinite` }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 13, color: P.textSec }}>{task?.current_step || "Starting pipeline..."}</div>
+              </div>
+            ) : null}
+
+            {taskDone && (
+              <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
+                <button onClick={handleRunAgain} style={{ padding: "9px 18px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
+                  &#8634; Run Again
+                </button>
+                {task?.status !== "failed" && (
+                  <button onClick={handleExport} style={{ padding: "9px 18px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
+                    &#8599; Export Results
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* RIGHT — Node graph with live status */}
+        {nodeGraph && (
+          <div style={{ width: 400, borderLeft: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
+            <Suspense fallback={null}>
+              <PipelineGraph graph={nodeGraph} nodeStatuses={nodeStatuses} />
+            </Suspense>
+          </div>
+        )}
       </div>
 
-      {/* Auth overlay */}
       {authPrompt && <AuthOverlay type={authPrompt} countdown={authCountdown} onClose={() => setAuthPrompt(null)} />}
     </div>
   );
@@ -690,7 +697,6 @@ function AuthOverlay({ type, countdown, onClose }: { type: "login" | "apikey"; c
             ? "Create a free account to run AI agents and unlock the full power of AgentStudio."
             : "Add your OpenAI, Gemini, or Anthropic API key in Settings to start running agents."}
         </p>
-        {/* Progress bar */}
         <div style={{ width: "100%", height: 4, background: P.bg4, borderRadius: 100, marginBottom: 12, overflow: "hidden" }}>
           <div style={{ height: "100%", background: type === "login" ? P.violet : P.amber, borderRadius: 100, width: `${(countdown / 10) * 100}%`, transition: "width 1s linear" }} />
         </div>

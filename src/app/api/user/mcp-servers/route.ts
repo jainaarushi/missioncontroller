@@ -63,9 +63,12 @@ export async function POST(request: NextRequest) {
 
   // Validate server type
   const validTypes: MCPServerType[] = [
-    "github", "slack", "postgres", "mysql", "google-sheets",
-    "jira", "linear", "notion", "salesforce", "hubspot",
-    "sentry", "browserbase", "custom",
+    "github", "slack", "postgres", "mysql", "google-sheets", "google-calendar", "gmail",
+    "jira", "linear", "notion", "salesforce", "hubspot", "sentry", "browserbase",
+    "stripe", "discord", "trello", "asana", "figma", "twitter", "gitlab",
+    "calendly", "posthog", "snowflake", "intercom", "telegram", "whatsapp",
+    "zendesk", "shopify", "supabase", "firebase", "confluence", "airtable", "monday",
+    "custom",
   ];
   if (!validTypes.includes(serverType)) {
     return NextResponse.json({ error: "Invalid server type" }, { status: 400 });
