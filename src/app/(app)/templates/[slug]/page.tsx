@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useTask } from "@/lib/hooks/use-task";
 import { P, F, FM } from "@/lib/palette";
@@ -30,6 +31,7 @@ function InjectKeyframes() {
       @keyframes tpl-progress { 0%{transform:scaleX(0) translateX(0)} 50%{transform:scaleX(0.7) translateX(30%)} 100%{transform:scaleX(0) translateX(200%)} }
       @keyframes tpl-bounce { 0%,80%,100%{transform:scale(0.8);opacity:0.4} 40%{transform:scale(1.2);opacity:1} }
       @keyframes tpl-fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes pulseGlow { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.3)} 50%{box-shadow:0 0 12px 4px rgba(239,68,68,0.15)} }
       .animate-spin { animation: spin 1s linear infinite; }
       @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     `}</style>
@@ -78,6 +80,17 @@ export default function TemplateRunPage() {
   const [isStarting, setIsStarting] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
   const [mcpHint, setMcpHint] = useState<string | null>(null);
+  // Voice input
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  // File upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ filename: string; mimeType: string; textContent: string | null } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  // Export
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Find MCP integrations that enhance this template
@@ -136,6 +149,82 @@ export default function TemplateRunPage() {
     return () => clearInterval(iv);
   }, [authPrompt, router]);
 
+  // Voice recording
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setTranscribing(true);
+        try {
+          const arrayBuffer = await blob.arrayBuffer();
+          const audioCtx = new AudioContext({ sampleRate: 16000 });
+          const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+          const pcm = decoded.getChannelData(0);
+          const int16 = new Int16Array(pcm.length);
+          for (let i = 0; i < pcm.length; i++) { const s = Math.max(-1, Math.min(1, pcm[i])); int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; }
+          const wavBuf = new ArrayBuffer(44 + int16.byteLength);
+          const v = new DataView(wavBuf);
+          const ws = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+          ws(0,"RIFF"); v.setUint32(4,36+int16.byteLength,true); ws(8,"WAVE"); ws(12,"fmt ");
+          v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+          v.setUint32(24,16000,true); v.setUint32(28,32000,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+          ws(36,"data"); v.setUint32(40,int16.byteLength,true); new Int16Array(wavBuf,44).set(int16);
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(wavBuf)));
+          audioCtx.close();
+          const res = await fetch("/api/speech", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ audio: base64 }) });
+          const data = await res.json();
+          if (res.ok && data.text) { setTaskInput((prev) => (prev ? prev + " " : "") + data.text); }
+          else { setRunError(data.error || "Voice transcription failed. Configure Wispr key in Settings."); }
+        } catch (err) { console.error(err); setRunError("Voice processing failed."); }
+        finally { setTranscribing(false); }
+      };
+      mediaRecorder.start();
+      setRecording(true);
+    } catch { setRunError("Microphone access denied."); }
+  }
+
+  function stopRecording() { mediaRecorderRef.current?.stop(); setRecording(false); }
+
+  // File upload
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setRunError(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) { setRunError(data.error || "Upload failed"); return; }
+      setUploadedFile(data.file);
+    } catch { setRunError("Upload failed."); }
+    finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = ""; }
+  }
+
+  // Export as file download
+  function downloadAsFile(content: string, filename: string, mimeType: string) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   const handleRun = useCallback(async () => {
     if (!taskInput.trim() || !agent || isStarting) return;
     if (taskInput.length > 50000) { setRunError("Input is too long (max 50,000 characters)."); return; }
@@ -146,7 +235,13 @@ export default function TemplateRunPage() {
       const createRes = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: `[${agent.name}] ${taskInput.slice(0, 100)}`, description: taskInput, section: "today" }),
+        body: JSON.stringify({
+          title: `[${agent.name}] ${taskInput.slice(0, 100)}`,
+          description: uploadedFile?.textContent
+            ? `${taskInput}\n\n[Attached: ${uploadedFile.filename}]\n${uploadedFile.textContent}`
+            : taskInput,
+          section: "today",
+        }),
       });
       if (!createRes.ok) { if (createRes.status === 401) { setAuthPrompt("login"); return; } setRunError("Failed to create task."); return; }
       const data = await createRes.json();
@@ -191,7 +286,7 @@ export default function TemplateRunPage() {
     if (exportableOutput) { navigator.clipboard.writeText(exportableOutput); setCopied(true); setTimeout(() => setCopied(false), 2000); }
   }, [exportableOutput]);
 
-  const handleRunAgain = useCallback(() => { setPhase("input"); setTaskId(null); setElapsed(0); }, []);
+  const handleRunAgain = useCallback(() => { setPhase("input"); setTaskId(null); setElapsed(0); setUploadedFile(null); setExportMenuOpen(false); setMcpHint(null); }, []);
 
   const templateName = agent?.name || slug.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
   const templateIcon = agent?.icon || pipeline[0]?.icon || "🤖";
@@ -415,6 +510,69 @@ export default function TemplateRunPage() {
                   onBlur={e => e.target.style.borderColor = P.border}
                   placeholder={config.inputPlaceholder}
                 />
+                {/* Voice + File buttons */}
+                <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.csv,.json,.md,.jpg,.jpeg,.png,.gif,.webp" onChange={handleFileUpload} style={{ display: "none" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+                  <button
+                    onClick={recording ? stopRecording : startRecording}
+                    disabled={transcribing}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "6px 14px", borderRadius: 10,
+                      border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
+                      backgroundColor: recording ? "rgba(239,68,68,0.10)" : P.bg3,
+                      color: recording ? "#EF4444" : P.textSec,
+                      fontSize: 11, fontWeight: 600, cursor: "pointer",
+                      fontFamily: F, transition: "all 0.15s",
+                      opacity: transcribing ? 0.5 : 1,
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      {recording ? <rect x="6" y="6" width="12" height="12" rx="2" /> : (
+                        <>
+                          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                          <line x1="12" y1="19" x2="12" y2="23" />
+                        </>
+                      )}
+                    </svg>
+                    {transcribing ? "Transcribing..." : recording ? "Stop" : "Voice"}
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "6px 14px", borderRadius: 10,
+                      border: `1.5px solid ${P.border}`,
+                      backgroundColor: P.bg3, color: P.textSec,
+                      fontSize: 11, fontWeight: 600, cursor: "pointer",
+                      fontFamily: F, transition: "all 0.15s",
+                      opacity: uploading ? 0.5 : 1,
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    {uploading ? "Uploading..." : "Attach"}
+                  </button>
+                  {uploadedFile && (
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "5px 12px", borderRadius: 10,
+                      backgroundColor: `${P.violet}08`, border: `1px solid ${P.violet}15`,
+                      fontSize: 10, fontWeight: 600, color: P.text,
+                    }}>
+                      <span>&#128196;</span> {uploadedFile.filename}
+                      <button onClick={() => setUploadedFile(null)} style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        color: P.textTer, fontSize: 10, padding: "0 2px", fontFamily: F,
+                      }}>&#10005;</button>
+                    </div>
+                  )}
+                </div>
                 {runError && (
                   <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", fontSize: 12, color: "#ef4444" }}>
                     {runError}
@@ -542,9 +700,46 @@ export default function TemplateRunPage() {
           </div>
           <CostTicker costUsd={task?.cost_usd || 0} tokensIn={task?.tokens_in || 0} tokensOut={task?.tokens_out || 0} />
           {taskDone && task?.status !== "failed" && (
-            <button onClick={handleExport} style={{ padding: "7px 16px", borderRadius: 9, background: copied ? P.green : P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F }}>
-              {copied ? "\u2713 Copied!" : "Export \u2197"}
-            </button>
+            <div style={{ position: "relative" }}>
+              <button onClick={() => setExportMenuOpen(!exportMenuOpen)} style={{ padding: "7px 16px", borderRadius: 9, background: copied ? P.green : P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F, display: "flex", alignItems: "center", gap: 5 }}>
+                {copied ? "\u2713 Copied!" : "Export"} <span style={{ fontSize: 9 }}>\u25BC</span>
+              </button>
+              {exportMenuOpen && (
+                <div style={{
+                  position: "absolute", top: "100%", right: 0, marginTop: 4, zIndex: 50,
+                  background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 10,
+                  boxShadow: P.shadowFloat, overflow: "hidden", minWidth: 160,
+                }}>
+                  <button onClick={() => { handleExport(); setExportMenuOpen(false); }} style={{
+                    width: "100%", padding: "9px 14px", background: "none", border: "none",
+                    color: P.text, fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: F,
+                    textAlign: "left", display: "flex", alignItems: "center", gap: 8,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = P.bg3}
+                  onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                    <span style={{ fontSize: 13 }}>&#128203;</span> Copy to Clipboard
+                  </button>
+                  <button onClick={() => { downloadAsFile(exportableOutput, `${slug}-result.md`, "text/markdown"); setExportMenuOpen(false); }} style={{
+                    width: "100%", padding: "9px 14px", background: "none", border: "none",
+                    color: P.text, fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: F,
+                    textAlign: "left", display: "flex", alignItems: "center", gap: 8,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = P.bg3}
+                  onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                    <span style={{ fontSize: 13 }}>&#128196;</span> Download as .md
+                  </button>
+                  <button onClick={() => { downloadAsFile(exportableOutput, `${slug}-result.txt`, "text/plain"); setExportMenuOpen(false); }} style={{
+                    width: "100%", padding: "9px 14px", background: "none", border: "none",
+                    color: P.text, fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: F,
+                    textAlign: "left", display: "flex", alignItems: "center", gap: 8,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = P.bg3}
+                  onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                    <span style={{ fontSize: 13 }}>&#128209;</span> Download as .txt
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -620,7 +815,35 @@ export default function TemplateRunPage() {
                   fontSize: 12.5, lineHeight: 1.7, color: P.textSec,
                 }}
               >
-                <ReactMarkdown>{exportableOutput}</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    table: ({ children }) => (
+                      <div style={{ overflowX: "auto", margin: "12px 0" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>{children}</table>
+                      </div>
+                    ),
+                    th: ({ children }) => (
+                      <th style={{ padding: "8px 12px", borderBottom: `2px solid ${P.border2}`, textAlign: "left", fontSize: 11, fontWeight: 700, color: P.text, background: P.bg4 }}>{children}</th>
+                    ),
+                    td: ({ children }) => (
+                      <td style={{ padding: "7px 12px", borderBottom: `1px solid ${P.border}`, fontSize: 11.5, color: P.textSec }}>{children}</td>
+                    ),
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: P.violet2, textDecoration: "underline", textUnderlineOffset: 2 }}>{children}</a>
+                    ),
+                    code: ({ children, className }) => {
+                      const isBlock = className?.includes("language-");
+                      return isBlock ? (
+                        <pre style={{ background: P.bg4, borderRadius: 8, padding: "12px 16px", overflow: "auto", fontSize: 11.5, lineHeight: 1.6 }}>
+                          <code>{children}</code>
+                        </pre>
+                      ) : (
+                        <code style={{ background: P.bg4, padding: "1px 5px", borderRadius: 4, fontSize: "0.9em" }}>{children}</code>
+                      );
+                    },
+                  }}
+                >{exportableOutput}</ReactMarkdown>
               </div>
             ) : phase === "running" ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12 }}>
@@ -639,9 +862,14 @@ export default function TemplateRunPage() {
                   &#8634; Run Again
                 </button>
                 {task?.status !== "failed" && (
-                  <button onClick={handleExport} style={{ padding: "9px 18px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
-                    &#8599; Export Results
-                  </button>
+                  <>
+                    <button onClick={handleExport} style={{ padding: "9px 18px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
+                      {copied ? "\u2713 Copied!" : "&#128203; Copy Results"}
+                    </button>
+                    <button onClick={() => downloadAsFile(exportableOutput, `${slug}-result.md`, "text/markdown")} style={{ padding: "9px 18px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
+                      &#128196; Download .md
+                    </button>
+                  </>
                 )}
               </div>
             )}
