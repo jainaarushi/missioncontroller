@@ -277,6 +277,20 @@ async function executeAINode(
 
   systemPrompt += `\n\nToday's date: ${ctx.today}`;
 
+  // Strong formatting directives — ensures rich, structured output
+  systemPrompt += `
+
+OUTPUT FORMAT RULES (MANDATORY):
+- Use markdown tables (with | column | headers |) whenever presenting comparisons, lists of items, or data with multiple attributes. Tables are your PRIMARY output format for structured data.
+- Use ## headers to separate major sections of your response.
+- Use **bold** for key findings, recommendations, and important numbers.
+- Use bullet points for lists, numbered steps for sequences.
+- Include specific numbers, prices, dates, and URLs — never be vague when data is available.
+- End with a clear "## Recommended Next Steps" section with actionable items.
+- Write for someone who will act on this immediately — be specific, not generic.
+- If you searched the web or used tools, cite your sources with links.
+- NEVER output a wall of plain text. Every response MUST have tables, headers, and structure.`;
+
   // Resolve user prompt template
   const userMessage = resolveTemplate(config.userPromptTemplate, ctx);
 
