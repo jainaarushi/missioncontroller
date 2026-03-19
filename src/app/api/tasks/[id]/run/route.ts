@@ -617,7 +617,7 @@ export async function runMultiAgentPipeline(
           } catch (toolErr) {
             // Tool-related failure — retry without tools
             console.warn(`[Pipeline ${taskId}] generateText with tools failed (${provider}), retrying without tools:`, toolErr instanceof Error ? toolErr.message : toolErr);
-            result = await generateText({
+            result = await generateTextWithRetry({
               model: aiModel,
               system: coreSystem,
               prompt: userMessage,
@@ -676,7 +676,7 @@ export async function runMultiAgentPipeline(
             const synthesisPrompt = toolContext.length > 0
               ? `${userMessage}\n\nHere is what was found during research:\n\n${toolContext.join("\n\n")}\n\nBased on all the research above, provide a comprehensive, well-structured response to the original task. Use markdown formatting with headers and bullet points.`
               : userMessage;
-            const synthesisResult = await generateText({
+            const synthesisResult = await generateTextWithRetry({
               model: aiModel,
               system: coreSystem,
               prompt: synthesisPrompt,
@@ -715,7 +715,7 @@ export async function runMultiAgentPipeline(
             ? (getSpecialistPrompt(step.specialistSlug) || blockSystemPrompt)
             : blockSystemPrompt;
 
-          const result = await generateText({
+          const result = await generateTextWithRetry({
             model: aiModel,
             system: core2System,
             prompt: refinePrompt,

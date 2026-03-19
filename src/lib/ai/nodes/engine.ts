@@ -350,7 +350,7 @@ OUTPUT FORMAT RULES (MANDATORY):
     model: aiModel,
     system: systemPrompt,
     prompt: userMessage,
-    ...(hasTools ? { tools: allTools, maxSteps: config.maxToolSteps || 3 } : {}),
+    ...(hasTools ? { tools: allTools, maxSteps: config.maxToolSteps || (Object.keys(mcpTools).length > 0 ? 5 : 3) } : {}),
   });
 
   const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
