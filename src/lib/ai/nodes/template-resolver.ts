@@ -8,7 +8,7 @@ import type { NodeContext } from "./types";
  */
 export function resolveTemplate(template: string, ctx: NodeContext): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    if (key === "input") return ctx.latestText || ctx.taskTitle;
+    if (key === "input") return String(ctx.outputs["input"] || ctx.taskDescription || ctx.taskTitle);
     if (key === "today") return ctx.today;
     if (key === "title") return ctx.taskTitle;
     if (key === "description") return ctx.taskDescription || "";
