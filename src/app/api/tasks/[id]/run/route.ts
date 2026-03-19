@@ -6,6 +6,7 @@ import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODEL
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { getUserToolKeys } from "@/lib/ai/get-tool-keys";
 import { calculateCost, calculateImageCost } from "@/lib/ai/cost";
+import { generateTextWithRetry } from "@/lib/ai/retry";
 import { getPipeline, getSpecialistPrompt, type PipelineStep } from "@/lib/ai/pipelines";
 import { getRequiredToolKeys } from "@/lib/ai/tools/registry";
 import { createWebSearchTool } from "@/lib/ai/tools/web-search";
@@ -22,6 +23,8 @@ import { getUserMCPServers } from "@/lib/ai/mcp/storage";
 import { getMCPToolsForAgent, closeMCPConnections } from "@/lib/ai/mcp/client";
 import { getAgentMCPRecommendation } from "@/lib/ai/mcp/suggestions";
 import type { MCPServerConfig } from "@/lib/ai/mcp/types";
+import { isComposioEnabled, getComposioMCPUrl, getComposioApiKey, checkComposioUsage, incrementComposioUsage } from "@/lib/ai/composio/service";
+import type { MCPServerType } from "@/lib/ai/mcp/types";
 import type { TaskStep } from "@/lib/types/task";
 import type { UserToolKeys } from "@/lib/ai/get-tool-keys";
 
@@ -162,7 +165,23 @@ export async function POST(
     const toolKeys = await getUserToolKeys(user.id);
 
     // Load MCP servers for this agent
-    const nodeMcpServers = await getUserMCPServers(user.id);
+    let nodeMcpServers = await getUserMCPServers(user.id);
+
+    // Auto-inject platform Composio MCP if enabled and user has quota
+    if (isComposioEnabled() && checkComposioUsage(user.id).allowed) {
+      const composioServer: MCPServerConfig = {
+        id: "platform_composio",
+        name: "Composio",
+        url: getComposioMCPUrl(user.id),
+        authToken: getComposioApiKey(),
+        agentSlugs: [],
+        enabled: true,
+        serverType: "composio" as MCPServerType,
+        createdAt: new Date().toISOString(),
+      };
+      nodeMcpServers = [...nodeMcpServers, composioServer];
+      incrementComposioUsage(user.id);
+    }
 
     // Run node graph async (non-blocking)
     (async () => {
@@ -335,7 +354,24 @@ export async function POST(
   }
 
   // Fetch user's MCP server configs and check for recommendations
-  const mcpServers = await getUserMCPServers(user.id);
+  let mcpServers = await getUserMCPServers(user.id);
+
+  // Auto-inject platform Composio MCP if enabled and user has quota
+  if (isComposioEnabled() && checkComposioUsage(user.id).allowed) {
+    const composioServer: MCPServerConfig = {
+      id: "platform_composio",
+      name: "Composio",
+      url: getComposioMCPUrl(user.id),
+      authToken: getComposioApiKey(),
+      agentSlugs: [],
+      enabled: true,
+      serverType: "composio" as MCPServerType,
+      createdAt: new Date().toISOString(),
+    };
+    mcpServers = [...mcpServers, composioServer];
+    incrementComposioUsage(user.id);
+  }
+
   const configuredServerTypes = mcpServers.filter(s => s.enabled).map(s => s.serverType);
   const mcpRecommendation = getAgentMCPRecommendation(agentSlug, configuredServerTypes);
 
@@ -387,7 +423,7 @@ export async function runMultiAgentPipeline(
   const startTime = Date.now();
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const modelId = PROVIDER_MODELS[provider].default;
-  const { generateText } = await import("ai");
+  // generateText imported statically via generateTextWithRetry
 
   const aiModel = provider === "openai"
     ? createUserOpenAI(apiKey)(modelId)
@@ -571,7 +607,7 @@ export async function runMultiAgentPipeline(
           let result: any;
           let usedTools = false;
           try {
-            result = await generateText({
+            result = await generateTextWithRetry({
               model: aiModel,
               system: coreSystem,
               prompt: userMessage,

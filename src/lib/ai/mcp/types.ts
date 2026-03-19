@@ -54,6 +54,7 @@ export type MCPServerType =
   | "confluence"
   | "airtable"
   | "monday"
+  | "composio"
   | "custom";
 
 /** Pre-built MCP server suggestions shown in settings */

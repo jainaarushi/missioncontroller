@@ -71,6 +71,12 @@ export default function SettingsPage() {
   const [mcpSearch, setMcpSearch] = useState("");
   const [mcpShowAll, setMcpShowAll] = useState(false);
 
+  // Composio Connected Apps
+  const [composioEnabled, setComposioEnabled] = useState(false);
+  const [composioApps, setComposioApps] = useState<Record<string, boolean>>({});
+  const [composioConnecting, setComposioConnecting] = useState<string | null>(null);
+  const [composioUsage, setComposioUsage] = useState<{ used: number; limit: number } | null>(null);
+
   useEffect(() => {
     fetch("/api/user/api-key")
       .then((r) => r.json())
@@ -92,6 +98,16 @@ export default function SettingsPage() {
       .then((data) => {
         if (data.servers) setMcpServers(data.servers);
         if (data.suggestions) setMcpSuggestions(data.suggestions);
+      })
+      .catch(() => {});
+
+    // Fetch Composio connection status
+    fetch("/api/user/composio/status")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.enabled) setComposioEnabled(true);
+        if (data.connections) setComposioApps(data.connections);
+        if (data.usage) setComposioUsage(data.usage);
       })
       .catch(() => {});
   }, []);
@@ -710,6 +726,121 @@ export default function SettingsPage() {
 
       {/* AI Avatars */}
       <AvatarSection hasGeminiKey={!!geminiInfo?.hasKey} />
+
+      {/* Connected Apps (Composio) */}
+      {composioEnabled && (
+        <div style={{
+          padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
+          border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+          animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.12s both",
+        }}>
+          <div style={{ textAlign: "center" as const, marginBottom: 4 }}>
+            <span style={{
+              fontSize: 9, fontWeight: 700, color: "#6C5CE7", letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+            }}>
+              CONNECTED APPS
+            </span>
+          </div>
+          <div style={{ textAlign: "center" as const, marginBottom: 6 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: P.text, lineHeight: 1.3 }}>
+              Real Data Access
+            </div>
+          </div>
+          <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 16, lineHeight: 1.5, textAlign: "center" as const }}>
+            Connect your accounts so agents can access your real data from LinkedIn, Gmail, and more. One-click OAuth — your credentials stay with each provider.
+          </p>
+
+          {composioUsage && (
+            <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, backgroundColor: P.bg, border: `1px solid ${P.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: P.textSec }}>Monthly usage</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: composioUsage.used >= composioUsage.limit ? P.coral : P.textSec }}>
+                  {composioUsage.used} / {composioUsage.limit} runs
+                </span>
+              </div>
+              <div style={{ height: 4, borderRadius: 2, backgroundColor: P.border, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", borderRadius: 2,
+                  width: `${Math.min(100, (composioUsage.used / composioUsage.limit) * 100)}%`,
+                  backgroundColor: composioUsage.used >= composioUsage.limit ? P.coral : "#6C5CE7",
+                  transition: "width 0.3s ease",
+                }} />
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+            {[
+              { id: "linkedin", name: "LinkedIn", icon: "LI", color: "#0A66C2", desc: "Job search, profile data, and connections" },
+              { id: "gmail", name: "Gmail", icon: "GM", color: "#EA4335", desc: "Send and read emails" },
+              { id: "google_sheets", name: "Google Sheets", icon: "GS", color: "#34A853", desc: "Read and write spreadsheet data" },
+              { id: "google_calendar", name: "Google Calendar", icon: "GC", color: "#4285F4", desc: "Manage events and schedules" },
+              { id: "github", name: "GitHub", icon: "GH", color: "#24292F", desc: "Repos, issues, and pull requests" },
+            ].map((app) => {
+              const isConnected = composioApps[app.id] === true;
+              const isConnecting = composioConnecting === app.id;
+              return (
+                <div key={app.id} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "10px 14px", borderRadius: 10,
+                  backgroundColor: isConnected ? `${app.color}08` : P.bg,
+                  border: `1px solid ${isConnected ? app.color + "30" : P.border}`,
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8, display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    backgroundColor: app.color + "18", color: app.color,
+                    fontSize: 11, fontWeight: 800, flexShrink: 0,
+                  }}>
+                    {app.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{app.name}</div>
+                    <div style={{ fontSize: 11, color: P.textTer }}>{app.desc}</div>
+                  </div>
+                  {isConnected ? (
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, color: P.emerald,
+                      padding: "4px 10px", borderRadius: 6,
+                      backgroundColor: P.emeraldSoft,
+                    }}>
+                      Connected
+                    </span>
+                  ) : (
+                    <button
+                      disabled={isConnecting}
+                      onClick={async () => {
+                        setComposioConnecting(app.id);
+                        try {
+                          const res = await fetch("/api/user/composio/connect", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ app: app.id }),
+                          });
+                          const data = await res.json();
+                          if (data.redirectUrl) {
+                            window.open(data.redirectUrl, "_blank", "width=600,height=700");
+                          }
+                        } catch { /* ignore */ }
+                        setComposioConnecting(null);
+                      }}
+                      style={{
+                        fontSize: 11, fontWeight: 700, color: "#fff",
+                        padding: "6px 14px", borderRadius: 6, border: "none",
+                        backgroundColor: app.color, cursor: isConnecting ? "wait" : "pointer",
+                        opacity: isConnecting ? 0.6 : 1,
+                      }}
+                    >
+                      {isConnecting ? "..." : "Connect"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* MCP Servers */}
       <div style={{

@@ -21,6 +21,7 @@ import UsedPieces from "@/components/pipeline/used-pieces";
 import type { NodeStatus } from "@/lib/ai/nodes/types";
 import type { TaskStep } from "@/lib/types/task";
 import { MCP_SERVER_SUGGESTIONS, getAgentMCPRecommendation } from "@/lib/ai/mcp/suggestions";
+import ActionButtons from "@/components/templates/action-buttons";
 
 const PipelineGraph = lazy(() => import("@/components/pipeline/pipeline-graph"));
 
@@ -337,7 +338,13 @@ export default function TemplateRunPage() {
           </div>
 
           {/* Stats pills */}
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
+            {config.tier === "pro" && (
+              <div style={{ padding: "8px 14px", borderRadius: 8, background: "linear-gradient(135deg, #6C5CE710, #a78bfa10)", border: "1px solid #6C5CE730" }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#6C5CE7" }}>PRO</span>
+                <span style={{ fontSize: 10, color: P.textSec, marginLeft: 6 }}>Live data</span>
+              </div>
+            )}
             <div style={{ padding: "8px 14px", borderRadius: 8, background: `${P.teal}10`, border: `1px solid ${P.teal}22` }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: P.teal }}>~{config.estimatedTime}</span>
               <span style={{ fontSize: 10, color: P.textSec, marginLeft: 6 }}>Est. time</span>
@@ -857,21 +864,26 @@ export default function TemplateRunPage() {
             ) : null}
 
             {taskDone && (
-              <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
-                <button onClick={handleRunAgain} style={{ padding: "9px 18px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
-                  &#8634; Run Again
-                </button>
-                {task?.status !== "failed" && (
-                  <>
-                    <button onClick={handleExport} style={{ padding: "9px 18px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
-                      {copied ? "\u2713 Copied!" : "&#128203; Copy Results"}
-                    </button>
-                    <button onClick={() => downloadAsFile(exportableOutput, `${slug}-result.md`, "text/markdown")} style={{ padding: "9px 18px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
-                      &#128196; Download .md
-                    </button>
-                  </>
+              <>
+                <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
+                  <button onClick={handleRunAgain} style={{ padding: "9px 18px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
+                    &#8634; Run Again
+                  </button>
+                  {task?.status !== "failed" && (
+                    <>
+                      <button onClick={handleExport} style={{ padding: "9px 18px", borderRadius: 9, background: P.lime, border: "none", color: "#0a0a0d", fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 700 }}>
+                        {copied ? "\u2713 Copied!" : "&#128203; Copy Results"}
+                      </button>
+                      <button onClick={() => downloadAsFile(exportableOutput, `${slug}-result.md`, "text/markdown")} style={{ padding: "9px 18px", borderRadius: 9, background: P.bg4, border: `1px solid ${P.border2}`, color: P.textSec, fontSize: 11.5, cursor: "pointer", fontFamily: F, fontWeight: 600 }}>
+                        &#128196; Download .md
+                      </button>
+                    </>
+                  )}
+                </div>
+                {taskId && task?.status !== "failed" && (
+                  <ActionButtons agentSlug={slug} taskId={taskId} taskOutput={exportableOutput} />
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>

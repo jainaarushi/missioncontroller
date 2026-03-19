@@ -379,6 +379,18 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     docsUrl: "https://github.com/modelcontextprotocol/servers",
   },
   {
+    type: "composio",
+    name: "Composio (LinkedIn, Gmail, Google, GitHub)",
+    description: "Connect your accounts to give agents access to real data from LinkedIn, Gmail, Google Sheets, and more. Platform-managed OAuth.",
+    icon: "CO",
+    color: "#6C5CE7",
+    urlPlaceholder: "https://backend.composio.dev/v3/mcp/...",
+    authPlaceholder: "Composio API key",
+    authRequired: true,
+    recommendedAgents: ["job-hunter", "auto-applier", "linkedin-optimizer", "email-drafter", "networking-coach", "resume-optimizer", "interview-coach", "salary-negotiator", "career-pivoter", "remote-job-finder"],
+    docsUrl: "https://docs.composio.dev/mcp/overview",
+  },
+  {
     type: "custom",
     name: "Custom Server",
     description: "Connect any MCP-compatible server. Provide the Streamable HTTP or SSE endpoint URL.",
@@ -814,6 +826,9 @@ const AGENT_MCP_RECOMMENDATIONS: Record<string, MCPRecommendation> = {
  * Check if an agent would benefit from MCP servers that aren't configured.
  * Returns null if no recommendation, or the recommendation if MCP would help.
  */
+// When Composio is connected, it covers these server types — suppress recommendations for them
+const COMPOSIO_COVERS: Set<string> = new Set(["linkedin", "gmail", "google-sheets", "google-calendar", "github"]);
+
 export function getAgentMCPRecommendation(
   agentSlug: string,
   configuredServerTypes: string[],
@@ -821,9 +836,13 @@ export function getAgentMCPRecommendation(
   const rec = AGENT_MCP_RECOMMENDATIONS[agentSlug];
   if (!rec) return null;
 
-  // Check if ANY recommended server type is already configured
-  const hasAny = rec.serverTypes.some(t => configuredServerTypes.includes(t));
-  if (hasAny) return null; // User already has at least one relevant MCP server
+  const hasComposio = configuredServerTypes.includes("composio");
+
+  // Check if ANY recommended server type is already configured or covered by Composio
+  const hasAny = rec.serverTypes.some(t =>
+    configuredServerTypes.includes(t) || (hasComposio && COMPOSIO_COVERS.has(t))
+  );
+  if (hasAny) return null;
 
   return rec;
 }
