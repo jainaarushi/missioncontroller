@@ -23,8 +23,7 @@ import { getUserMCPServers } from "@/lib/ai/mcp/storage";
 import { getMCPToolsForAgent, closeMCPConnections } from "@/lib/ai/mcp/client";
 import { getAgentMCPRecommendation } from "@/lib/ai/mcp/suggestions";
 import type { MCPServerConfig } from "@/lib/ai/mcp/types";
-import { isComposioEnabled, getComposioMCPUrl, getComposioApiKey, checkComposioUsage, incrementComposioUsage } from "@/lib/ai/composio/service";
-import type { MCPServerType } from "@/lib/ai/mcp/types";
+import { isComposioEnabled, getComposioApiKey, checkComposioUsage, incrementComposioUsage } from "@/lib/ai/composio/service";
 import type { TaskStep } from "@/lib/types/task";
 import type { UserToolKeys } from "@/lib/ai/get-tool-keys";
 
@@ -164,23 +163,19 @@ export async function POST(
 
     const toolKeys = await getUserToolKeys(user.id);
 
-    // Load MCP servers for this agent
-    let nodeMcpServers = await getUserMCPServers(user.id);
+    // Load MCP servers for this agent (non-Composio integrations)
+    const nodeMcpServers = await getUserMCPServers(user.id);
 
-    // Auto-inject platform Composio MCP if enabled and user has quota
+    // Composio: use REST API directly (no MCP connection overhead)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let composioTools: Record<string, any> = {};
     if (isComposioEnabled() && checkComposioUsage(user.id).allowed) {
-      const composioServer: MCPServerConfig = {
-        id: "platform_composio",
-        name: "Composio",
-        url: getComposioMCPUrl(user.id),
-        authToken: getComposioApiKey(),
-        agentSlugs: [],
-        enabled: true,
-        serverType: "composio" as MCPServerType,
-        createdAt: new Date().toISOString(),
-      };
-      nodeMcpServers = [...nodeMcpServers, composioServer];
-      incrementComposioUsage(user.id);
+      const { getComposioToolsForAgent } = await import("@/lib/ai/composio/tools");
+      const result = getComposioToolsForAgent(getComposioApiKey(), user.id, agentSlug);
+      composioTools = result.tools;
+      if (result.toolNames.length > 0) {
+        incrementComposioUsage(user.id);
+      }
     }
 
     // Run node graph async (non-blocking)
@@ -198,6 +193,7 @@ export async function POST(
           steps: nodeSteps,
           agentSlug,
           mcpServers: nodeMcpServers,
+          composioTools,
           onProgress: async (_stepIdx, progress, currentStep) => {
             await persistTaskUpdate(user.id, id, {
               progress: Math.min(progress, 95),
@@ -354,23 +350,7 @@ export async function POST(
   }
 
   // Fetch user's MCP server configs and check for recommendations
-  let mcpServers = await getUserMCPServers(user.id);
-
-  // Auto-inject platform Composio MCP if enabled and user has quota
-  if (isComposioEnabled() && checkComposioUsage(user.id).allowed) {
-    const composioServer: MCPServerConfig = {
-      id: "platform_composio",
-      name: "Composio",
-      url: getComposioMCPUrl(user.id),
-      authToken: getComposioApiKey(),
-      agentSlugs: [],
-      enabled: true,
-      serverType: "composio" as MCPServerType,
-      createdAt: new Date().toISOString(),
-    };
-    mcpServers = [...mcpServers, composioServer];
-    incrementComposioUsage(user.id);
-  }
+  const mcpServers = await getUserMCPServers(user.id);
 
   const configuredServerTypes = mcpServers.filter(s => s.enabled).map(s => s.serverType);
   const mcpRecommendation = getAgentMCPRecommendation(agentSlug, configuredServerTypes);

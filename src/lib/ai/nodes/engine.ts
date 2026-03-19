@@ -19,6 +19,8 @@ export interface ExecuteGraphOptions {
   steps: TaskStep[];
   agentSlug: string;
   mcpServers?: MCPServerConfig[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  composioTools?: Record<string, any>;
   onProgress: (stepIdx: number, progress: number, currentStep: string) => Promise<void>;
 }
 
@@ -27,7 +29,7 @@ export async function executeGraph(opts: ExecuteGraphOptions): Promise<{
   tokensIn: number;
   tokensOut: number;
 }> {
-  const { graph, taskTitle, taskDescription, provider, apiKey, toolKeys, steps, agentSlug, mcpServers, onProgress } = opts;
+  const { graph, taskTitle, taskDescription, provider, apiKey, toolKeys, steps, agentSlug, mcpServers, composioTools, onProgress } = opts;
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   const ctx: NodeContext = {
@@ -42,16 +44,23 @@ export async function executeGraph(opts: ExecuteGraphOptions): Promise<{
   let totalTokensOut = 0;
   let lastTextOutput = "";
 
-  // ── Connect MCP servers (once, shared across all AI nodes) ──
+  // ── External tools (Composio REST + MCP servers) ──
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mcpTools: Record<string, any> = {};
+  let externalTools: Record<string, any> = {};
   let mcpClosers: Array<() => Promise<void>> = [];
 
+  // Add Composio tools (direct REST API — no connection overhead)
+  if (composioTools && Object.keys(composioTools).length > 0) {
+    Object.assign(externalTools, composioTools);
+    console.log(`[NodeEngine] Composio tools: ${Object.keys(composioTools).join(", ")}`);
+  }
+
+  // Add MCP server tools (SSE/HTTP connection)
   if (mcpServers && mcpServers.length > 0) {
     try {
       const { getMCPToolsForAgent } = await import("@/lib/ai/mcp/client");
       const mcpResult = await getMCPToolsForAgent(mcpServers, agentSlug);
-      mcpTools = mcpResult.tools;
+      Object.assign(externalTools, mcpResult.tools);
       mcpClosers = mcpResult.closers;
       if (mcpResult.connectedServers.length > 0) {
         console.log(`[NodeEngine] MCP connected: ${mcpResult.connectedServers.join(", ")}`);
@@ -76,7 +85,7 @@ export async function executeGraph(opts: ExecuteGraphOptions): Promise<{
       await onProgress(i, Math.min(Math.round(((i + 0.5) / graph.nodes.length) * 100), 95), node.description);
 
       try {
-        const result = await executeNode(node, ctx, provider, apiKey, toolKeys, mcpTools);
+        const result = await executeNode(node, ctx, provider, apiKey, toolKeys, externalTools);
 
         // Store output
         ctx.outputs[node.id] = result.text;
@@ -336,21 +345,22 @@ OUTPUT FORMAT RULES (MANDATORY):
     }
   }
 
-  // Merge MCP tools with built-in tools
+  // Merge external tools (Composio + MCP) with built-in tools
   const allTools = { ...tools, ...mcpTools };
   const hasTools = Object.keys(allTools).length > 0;
+  const hasExternalTools = Object.keys(mcpTools).length > 0;
 
-  // Tell the AI about MCP tools if present
-  if (Object.keys(mcpTools).length > 0) {
-    const mcpToolNames = Object.keys(mcpTools).join(", ");
-    systemPrompt += `\n\nYou also have access to external MCP tools: ${mcpToolNames}. Use them when relevant to the task.`;
+  // Tell the AI about external tools if present
+  if (hasExternalTools) {
+    const extToolNames = Object.keys(mcpTools).join(", ");
+    systemPrompt += `\n\nYou also have access to external integration tools: ${extToolNames}. Use them when relevant to the task. Call them by name.`;
   }
 
   const result = await generateText({
     model: aiModel,
     system: systemPrompt,
     prompt: userMessage,
-    ...(hasTools ? { tools: allTools, maxSteps: config.maxToolSteps || (Object.keys(mcpTools).length > 0 ? 5 : 3) } : {}),
+    ...(hasTools ? { tools: allTools, maxSteps: config.maxToolSteps || (hasExternalTools ? 5 : 3) } : {}),
   });
 
   const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;

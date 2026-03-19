@@ -75,6 +75,7 @@ export default function SettingsPage() {
   const [composioEnabled, setComposioEnabled] = useState(false);
   const [composioApps, setComposioApps] = useState<Record<string, boolean>>({});
   const [composioConnecting, setComposioConnecting] = useState<string | null>(null);
+  const [composioDisconnecting, setComposioDisconnecting] = useState<string | null>(null);
   const [composioUsage, setComposioUsage] = useState<{ used: number; limit: number } | null>(null);
 
   useEffect(() => {
@@ -780,12 +781,14 @@ export default function SettingsPage() {
             ].map((app) => {
               const isConnected = composioApps[app.id] === true;
               const isConnecting = composioConnecting === app.id;
+              const isDisconnecting = composioDisconnecting === app.id;
               return (
                 <div key={app.id} style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "10px 14px", borderRadius: 10,
                   backgroundColor: isConnected ? `${app.color}08` : P.bg,
                   border: `1px solid ${isConnected ? app.color + "30" : P.border}`,
+                  transition: "all 0.2s ease",
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: 8, display: "flex",
@@ -800,13 +803,50 @@ export default function SettingsPage() {
                     <div style={{ fontSize: 11, color: P.textTer }}>{app.desc}</div>
                   </div>
                   {isConnected ? (
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, color: P.emerald,
-                      padding: "4px 10px", borderRadius: 6,
-                      backgroundColor: P.emeraldSoft,
-                    }}>
-                      Connected
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, color: P.emerald,
+                        padding: "4px 10px", borderRadius: 6,
+                        backgroundColor: P.emeraldSoft,
+                      }}>
+                        Connected
+                      </span>
+                      <button
+                        disabled={isDisconnecting}
+                        onClick={async () => {
+                          setComposioDisconnecting(app.id);
+                          try {
+                            const res = await fetch("/api/user/composio/disconnect", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ app: app.id }),
+                            });
+                            if (res.ok) {
+                              setComposioApps(prev => ({ ...prev, [app.id]: false }));
+                            }
+                          } catch { /* ignore */ }
+                          setComposioDisconnecting(null);
+                        }}
+                        style={{
+                          fontSize: 10, fontWeight: 600, color: P.textTer,
+                          padding: "4px 8px", borderRadius: 6,
+                          border: `1px solid ${P.border}`, backgroundColor: "transparent",
+                          cursor: isDisconnecting ? "wait" : "pointer",
+                          opacity: isDisconnecting ? 0.5 : 1,
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = P.coral;
+                          e.currentTarget.style.borderColor = P.coral + "40";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = P.textTer;
+                          e.currentTarget.style.borderColor = P.border;
+                        }}
+                      >
+                        {isDisconnecting ? "..." : "Disconnect"}
+                      </button>
+                    </div>
                   ) : (
                     <button
                       disabled={isConnecting}
@@ -830,6 +870,7 @@ export default function SettingsPage() {
                         padding: "6px 14px", borderRadius: 6, border: "none",
                         backgroundColor: app.color, cursor: isConnecting ? "wait" : "pointer",
                         opacity: isConnecting ? 0.6 : 1,
+                        transition: "opacity 0.15s ease",
                       }}
                     >
                       {isConnecting ? "..." : "Connect"}
@@ -838,6 +879,23 @@ export default function SettingsPage() {
                 </div>
               );
             })}
+          </div>
+
+          <div style={{
+            marginTop: 12, padding: "8px 12px", borderRadius: 8,
+            backgroundColor: P.bg, border: `1px solid ${P.border}`,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}>
+            <div style={{
+              width: 6, height: 6, borderRadius: "50%",
+              backgroundColor: Object.values(composioApps).some(Boolean) ? P.emerald : P.textTer,
+            }} />
+            <span style={{ fontSize: 10.5, color: P.textTer }}>
+              {Object.values(composioApps).some(Boolean)
+                ? `${Object.values(composioApps).filter(Boolean).length} app${Object.values(composioApps).filter(Boolean).length > 1 ? "s" : ""} connected via REST API`
+                : "No apps connected yet"
+              }
+            </span>
           </div>
         </div>
       )}
