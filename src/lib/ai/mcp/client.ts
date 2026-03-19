@@ -1,7 +1,7 @@
 import type { MCPServerConfig } from "./types";
 
 // Timeout for MCP connection and tool calls (safety limit)
-const MCP_CONNECT_TIMEOUT_MS = 10_000;
+const MCP_CONNECT_TIMEOUT_MS = 15_000;
 const MCP_TOOL_CALL_TIMEOUT_MS = 30_000;
 
 // Max tools per MCP server (prevents abuse from malicious servers)
@@ -77,21 +77,40 @@ export async function connectAndGetTools(
   // Build headers with auth if provided
   const headers: Record<string, string> = {};
   if (server.authToken) {
-    // Auto-detect Bearer vs raw token
-    headers["Authorization"] = server.authToken.startsWith("Bearer ")
-      ? server.authToken
-      : `Bearer ${server.authToken}`;
+    if (server.serverType === "composio") {
+      // Composio uses x-api-key header, not Authorization: Bearer
+      headers["x-api-key"] = server.authToken.replace(/^Bearer\s+/i, "");
+    } else {
+      // Standard MCP servers use Bearer auth
+      headers["Authorization"] = server.authToken.startsWith("Bearer ")
+        ? server.authToken
+        : `Bearer ${server.authToken}`;
+    }
   }
 
-  // Detect transport type from URL
-  const transportType = server.url.includes("/sse") ? "sse" as const : "http" as const;
+  // Detect transport type from URL or server type
+  // Composio MCP uses SSE transport
+  const transportType = (server.url.includes("/sse") || server.serverType === "composio")
+    ? "sse" as const
+    : "http" as const;
+
+  // For SSE transport, ensure URL ends with /sse (standard MCP SSE endpoint path)
+  let connectUrl = server.url;
+  if (transportType === "sse" && !connectUrl.includes("/sse")) {
+    // Append /sse before query params
+    const urlObj = new URL(connectUrl);
+    urlObj.pathname = urlObj.pathname.replace(/\/$/, "") + "/sse";
+    connectUrl = urlObj.toString();
+  }
+
+  console.log(`[MCP] Connecting to "${server.name}" (${transportType}) at ${connectUrl}`);
 
   // Connect with timeout
   const client = await Promise.race([
     createMCPClient({
       transport: {
         type: transportType,
-        url: server.url,
+        url: connectUrl,
         headers,
       },
       name: `agent-studio-${server.id}`,
