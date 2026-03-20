@@ -339,12 +339,6 @@ export default function TemplateRunPage() {
 
           {/* Stats pills */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
-            {config.tier === "pro" && (
-              <div style={{ padding: "8px 14px", borderRadius: 8, background: "linear-gradient(135deg, #6C5CE710, #a78bfa10)", border: "1px solid #6C5CE730" }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#6C5CE7" }}>PRO</span>
-                <span style={{ fontSize: 10, color: P.textSec, marginLeft: 6 }}>Live data</span>
-              </div>
-            )}
             <div style={{ padding: "8px 14px", borderRadius: 8, background: `${P.teal}10`, border: `1px solid ${P.teal}22` }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: P.teal }}>~{config.estimatedTime}</span>
               <span style={{ fontSize: 10, color: P.textSec, marginLeft: 6 }}>Est. time</span>

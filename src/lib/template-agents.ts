@@ -21,8 +21,6 @@ export interface TemplateRunConfig {
   quickFills: string[];
   inputLabel: string;
   inputPlaceholder: string;
-  /** "free" = LLM-only (no live data), "pro" = benefits from Composio MCP connections */
-  tier?: "free" | "pro";
 }
 
 /* ─── Category metadata (shared) ─── */
@@ -795,13 +793,6 @@ export function getTemplateRunConfig(slug: string): TemplateRunConfig {
   const tagline = TAGLINES[slug] || "Describe your task and let the agent pipeline handle the rest.";
   const inputPrompt = INPUT_PROMPTS[slug] || CATEGORY_INPUT_PROMPTS[catId] || { label: "Describe your task in detail", placeholder: "The more detail you provide, the better the results. Include relevant context, goals, constraints, and preferences." };
 
-  // Pro tier = templates that benefit from live data via Composio MCP
-  const PRO_SLUGS = new Set([
-    "job-hunter", "auto-applier", "linkedin-optimizer", "networking-coach",
-    "remote-job-finder", "email-drafter", "salary-negotiator", "social-media",
-  ]);
-  const tier: "free" | "pro" = PRO_SLUGS.has(slug) ? "pro" : "free";
-
   return {
     estimatedTime: "45s",
     estimatedCost: "$0.06",
@@ -810,6 +801,5 @@ export function getTemplateRunConfig(slug: string): TemplateRunConfig {
     quickFills,
     inputLabel: inputPrompt.label,
     inputPlaceholder: inputPrompt.placeholder,
-    tier,
   };
 }
