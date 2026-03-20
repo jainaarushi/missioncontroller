@@ -1,15 +1,11 @@
 import type { PipelineGraph } from "../types";
 
-/** Strip filler words for search queries */
-function toSearchQuery(text: string, maxLen = 60): string {
-  const stopWords = new Set(["i'm", "im", "i", "am", "a", "an", "the", "with", "and", "or", "for", "in", "at", "of", "to", "my", "have", "has", "been", "being", "was", "were", "is", "are", "that", "this", "it", "its", "on", "by", "as", "so", "but", "do", "does", "did", "will", "would", "could", "should", "can", "may", "about", "very", "really", "just", "also", "looking", "want", "need", "like", "currently", "experience", "years", "year", "post", "write", "create"]);
-  const words = text.replace(/[^\w\s/-]/g, " ").split(/\s+/).filter(w => w.length > 1 && !stopWords.has(w.toLowerCase()));
-  let query = "";
-  for (const w of words) {
-    if ((query + " " + w).trim().length > maxLen) break;
-    query = (query + " " + w).trim();
-  }
-  return query || text.slice(0, maxLen).trim();
+/** Extract 3-5 core keywords from user input for short search queries */
+function extractKeywords(text: string): string {
+  const stopWords = new Set(["i'm", "im", "i", "am", "a", "an", "the", "with", "and", "or", "for", "in", "at", "of", "to", "my", "have", "has", "been", "being", "was", "were", "is", "are", "that", "this", "it", "its", "on", "by", "as", "so", "but", "do", "does", "did", "will", "would", "could", "should", "can", "may", "about", "very", "really", "just", "also", "looking", "want", "need", "like", "currently", "experience", "years", "year", "post", "write", "create", "make", "help", "me", "please", "going", "think", "know", "new", "get", "got", "way", "thing", "something", "through", "from", "some", "our", "their", "we", "they", "been", "announce", "announcing", "launched", "launching", "launch"]);
+  const words = text.replace(/[^\w\s/-]/g, " ").split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w.toLowerCase()));
+  // Take at most 4 keywords to keep query short
+  return words.slice(0, 4).join(" ") || text.slice(0, 30).trim();
 }
 
 export const SOCIAL_GRAPHS: Record<string, PipelineGraph> = {
@@ -21,10 +17,10 @@ export const SOCIAL_GRAPHS: Record<string, PipelineGraph> = {
         config: {
           type: "search",
           queries: (ctx) => {
-            const q = toSearchQuery(ctx.latestText);
+            const kw = extractKeywords(ctx.latestText);
             return [
-              `${q} trending LinkedIn post ${ctx.today.split(",").pop()?.trim()}`,
-              `${q} viral social media content strategy`,
+              `${kw} LinkedIn post tips`,
+              `best social media posts ${kw}`,
             ];
           },
           maxResults: 5,
