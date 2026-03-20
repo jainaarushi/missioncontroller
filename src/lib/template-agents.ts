@@ -38,6 +38,7 @@ export const CATEGORY_META: Record<string, { label: string; color: string; catBg
   parenting: { label: "Parenting", color: "#a99cf5", catBg: "rgba(169,156,245,0.10)" },
   travel_events: { label: "Travel", color: "#2dd4bf", catBg: "rgba(45,212,191,0.10)" },
   personal_growth: { label: "Wellness", color: "#f5a623", catBg: "rgba(245,166,35,0.10)" },
+  social_media: { label: "Social Media", color: "#0A66C2", catBg: "rgba(10,102,194,0.10)" },
 };
 
 /* ─── Template categories with slugs ─── */
@@ -53,6 +54,7 @@ export const TEMPLATE_CATEGORIES: { id: string; title: string; slugs: string[] }
   { id: "parenting", title: "Parenting & Family", slugs: ["baby-name-picker", "school-chooser", "chore-organizer", "college-savings", "childcare-finder", "summer-camp-finder"] },
   { id: "travel_events", title: "Travel & Events", slugs: ["flight-deal-hunter", "wedding-planner", "party-planner", "visa-advisor", "road-trip-planner", "packing-assistant"] },
   { id: "personal_growth", title: "Personal Growth", slugs: ["habit-tracker", "journaling-coach", "morning-routine", "social-skills", "dating-profile", "pet-care-advisor"] },
+  { id: "social_media", title: "Social Media", slugs: ["social-media"] },
 ];
 
 /* ─── Pipeline agent preview data per template ─── */
@@ -462,6 +464,12 @@ export const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; c
     { icon: "📋", label: "Care Planner", color: "#f5a623" },
     { icon: "🏥", label: "Vet Prep Guide", color: "#4ade80" },
   ],
+  "social-media": [
+    { icon: "🔍", label: "Trend Researcher", color: "#3b82f6" },
+    { icon: "💼", label: "LinkedIn Writer", color: "#0A66C2" },
+    { icon: "🐦", label: "Twitter/X Writer", color: "#000000" },
+    { icon: "📊", label: "Content Packager", color: "#8b5cf6" },
+  ],
 };
 
 /* ─── Ratings and runs per template ─── */
@@ -491,6 +499,7 @@ export const TEMPLATE_RATINGS: Record<string, number> = {
   "visa-advisor": 4.7, "road-trip-planner": 4.6, "packing-assistant": 4.4,
   "habit-tracker": 4.6, "journaling-coach": 4.5, "morning-routine": 4.5,
   "social-skills": 4.4, "dating-profile": 4.6, "pet-care-advisor": 4.7,
+  "social-media": 4.8,
 };
 
 export const TEMPLATE_RUNS: Record<string, string> = {
@@ -519,6 +528,7 @@ export const TEMPLATE_RUNS: Record<string, string> = {
   "visa-advisor": "1.9k", "road-trip-planner": "1.5k", "packing-assistant": "1.1k",
   "habit-tracker": "1.8k", "journaling-coach": "1.2k", "morning-routine": "1.4k",
   "social-skills": "0.9k", "dating-profile": "1.6k", "pet-care-advisor": "1.3k",
+  "social-media": "2.1k",
 };
 
 /* ─── Quick-fill suggestions per template category ─── */
@@ -572,6 +582,11 @@ const QUICK_FILLS: Record<string, string[]> = {
     "Planning a trip from London to Tokyo. Flexible on dates within Sept-Oct 2026. 2 travelers, economy class. Willing to do a layover if it saves $200+. We have BA Avios points.",
     "Planning a 30th birthday party for 30 people. Budget $2,000. Venue: NYC. Theme: casual cocktail. Need venue, catering, and music recommendations for a Saturday evening in April.",
     "10-day road trip along the California coast, starting from San Francisco to San Diego. 2 adults, 1 dog. Budget: $3,000 including hotels. Want scenic stops, good food, and dog-friendly beaches.",
+  ],
+  social_media: [
+    "I just launched a SaaS product for freelancers to track invoices. I want to announce it on LinkedIn and Twitter to attract early users. Target audience: freelance designers and developers.",
+    "Write a thought leadership post about how AI is changing the hiring process. I'm a recruiter with 8 years experience and want to share my perspective on resume screening tools.",
+    "I got promoted to VP of Engineering and want to share the news professionally. Include lessons learned from 10 years in tech, starting as a junior developer.",
   ],
   personal_growth: [
     "I want to build a productive morning routine. Currently I wake at 8am and rush to work by 9. I want to wake at 6am and include exercise, reading, and planning. I've failed at this 3 times before.",
@@ -662,6 +677,7 @@ const TAGLINES: Record<string, string> = {
   "social-skills": "Assess skills and get practice scenarios.",
   "dating-profile": "Analyze and rewrite your dating profile.",
   "pet-care-advisor": "Research your pet's breed and build a care plan.",
+  "social-media": "Create ready-to-publish LinkedIn posts and Twitter/X threads from any topic.",
 };
 
 /* ─── Template-specific input labels and placeholders ─── */
@@ -685,6 +701,7 @@ const INPUT_PROMPTS: Record<string, { label: string; placeholder: string }> = {
   "flight-deal-hunter": { label: "Describe your travel plans", placeholder: "Include:\n- Origin and destination cities\n- Flexible dates or specific dates\n- Number of travelers\n- Class preference (economy, business)\n- Budget limit\n- Any airline preferences or loyalty programs" },
   "contract-reviewer": { label: "Paste the contract", placeholder: "Paste the full contract text or key sections.\nInclude:\n- Type of contract (freelance, employment, NDA, etc.)\n- Your role (are you the contractor or client?)\n- Any specific terms that concern you" },
   "dating-profile": { label: "Describe yourself and what you're looking for", placeholder: "Include:\n- Which platform (Tinder, Hinge, Bumble, etc.)\n- Your age, location, profession\n- Hobbies and interests\n- What you're looking for (casual, serious, etc.)\n- Paste your current bio if you have one\n- What makes you unique" },
+  "social-media": { label: "What do you want to post about?", placeholder: "Describe your topic, angle, or announcement:\n- What's the key message or story?\n- Who is your target audience?\n- Any specific tone (professional, casual, inspirational)?\n- Include any data, achievements, or context to reference" },
 };
 
 const CATEGORY_INPUT_PROMPTS: Record<string, { label: string; placeholder: string }> = {
@@ -699,6 +716,7 @@ const CATEGORY_INPUT_PROMPTS: Record<string, { label: string; placeholder: strin
   parenting: { label: "Describe your family situation", placeholder: "Include your children's ages, location, budget, and specific needs or preferences." },
   travel_events: { label: "Describe your plans", placeholder: "Include dates, destination, budget, number of people, and any specific requirements or preferences." },
   personal_growth: { label: "Describe your goals", placeholder: "Include what you want to improve, your current habits, available time, and what's worked or hasn't worked before." },
+  social_media: { label: "What do you want to post about?", placeholder: "Describe your topic and target audience. Include any relevant context, data, or angles." },
 };
 
 /* ─── Helper: get category for a slug ─── */
@@ -780,7 +798,7 @@ export function getTemplateRunConfig(slug: string): TemplateRunConfig {
   // Pro tier = templates that benefit from live data via Composio MCP
   const PRO_SLUGS = new Set([
     "job-hunter", "auto-applier", "linkedin-optimizer", "networking-coach",
-    "remote-job-finder", "email-drafter", "salary-negotiator",
+    "remote-job-finder", "email-drafter", "salary-negotiator", "social-media",
   ]);
   const tier: "free" | "pro" = PRO_SLUGS.has(slug) ? "pro" : "free";
 
