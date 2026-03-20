@@ -22,6 +22,7 @@ import type { NodeStatus } from "@/lib/ai/nodes/types";
 import type { TaskStep } from "@/lib/types/task";
 import { MCP_SERVER_SUGGESTIONS, getAgentMCPRecommendation } from "@/lib/ai/mcp/suggestions";
 import ActionButtons from "@/components/templates/action-buttons";
+import LinkedInPublishButton from "@/components/templates/linkedin-publish-button";
 
 const PipelineGraph = lazy(() => import("@/components/pipeline/pipeline-graph"));
 
@@ -700,7 +701,9 @@ export default function TemplateRunPage() {
             &#9201; {task?.duration_seconds || elapsed}s
           </div>
           <CostTicker costUsd={task?.cost_usd || 0} tokensIn={task?.tokens_in || 0} tokensOut={task?.tokens_out || 0} />
-          {taskDone && task?.status !== "failed" && (
+          {taskDone && task?.status !== "failed" && taskId && (
+            <>
+            <LinkedInPublishButton agentSlug={slug} taskId={taskId} taskOutput={exportableOutput} />
             <div style={{ position: "relative" }}>
               <button onClick={() => setExportMenuOpen(!exportMenuOpen)} style={{ padding: "7px 16px", borderRadius: 9, background: copied ? P.green : P.lime, color: "#0a0a0d", fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: F, display: "flex", alignItems: "center", gap: 5 }}>
                 {copied ? "\u2713 Copied!" : "Export"} <span style={{ fontSize: 9 }}>\u25BC</span>
@@ -741,6 +744,7 @@ export default function TemplateRunPage() {
                 </div>
               )}
             </div>
+          </>
           )}
         </div>
       </div>

@@ -42,6 +42,11 @@ Trending context (use if relevant, ignore if empty):
 
 You MUST produce actual post content. Do NOT say the drafts are empty. Write the posts yourself based on the topic above.
 
+CRITICAL RULES:
+- NEVER generate fake, placeholder, or example URLs (like "yourcompany.com", "example.com", "yourblog.com"). If you don't have a real URL, do NOT include any link at all.
+- NEVER include "Read the full article here" or similar link placeholders.
+- Only include real URLs that came from the search results above.
+
 Create BOTH of these:
 
 ---
@@ -53,6 +58,7 @@ Write a complete, ready-to-publish LinkedIn post:
 - **Body** (800–1,300 characters): Short paragraphs (1-2 sentences each). Tell a story or share a concrete insight. Use line breaks for readability.
 - **Call to Action**: End with a question or invitation to comment.
 - **Hashtags**: 3 hashtags — one broad, one niche, one trending.
+- Do NOT add any links unless they are real URLs from search results.
 
 Format the LinkedIn post in a clean copy-paste block between \`---START LINKEDIN---\` and \`---END LINKEDIN---\` markers.
 
@@ -87,6 +93,8 @@ Write a 5-7 tweet thread:
 {{draft}}
 
 Your job is to FORMAT and CLEAN UP the drafts above into a professional, ready-to-publish package. Do NOT say content is missing — the drafts are above.
+
+CRITICAL: NEVER generate fake, placeholder, or example URLs. Remove any links like "yourcompany.com", "example.com", etc. Only keep real URLs that reference actual websites. Remove "Read the full article" lines if the URL is not real.
 
 Output this exact structure:
 
