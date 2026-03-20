@@ -24,8 +24,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const origin = request.nextUrl.origin;
-    const callbackUrl = `${origin}/api/user/composio/callback`;
-    const redirectUrl = await initiateComposioOAuth(user.id, app, callbackUrl);
+    const returnTo = typeof body.returnTo === "string" ? body.returnTo : "";
+    const callbackUrl = new URL(`${origin}/api/user/composio/callback`);
+    if (returnTo && returnTo.startsWith("/")) {
+      callbackUrl.searchParams.set("returnTo", returnTo);
+    }
+    const redirectUrl = await initiateComposioOAuth(user.id, app, callbackUrl.toString());
 
     return NextResponse.json({ redirectUrl, app });
   } catch (err) {

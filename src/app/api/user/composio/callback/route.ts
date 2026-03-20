@@ -16,10 +16,12 @@ export async function GET(request: NextRequest) {
     markAppConnected(user.id, app);
   }
 
-  // Redirect back to settings with status indicator
-  const settingsUrl = new URL("/settings", request.nextUrl.origin);
-  settingsUrl.searchParams.set("composio", status === "success" ? "connected" : "failed");
-  if (app) settingsUrl.searchParams.set("app", app);
+  // Redirect back to the originating page (or settings as fallback)
+  const returnTo = searchParams.get("returnTo");
+  const basePath = returnTo && returnTo.startsWith("/") ? returnTo : "/settings";
+  const redirectUrl = new URL(basePath, request.nextUrl.origin);
+  redirectUrl.searchParams.set("composio", status === "success" ? "connected" : "failed");
+  if (app) redirectUrl.searchParams.set("app", app);
 
-  return NextResponse.redirect(settingsUrl);
+  return NextResponse.redirect(redirectUrl);
 }

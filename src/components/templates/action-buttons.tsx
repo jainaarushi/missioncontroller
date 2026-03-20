@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { P, F } from "@/lib/palette";
 import { getOutputActions, type OutputAction } from "@/lib/ai/mcp/actions";
 
@@ -13,6 +13,131 @@ interface ActionButtonsProps {
 interface ServerStatus {
   connected: boolean;
   serverType: string;
+}
+
+/* ─── Inline Connect Dialog ─── */
+function ConnectDialog({ app, appLabel, color, icon, onClose, onConnected }: {
+  app: string; appLabel: string; color: string; icon: string;
+  onClose: () => void; onConnected: () => void;
+}) {
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleConnect() {
+    setConnecting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/user/composio/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ app, returnTo: window.location.pathname }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Connection failed" }));
+        throw new Error(data.error || "Connection failed");
+      }
+      const { redirectUrl } = await res.json();
+
+      // Open OAuth in a popup
+      const w = 600, h = 700;
+      const left = window.screenX + (window.innerWidth - w) / 2;
+      const top = window.screenY + (window.innerHeight - h) / 2;
+      const popup = window.open(redirectUrl, "composio_connect", `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`);
+
+      // Poll for popup close + check connection status
+      const interval = setInterval(async () => {
+        if (popup && popup.closed) {
+          clearInterval(interval);
+          // Check if connection succeeded
+          try {
+            const statusRes = await fetch("/api/user/composio/status");
+            if (statusRes.ok) {
+              const data = await statusRes.json();
+              if (data.connections?.[app] === true) {
+                onConnected();
+                onClose();
+                return;
+              }
+            }
+          } catch { /* ignore */ }
+          setConnecting(false);
+          setError("Connection was not completed. Please try again.");
+        }
+      }, 500);
+    } catch (err) {
+      setConnecting(false);
+      setError(err instanceof Error ? err.message : "Connection failed");
+    }
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+    }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 16,
+        padding: "28px 32px", maxWidth: 380, width: "90%",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
+      }}>
+        {/* Icon */}
+        <div style={{
+          width: 48, height: 48, borderRadius: 12, margin: "0 auto 16px",
+          background: `${color}18`, border: `1px solid ${color}33`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, fontWeight: 800, color,
+        }}>{icon}</div>
+
+        <h3 style={{
+          fontFamily: F, fontSize: 15, fontWeight: 700, textAlign: "center",
+          color: P.text, margin: "0 0 6px",
+        }}>Connect {appLabel}</h3>
+
+        <p style={{
+          fontFamily: F, fontSize: 11.5, color: P.textSec, textAlign: "center",
+          lineHeight: 1.5, margin: "0 0 20px",
+        }}>
+          To publish directly from AgentStudio, connect your {appLabel} account.
+          You&apos;ll be redirected to authorize access.
+        </p>
+
+        {error && (
+          <div style={{
+            fontSize: 11, color: "#ef4444", background: "#ef444412",
+            border: "1px solid #ef444433", borderRadius: 8,
+            padding: "8px 12px", marginBottom: 14, textAlign: "center",
+          }}>{error}</div>
+        )}
+
+        <button onClick={handleConnect} disabled={connecting} style={{
+          width: "100%", padding: "10px 0", borderRadius: 10,
+          background: color, border: "none", color: "#fff",
+          fontSize: 13, fontWeight: 700, fontFamily: F,
+          cursor: connecting ? "wait" : "pointer",
+          opacity: connecting ? 0.7 : 1,
+          transition: "opacity 0.15s",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        }}>
+          {connecting && (
+            <span style={{
+              width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)",
+              borderTop: "2px solid #fff", borderRadius: "50%",
+              display: "inline-block", animation: "spin 0.6s linear infinite",
+            }} />
+          )}
+          {connecting ? "Connecting..." : `Connect ${appLabel}`}
+        </button>
+
+        <button onClick={onClose} style={{
+          width: "100%", padding: "8px 0", marginTop: 8,
+          background: "transparent", border: "none",
+          color: P.textTer, fontSize: 11, fontFamily: F,
+          cursor: "pointer",
+        }}>Cancel</button>
+      </div>
+    </div>
+  );
 }
 
 // Composio actions available per agent slug
@@ -65,6 +190,18 @@ export default function ActionButtons({ agentSlug, taskId, taskOutput }: ActionB
   const [loadingServers, setLoadingServers] = useState(true);
   const [actionStates, setActionStates] = useState<Record<string, "idle" | "loading" | "done" | "error">>({});
   const [actionErrors, setActionErrors] = useState<Record<string, string>>({});
+  const [connectDialog, setConnectDialog] = useState<{ app: string; label: string; color: string; icon: string } | null>(null);
+
+  const refreshComposioStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/user/composio/status");
+      if (res.ok) {
+        const data = await res.json();
+        setComposioEnabled(data.enabled);
+        setComposioLinkedIn(data.connections?.linkedin === true);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const hasAnyActions = mcpActions.length > 0 || composioActions.length > 0;
 
@@ -194,13 +331,15 @@ export default function ActionButtons({ agentSlug, taskId, taskOutput }: ActionB
 
           if (!isConnected) {
             return (
-              <a key={action.id} href="/settings" style={{
+              <button key={action.id} onClick={() => setConnectDialog({
+                app: "linkedin", label: "LinkedIn", color: action.color, icon: action.icon,
+              })} style={{
                 padding: "7px 14px", borderRadius: 8,
                 background: "transparent", border: `1px dashed ${P.border2}`,
                 color: P.textTer, fontSize: 11, fontFamily: F, fontWeight: 500,
-                textDecoration: "none", display: "flex", alignItems: "center", gap: 6,
+                display: "flex", alignItems: "center", gap: 6,
                 cursor: "pointer", transition: "all 0.15s", opacity: 0.7,
-              }} title={`Connect LinkedIn in Settings to publish directly`}>
+              }} title="Connect LinkedIn to publish directly">
                 <span style={{
                   width: 18, height: 18, borderRadius: 4,
                   background: `${action.color}22`, color: action.color,
@@ -209,7 +348,7 @@ export default function ActionButtons({ agentSlug, taskId, taskOutput }: ActionB
                 }}>{action.icon}</span>
                 {action.label}
                 <span style={{ fontSize: 9, opacity: 0.6, marginLeft: 2 }}>Connect</span>
-              </a>
+              </button>
             );
           }
 
@@ -295,6 +434,21 @@ export default function ActionButtons({ agentSlug, taskId, taskOutput }: ActionB
           );
         })}
       </div>
+
+      {/* Inline connect dialog */}
+      {connectDialog && (
+        <ConnectDialog
+          app={connectDialog.app}
+          appLabel={connectDialog.label}
+          color={connectDialog.color}
+          icon={connectDialog.icon}
+          onClose={() => setConnectDialog(null)}
+          onConnected={refreshComposioStatus}
+        />
+      )}
+
+      {/* Spinner keyframe */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
