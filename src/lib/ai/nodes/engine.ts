@@ -356,12 +356,31 @@ OUTPUT FORMAT RULES (MANDATORY):
     systemPrompt += `\n\nYou also have access to external integration tools: ${extToolNames}. Use them when relevant to the task. Call them by name.`;
   }
 
-  const result = await generateText({
-    model: aiModel,
-    system: systemPrompt,
-    prompt: userMessage,
-    ...(hasTools ? { tools: allTools, maxSteps: config.maxToolSteps || (hasExternalTools ? 5 : 3) } : {}),
-  });
+  // Try with all tools; if it fails (e.g. provider rejects a tool schema), retry without external tools
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let result: any;
+  try {
+    result = await generateText({
+      model: aiModel,
+      system: systemPrompt,
+      prompt: userMessage,
+      ...(hasTools ? { tools: allTools, maxSteps: config.maxToolSteps || (hasExternalTools ? 5 : 3) } : {}),
+    });
+  } catch (err) {
+    if (hasExternalTools && Object.keys(tools).length >= 0) {
+      // Retry with only built-in tools (drop external tools that may have bad schemas)
+      const builtInOnly = Object.keys(tools).length > 0;
+      console.warn(`[NodeEngine] AI node failed with external tools, retrying ${builtInOnly ? "with built-in tools only" : "without tools"}:`, err instanceof Error ? err.message : err);
+      result = await generateText({
+        model: aiModel,
+        system: systemPrompt,
+        prompt: userMessage,
+        ...(builtInOnly ? { tools, maxSteps: config.maxToolSteps || 3 } : {}),
+      });
+    } else {
+      throw err;
+    }
+  }
 
   const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
 

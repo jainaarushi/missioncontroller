@@ -67,7 +67,7 @@ const APP_ACTIONS: Record<string, {
       description: "Publish a post on LinkedIn. The post will appear on the user's LinkedIn feed.",
       parameters: z.object({
         text: z.string().describe("The post content (supports line breaks, mentions, and hashtags)"),
-        visibility: z.enum(["PUBLIC", "CONNECTIONS"]).optional().default("PUBLIC").describe("Who can see the post"),
+        visibility: z.enum(["PUBLIC", "CONNECTIONS"]).optional().describe("Who can see the post (defaults to PUBLIC)"),
       }),
     },
   ],
@@ -86,7 +86,7 @@ const APP_ACTIONS: Record<string, {
       description: "Search emails in Gmail by query",
       parameters: z.object({
         query: z.string().describe("Gmail search query (e.g., 'from:company subject:interview')"),
-        max_results: z.number().optional().default(10).describe("Maximum number of results"),
+        max_results: z.number().optional().describe("Maximum number of results (defaults to 10)"),
       }),
     },
   ],
@@ -130,7 +130,7 @@ const APP_ACTIONS: Record<string, {
       description: "Add rows of data to a Google Sheets spreadsheet",
       parameters: z.object({
         spreadsheet_id: z.string().describe("The spreadsheet ID"),
-        sheet_name: z.string().optional().default("Sheet1").describe("Sheet name"),
+        sheet_name: z.string().optional().describe("Sheet name (defaults to Sheet1)"),
         rows: z.array(z.array(z.string())).describe("Rows of data to add"),
       }),
     },
@@ -150,7 +150,7 @@ const APP_ACTIONS: Record<string, {
       actionName: "GOOGLECALENDAR_LIST_EVENTS",
       description: "List upcoming events from Google Calendar",
       parameters: z.object({
-        max_results: z.number().optional().default(10).describe("Maximum number of events"),
+        max_results: z.number().optional().describe("Maximum number of events (defaults to 10)"),
         time_min: z.string().optional().describe("Start of time range (ISO 8601)"),
       }),
     },
@@ -231,7 +231,14 @@ export function getComposioToolsForAgent(
         description: action.description,
         parameters: action.parameters,
         execute: async (params: z.infer<typeof action.parameters>) => {
-          return executeAction(apiKey, action.actionName, userId, params as Record<string, unknown>);
+          try {
+            return await executeAction(apiKey, action.actionName, userId, params as Record<string, unknown>);
+          } catch (err) {
+            // Return error as result instead of throwing — prevents pipeline crash
+            const msg = err instanceof Error ? err.message : "Unknown Composio error";
+            console.error(`[Composio] Tool ${toolName} failed:`, msg);
+            return { error: msg, tool: toolName };
+          }
         },
       };
     }
