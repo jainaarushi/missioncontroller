@@ -140,7 +140,7 @@ async function executeNode(
   apiKey: string,
   toolKeys: UserToolKeys,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mcpTools: Record<string, any>,
+  externalTools: Record<string, any>,
 ): Promise<NodeResult> {
   switch (node.config.type) {
     case "input":
@@ -150,7 +150,7 @@ async function executeNode(
     case "scrape":
       return executeScrapeNode(node.config, ctx, toolKeys);
     case "ai":
-      return executeAINode(node.config, ctx, provider, apiKey, toolKeys, mcpTools);
+      return executeAINode(node.config, ctx, provider, apiKey, toolKeys, externalTools);
     case "transform":
       return executeTransformNode(node.config, ctx);
     case "calculator":
@@ -262,7 +262,7 @@ async function executeAINode(
   apiKey: string,
   toolKeys: UserToolKeys,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mcpTools: Record<string, any>,
+  externalTools: Record<string, any>,
 ): Promise<NodeResult> {
   const { generateText } = await import("ai");
   const { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } = await import("@/lib/ai/client");
@@ -346,13 +346,13 @@ OUTPUT FORMAT RULES (MANDATORY):
   }
 
   // Merge external tools (Composio + MCP) with built-in tools
-  const allTools = { ...tools, ...mcpTools };
+  const allTools = { ...tools, ...externalTools };
   const hasTools = Object.keys(allTools).length > 0;
-  const hasExternalTools = Object.keys(mcpTools).length > 0;
+  const hasExternalTools = Object.keys(externalTools).length > 0;
 
   // Tell the AI about external tools if present
   if (hasExternalTools) {
-    const extToolNames = Object.keys(mcpTools).join(", ");
+    const extToolNames = Object.keys(externalTools).join(", ");
     systemPrompt += `\n\nYou also have access to external integration tools: ${extToolNames}. Use them when relevant to the task. Call them by name.`;
   }
 

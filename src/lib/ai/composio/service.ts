@@ -60,12 +60,7 @@ export function getComposioUsage(userId: string): { used: number; limit: number;
 }
 
 export function isComposioEnabled(): boolean {
-  return !!(process.env.COMPOSIO_API_KEY && process.env.COMPOSIO_SERVER_ID);
-}
-
-export function getComposioMCPUrl(userId: string): string {
-  const serverId = process.env.COMPOSIO_SERVER_ID;
-  return `https://backend.composio.dev/v3/mcp/${serverId}?user_id=${userId}`;
+  return !!process.env.COMPOSIO_API_KEY;
 }
 
 export function getComposioApiKey(): string {

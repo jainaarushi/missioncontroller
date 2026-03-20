@@ -177,63 +177,6 @@ export async function connectAndGetTools(
   }
 }
 
-// ── Composio tool filtering per agent ──
-// Maps agent slugs to the Composio app prefixes they're allowed to use.
-// Tool names from Composio look like "LINKEDIN_SEARCH_JOBS", "GMAIL_SEND_EMAIL", etc.
-// If an agent is not listed, it gets ALL Composio tools (backwards-compatible).
-const COMPOSIO_AGENT_APPS: Record<string, string[]> = {
-  // Career agents — LinkedIn-focused
-  "job-hunter":        ["LINKEDIN"],
-  "auto-applier":      ["LINKEDIN", "GMAIL"],
-  "resume-optimizer":  ["LINKEDIN"],
-  "interview-coach":   ["LINKEDIN"],
-  "salary-negotiator": ["LINKEDIN"],
-  "linkedin-optimizer":["LINKEDIN"],
-  "career-pivoter":    ["LINKEDIN"],
-  "remote-job-finder": ["LINKEDIN"],
-  "networking-coach":  ["LINKEDIN", "GMAIL"],
-  "portfolio-builder": ["LINKEDIN", "GITHUB"],
-  // Communication agents
-  "email-drafter":     ["GMAIL"],
-  // Dev agents
-  "code-reviewer":     ["GITHUB"],
-  "debugger":          ["GITHUB"],
-  "fullstack-developer":["GITHUB"],
-};
-
-/**
- * Filter Composio tools to only those relevant to the agent.
- * Composio returns ALL tools (GitHub, Slack, Gmail, etc.) but each agent
- * should only see tools from apps it actually needs.
- */
-function filterComposioTools(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tools: Record<string, any>,
-  agentSlug: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Record<string, any> {
-  const allowedApps = COMPOSIO_AGENT_APPS[agentSlug];
-  if (!allowedApps) return tools; // No filter configured — pass all through
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filtered: Record<string, any> = {};
-  for (const [name, tool] of Object.entries(tools)) {
-    // Tool names look like "mcp_composio_LINKEDIN_SEARCH_JOBS"
-    // Strip the "mcp_composio_" prefix and check if the app prefix matches
-    const rawName = name.replace(/^mcp_composio_/, "").toUpperCase();
-    if (allowedApps.some(app => rawName.startsWith(app))) {
-      filtered[name] = tool;
-    }
-  }
-
-  const dropped = Object.keys(tools).length - Object.keys(filtered).length;
-  if (dropped > 0) {
-    console.log(`[MCP] Filtered Composio tools for "${agentSlug}": kept ${Object.keys(filtered).length}, dropped ${dropped} irrelevant tools`);
-  }
-
-  return filtered;
-}
-
 /**
  * Connect to multiple MCP servers for a given agent.
  * Merges all tools, handles partial failures gracefully.
@@ -275,11 +218,7 @@ export async function getMCPToolsForAgent(
     const server = applicableServers[i];
 
     if (result.status === "fulfilled") {
-      // Filter Composio tools to only those relevant to this agent
-      const tools = server.serverType === "composio"
-        ? filterComposioTools(result.value.tools, agentSlug)
-        : result.value.tools;
-      Object.assign(allTools, tools);
+      Object.assign(allTools, result.value.tools);
       closers.push(result.value.close);
       connectedServers.push(server.name);
     } else {
