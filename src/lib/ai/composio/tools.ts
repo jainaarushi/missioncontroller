@@ -17,6 +17,10 @@ const AGENT_APPS: Record<string, string[]> = {
   "remote-job-finder":  ["LINKEDIN"],
   "networking-coach":   ["LINKEDIN", "GMAIL"],
   "portfolio-builder":  ["LINKEDIN", "GITHUB"],
+  // Social media agents
+  "social-media":       ["LINKEDIN"],
+  "content-creator":    ["LINKEDIN"],
+  // Communication agents
   "email-drafter":      ["GMAIL"],
   "code-reviewer":      ["GITHUB"],
   "debugger":           ["GITHUB"],
@@ -56,6 +60,14 @@ const APP_ACTIONS: Record<string, {
         query: z.string().describe("Search query for people (e.g., 'CTO at fintech startups')"),
         company: z.string().optional().describe("Filter by company name"),
         title: z.string().optional().describe("Filter by job title"),
+      }),
+    },
+    {
+      actionName: "LINKEDIN_CREATE_POST",
+      description: "Publish a post on LinkedIn. The post will appear on the user's LinkedIn feed.",
+      parameters: z.object({
+        text: z.string().describe("The post content (supports line breaks, mentions, and hashtags)"),
+        visibility: z.enum(["PUBLIC", "CONNECTIONS"]).optional().default("PUBLIC").describe("Who can see the post"),
       }),
     },
   ],

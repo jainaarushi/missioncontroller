@@ -12,6 +12,7 @@ import { FREELANCE_GRAPHS } from "./freelance";
 import { PARENTING_GRAPHS } from "./parenting";
 import { TRAVEL_GRAPHS } from "./travel";
 import { GROWTH_GRAPHS } from "./growth";
+import { SOCIAL_GRAPHS } from "./social";
 
 export const NODE_GRAPHS: Record<string, PipelineGraph> = {
   ...CAREER_GRAPHS,
@@ -25,6 +26,7 @@ export const NODE_GRAPHS: Record<string, PipelineGraph> = {
   ...PARENTING_GRAPHS,
   ...TRAVEL_GRAPHS,
   ...GROWTH_GRAPHS,
+  ...SOCIAL_GRAPHS,
 };
 
 /**
