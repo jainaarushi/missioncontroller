@@ -17,7 +17,7 @@ export const SOCIAL_GRAPHS: Record<string, PipelineGraph> = {
     nodes: [
       { id: "input", type: "input", label: "Your Topic", description: "Understanding what you want to post about", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
       {
-        id: "search_trends", type: "search", label: "Research Trends", description: "Finding trending topics and viral formats", icon: "🔍", color: "#3b82f6", inputs: ["input"],
+        id: "search_trends", type: "search", label: "Research Trends", description: "Finding trending angles and viral formats", icon: "🔍", color: "#3b82f6", inputs: ["input"],
         config: {
           type: "search",
           queries: (ctx) => {
@@ -25,90 +25,95 @@ export const SOCIAL_GRAPHS: Record<string, PipelineGraph> = {
             return [
               `${q} trending LinkedIn post ${ctx.today.split(",").pop()?.trim()}`,
               `${q} viral social media content strategy`,
-              `${q} Twitter thread ideas engagement`,
             ];
           },
-          maxResults: 6,
+          maxResults: 5,
         },
       },
       {
-        id: "linkedin_post", type: "ai", label: "Draft LinkedIn Post", description: "Crafting an engaging LinkedIn post", icon: "💼", color: "#0A66C2", inputs: ["input", "search_trends"],
+        id: "draft", type: "ai", label: "Draft Posts", description: "Writing LinkedIn post and Twitter/X thread", icon: "✍️", color: "#0A66C2", inputs: ["input", "search_trends"],
         config: {
           type: "ai",
           specialistSlug: "content-creator",
-          userPromptTemplate: `Draft a LinkedIn post about: {{input}}
+          userPromptTemplate: `Write social media posts about: {{input}}
 
-Trending context:
+Trending context (use if relevant, ignore if empty):
 {{search_trends}}
 
-IMPORTANT: If the search results are empty or say "No search results", use your web_search tool to research the topic yourself.
+You MUST produce actual post content. Do NOT say the drafts are empty. Write the posts yourself based on the topic above.
 
-If you have composio_linkedin_create_post or similar LinkedIn tools available, mention that the user can auto-publish after reviewing.
+Create BOTH of these:
 
-Create:
-1. **Hook** — First line that stops the scroll (pattern interrupt, bold claim, or question). Keep it under 15 words.
-2. **Main Post** — 800–1,300 characters. Use short paragraphs (1-2 sentences each). Add line breaks for readability. Tell a story or share a concrete insight, not generic advice.
-3. **Call to Action** — End with a question or invitation to comment.
-4. **3 Hashtag Sets** — One broad (#Leadership), one niche (#ProductManagement), one trending.
-5. **Best Time to Post** — Based on the topic and audience.
-6. **2 Follow-up Comments** — Pre-written comments to boost engagement in the first hour.
+---
 
-Format the final post in a copy-paste-ready block.`,
+## LINKEDIN POST
+
+Write a complete, ready-to-publish LinkedIn post:
+- **Hook** (first line): A bold statement, surprising stat, or question that stops the scroll. Under 15 words.
+- **Body** (800–1,300 characters): Short paragraphs (1-2 sentences each). Tell a story or share a concrete insight. Use line breaks for readability.
+- **Call to Action**: End with a question or invitation to comment.
+- **Hashtags**: 3 hashtags — one broad, one niche, one trending.
+
+Format the LinkedIn post in a clean copy-paste block between \`---START LINKEDIN---\` and \`---END LINKEDIN---\` markers.
+
+---
+
+## TWITTER/X THREAD
+
+Write a 5-7 tweet thread:
+- **Tweet 1 (Hook)**: Max 280 chars. Bold claim or surprising stat.
+- **Tweets 2-6 (Body)**: Each max 280 chars. One idea per tweet. Concrete examples.
+- **Final Tweet (CTA)**: Invite retweets/follows. Summarize the thread.
+- Show character count after each tweet.
+- Also write a **Single Tweet Version** (one standalone tweet, max 280 chars).
+
+---
+
+## POSTING STRATEGY
+- Best time to post on LinkedIn for this topic
+- Best time to post on Twitter/X for this topic
+- 2 pre-written follow-up comments to boost engagement in the first hour`,
           tools: ["web-search"],
+          maxToolSteps: 4,
         },
       },
       {
-        id: "twitter_thread", type: "ai", label: "Draft Twitter/X Thread", description: "Creating a viral Twitter/X thread", icon: "🐦", color: "#000000", inputs: ["input", "search_trends"],
+        id: "format", type: "ai", label: "Final Package", description: "Polishing and formatting for publishing", icon: "📊", color: "#8b5cf6", inputs: ["draft"],
         config: {
           type: "ai",
           specialistSlug: "content-creator",
-          userPromptTemplate: `Create a Twitter/X thread about: {{input}}
+          userPromptTemplate: `Polish this social media content package for publishing:
 
-Trending context:
-{{search_trends}}
+{{draft}}
 
-IMPORTANT: If the search results are empty, use your web_search tool to research the topic yourself.
+Your job is to FORMAT and CLEAN UP the drafts above into a professional, ready-to-publish package. Do NOT say content is missing — the drafts are above.
 
-Create a thread with:
-1. **Tweet 1 (Hook)** — Max 280 chars. Must stop the scroll. Use a bold claim, surprising stat, or hot take.
-2. **Tweets 2–7 (Body)** — Each max 280 chars. One idea per tweet. Use short sentences. Add concrete examples, numbers, or stories.
-3. **Final Tweet (CTA)** — Invite retweets, follows, or replies. Include a summary of the thread.
-4. **Alt: Single Tweet Version** — Condense the core insight into one powerful tweet (max 280 chars).
-5. **Hashtags** — 2-3 relevant hashtags (don't overdo it on Twitter).
-6. **Best Posting Time** — Based on topic and audience.
+Output this exact structure:
 
-Format each tweet with "Tweet 1/7:", "Tweet 2/7:", etc. Keep character counts visible.`,
-          tools: ["web-search"],
-        },
-      },
-      {
-        id: "format", type: "ai", label: "Final Report", description: "Combining posts into a polished content package", icon: "📊", color: "#8b5cf6", inputs: ["linkedin_post", "twitter_thread"],
-        config: {
-          type: "ai",
-          specialistSlug: "content-creator",
-          userPromptTemplate: `Combine these social media drafts into a polished, ready-to-publish content package:
+## LinkedIn Post (Ready to Publish)
+[The complete LinkedIn post, copy-paste ready. Include line breaks and formatting exactly as it should appear on LinkedIn.]
 
-## LinkedIn Post Draft
-{{linkedin_post}}
+## Twitter/X Thread
+[Each tweet numbered: "1/N:", "2/N:", etc. Show (X/280 chars) after each.]
 
-## Twitter/X Thread Draft
-{{twitter_thread}}
+## Single Tweet Version
+[One standalone tweet, max 280 chars]
 
-Create a final report with:
-1. **LinkedIn Post** — Copy-paste ready, formatted with line breaks and emojis where appropriate
-2. **Twitter/X Thread** — Each tweet numbered with character count shown
-3. **Single Tweet Version** — The best standalone tweet
-4. **Cross-Platform Calendar** — When to post each piece for maximum reach
-5. **Engagement Playbook** — What to do in the first 60 minutes after posting (respond to comments, share in groups, etc.)
-6. **Content Repurposing** — How to turn this into an Instagram carousel, newsletter section, or blog intro`,
-          tools: ["web-search"],
+## When to Post
+| Platform | Best Time | Why |
+|----------|-----------|-----|
+| LinkedIn | ... | ... |
+| Twitter/X | ... | ... |
+
+## First 60 Minutes Playbook
+[What to do after posting: reply to comments, share in groups, etc.]`,
         },
       },
     ],
     pieces: [
       { name: "Web Search", icon: "🔍", color: "#3b82f6" },
       { name: "LinkedIn", icon: "💼", color: "#0A66C2" },
-      { name: "Twitter/X", icon: "🐦", color: "#000000" },
+      { name: "Twitter/X", icon: "🐦", color: "#1DA1F2" },
       { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
     ],
   },
