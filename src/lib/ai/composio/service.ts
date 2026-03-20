@@ -67,6 +67,18 @@ export function getComposioApiKey(): string {
   return process.env.COMPOSIO_API_KEY || "";
 }
 
+/** Look up the Composio integration UUID for an app name */
+async function getIntegrationId(apiKey: string, appName: string): Promise<string> {
+  const resp = await fetch(`https://backend.composio.dev/api/v1/integrations?appName=${appName}`, {
+    headers: { "x-api-key": apiKey },
+  });
+  if (!resp.ok) throw new Error(`Failed to fetch integrations for ${appName}`);
+  const data = await resp.json();
+  const items = data.items || [];
+  if (items.length === 0) throw new Error(`No Composio integration found for ${appName}. Set one up at app.composio.dev`);
+  return items[0].id;
+}
+
 /** Initiate OAuth for a specific Composio app. Returns redirect URL. */
 export async function initiateComposioOAuth(
   userId: string,
@@ -74,6 +86,10 @@ export async function initiateComposioOAuth(
   callbackUrl: string,
 ): Promise<string> {
   const apiKey = getComposioApiKey();
+
+  // Look up the real integration UUID for this app
+  const integrationId = await getIntegrationId(apiKey, app);
+
   const resp = await fetch("https://backend.composio.dev/api/v1/connectedAccounts", {
     method: "POST",
     headers: {
@@ -81,9 +97,10 @@ export async function initiateComposioOAuth(
       "x-api-key": apiKey,
     },
     body: JSON.stringify({
-      integrationId: app,
-      userUuid: userId,
+      integrationId,
+      entityId: userId,
       redirectUri: callbackUrl,
+      data: {},
     }),
   });
 
