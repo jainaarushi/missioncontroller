@@ -1,47 +1,21 @@
 import type { PipelineGraph } from "../types";
 
-/** Extract 3-5 core keywords from user input for short search queries */
-function extractKeywords(text: string): string {
-  const stopWords = new Set(["i'm", "im", "i", "am", "a", "an", "the", "with", "and", "or", "for", "in", "at", "of", "to", "my", "have", "has", "been", "being", "was", "were", "is", "are", "that", "this", "it", "its", "on", "by", "as", "so", "but", "do", "does", "did", "will", "would", "could", "should", "can", "may", "about", "very", "really", "just", "also", "looking", "want", "need", "like", "currently", "experience", "years", "year", "post", "write", "create", "make", "help", "me", "please", "going", "think", "know", "new", "get", "got", "way", "thing", "something", "through", "from", "some", "our", "their", "we", "they", "been", "announce", "announcing", "launched", "launching", "launch"]);
-  const words = text.replace(/[^\w\s/-]/g, " ").split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w.toLowerCase()));
-  // Take at most 4 keywords to keep query short
-  return words.slice(0, 4).join(" ") || text.slice(0, 30).trim();
-}
-
 export const SOCIAL_GRAPHS: Record<string, PipelineGraph> = {
   "social-media": {
     nodes: [
-      { id: "input", type: "input", label: "Your Topic", description: "Understanding what you want to post about", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
+      { id: "input", type: "input", label: "Your Topic", description: "Understanding what you want to post about", icon: "\ud83d\udcdd", color: "#8b5cf6", config: { type: "input" } },
       {
-        id: "search_trends", type: "search", label: "Research Trends", description: "Finding trending angles and viral formats", icon: "🔍", color: "#3b82f6", inputs: ["input"],
-        config: {
-          type: "search",
-          queries: (ctx) => {
-            const kw = extractKeywords(ctx.latestText);
-            return [
-              `${kw} LinkedIn post tips`,
-              `best social media posts ${kw}`,
-            ];
-          },
-          maxResults: 5,
-        },
-      },
-      {
-        id: "draft", type: "ai", label: "Draft Posts", description: "Writing LinkedIn post and Twitter/X thread", icon: "✍️", color: "#0A66C2", inputs: ["input", "search_trends"],
+        id: "draft", type: "ai", label: "Draft Posts", description: "Writing LinkedIn post and Twitter/X thread", icon: "\u270d\ufe0f", color: "#0A66C2", inputs: ["input"],
         config: {
           type: "ai",
           specialistSlug: "content-creator",
           userPromptTemplate: `Write social media posts about: {{input}}
 
-Trending context (use if relevant, ignore if empty):
-{{search_trends}}
-
-You MUST produce actual post content. Do NOT say the drafts are empty. Write the posts yourself based on the topic above.
+You MUST produce actual post content. Write the posts yourself based on the topic above.
 
 CRITICAL RULES:
-- NEVER generate fake, placeholder, or example URLs (like "yourcompany.com", "example.com", "yourblog.com"). If you don't have a real URL, do NOT include any link at all.
+- NEVER generate fake, placeholder, or example URLs. Do NOT include any links at all.
 - NEVER include "Read the full article here" or similar link placeholders.
-- Only include real URLs that came from the search results above.
 
 Create BOTH of these:
 
@@ -51,10 +25,10 @@ Create BOTH of these:
 
 Write a complete, ready-to-publish LinkedIn post:
 - **Hook** (first line): A bold statement, surprising stat, or question that stops the scroll. Under 15 words.
-- **Body** (800–1,300 characters): Short paragraphs (1-2 sentences each). Tell a story or share a concrete insight. Use line breaks for readability.
+- **Body** (800\u20131,300 characters): Short paragraphs (1-2 sentences each). Tell a story or share a concrete insight. Use line breaks for readability.
 - **Call to Action**: End with a question or invitation to comment.
-- **Hashtags**: 3 hashtags — one broad, one niche, one trending.
-- Do NOT add any links unless they are real URLs from search results.
+- **Hashtags**: 3 hashtags \u2014 one broad, one niche, one trending.
+- Do NOT add any links.
 
 Format the LinkedIn post in a clean copy-paste block between \`---START LINKEDIN---\` and \`---END LINKEDIN---\` markers.
 
@@ -75,12 +49,10 @@ Write a 5-7 tweet thread:
 - Best time to post on LinkedIn for this topic
 - Best time to post on Twitter/X for this topic
 - 2 pre-written follow-up comments to boost engagement in the first hour`,
-          tools: ["web-search"],
-          maxToolSteps: 4,
         },
       },
       {
-        id: "format", type: "ai", label: "Final Package", description: "Polishing and formatting for publishing", icon: "📊", color: "#8b5cf6", inputs: ["draft"],
+        id: "format", type: "ai", label: "Final Package", description: "Polishing and formatting for publishing", icon: "\ud83d\udcca", color: "#8b5cf6", inputs: ["draft"],
         config: {
           type: "ai",
           specialistSlug: "content-creator",
@@ -88,9 +60,9 @@ Write a 5-7 tweet thread:
 
 {{draft}}
 
-Your job is to FORMAT and CLEAN UP the drafts above into a professional, ready-to-publish package. Do NOT say content is missing — the drafts are above.
+Your job is to FORMAT and CLEAN UP the drafts above into a professional, ready-to-publish package. Do NOT say content is missing \u2014 the drafts are above.
 
-CRITICAL: NEVER generate fake, placeholder, or example URLs. Remove any links like "yourcompany.com", "example.com", etc. Only keep real URLs that reference actual websites. Remove "Read the full article" lines if the URL is not real.
+CRITICAL: NEVER generate fake, placeholder, or example URLs. Remove any links entirely. Do NOT include "Read the full article" or any URL placeholders.
 
 Output this exact structure:
 
@@ -115,10 +87,9 @@ Output this exact structure:
       },
     ],
     pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "LinkedIn", icon: "💼", color: "#0A66C2" },
-      { name: "Twitter/X", icon: "🐦", color: "#1DA1F2" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
+      { name: "LinkedIn", icon: "\ud83d\udcbc", color: "#0A66C2" },
+      { name: "Twitter/X", icon: "\ud83d\udc26", color: "#1DA1F2" },
+      { name: "AI Agent", icon: "\ud83e\udd16", color: "#f59e0b" },
     ],
   },
 };
