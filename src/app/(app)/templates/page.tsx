@@ -18,6 +18,7 @@ const CATEGORY_META: Record<string, { label: string; color: string; catBg: strin
   parenting: { label: "Parenting", color: "#a99cf5", catBg: "rgba(169,156,245,0.10)" },
   travel_events: { label: "Travel", color: "#2dd4bf", catBg: "rgba(45,212,191,0.10)" },
   personal_growth: { label: "Wellness", color: "#f5a623", catBg: "rgba(245,166,35,0.10)" },
+  social_media: { label: "Social Media", color: "#0A66C2", catBg: "rgba(10,102,194,0.10)" },
 };
 
 /* ─── Template categories with slugs ─── */
@@ -33,6 +34,7 @@ const TEMPLATE_CATEGORIES: { id: string; title: string; slugs: string[] }[] = [
   { id: "parenting", title: "Parenting & Family", slugs: ["baby-name-picker", "school-chooser", "chore-organizer", "college-savings", "childcare-finder", "summer-camp-finder"] },
   { id: "travel_events", title: "Travel & Events", slugs: ["flight-deal-hunter", "wedding-planner", "party-planner", "visa-advisor", "road-trip-planner", "packing-assistant"] },
   { id: "personal_growth", title: "Personal Growth", slugs: ["habit-tracker", "journaling-coach", "morning-routine", "social-skills", "dating-profile", "pet-care-advisor"] },
+  { id: "social_media", title: "Social Media", slugs: ["social-media"] },
 ];
 
 /* ─── Pipeline agent preview data per template ─── */
@@ -442,6 +444,12 @@ const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; color: s
     { icon: "📋", label: "Care Planner", color: "#f5a623" },
     { icon: "🏥", label: "Vet Prep Guide", color: "#4ade80" },
   ],
+  "social-media": [
+    { icon: "🔍", label: "Trend Researcher", color: "#3b82f6" },
+    { icon: "💼", label: "LinkedIn Writer", color: "#0A66C2" },
+    { icon: "🐦", label: "Twitter/X Writer", color: "#000000" },
+    { icon: "📊", label: "Content Packager", color: "#8b5cf6" },
+  ],
 };
 
 /* ─── Ratings and runs per template ─── */
@@ -471,6 +479,7 @@ const TEMPLATE_RATINGS: Record<string, number> = {
   "visa-advisor": 4.7, "road-trip-planner": 4.6, "packing-assistant": 4.4,
   "habit-tracker": 4.6, "journaling-coach": 4.5, "morning-routine": 4.5,
   "social-skills": 4.4, "dating-profile": 4.6, "pet-care-advisor": 4.7,
+  "social-media": 4.8,
 };
 
 const TEMPLATE_RUNS: Record<string, string> = {
@@ -499,6 +508,7 @@ const TEMPLATE_RUNS: Record<string, string> = {
   "visa-advisor": "1.9k", "road-trip-planner": "1.5k", "packing-assistant": "1.1k",
   "habit-tracker": "1.8k", "journaling-coach": "1.2k", "morning-routine": "1.4k",
   "social-skills": "0.9k", "dating-profile": "1.6k", "pet-care-advisor": "1.3k",
+  "social-media": "2.1k",
 };
 
 /* ─── Pill component ─── */
