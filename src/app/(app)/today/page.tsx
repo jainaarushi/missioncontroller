@@ -16,75 +16,13 @@ import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { getAgentAvatar } from "@/lib/agent-avatars";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
-
-// Category metadata for template cards
-const CATEGORY_META: Record<string, { label: string; color: string; catBg: string }> = {
-  career: { label: "Career", color: "#60a5fa", catBg: "rgba(96,165,250,0.13)" },
-  finance_personal: { label: "Finance", color: "#4ade80", catBg: "rgba(74,222,128,0.10)" },
-  legal_personal: { label: "Legal", color: "#c084fc", catBg: "rgba(192,132,252,0.10)" },
-  housing: { label: "Housing", color: "#fb923c", catBg: "rgba(251,146,60,0.10)" },
-  health_personal: { label: "Health", color: "#f472b6", catBg: "rgba(244,114,182,0.10)" },
-  education: { label: "Education", color: "#22d3ee", catBg: "rgba(34,211,238,0.10)" },
-  shopping: { label: "Shopping", color: "#c084fc", catBg: "rgba(192,132,252,0.10)" },
-  freelance: { label: "Freelance", color: "#fb923c", catBg: "rgba(251,146,60,0.10)" },
-  parenting: { label: "Parenting", color: "#a99cf5", catBg: "rgba(169,156,245,0.10)" },
-  travel_events: { label: "Travel", color: "#2dd4bf", catBg: "rgba(45,212,191,0.10)" },
-  personal_growth: { label: "Wellness", color: "#f5a623", catBg: "rgba(245,166,35,0.10)" },
-};
+import { CATEGORY_META, TEMPLATE_PIPELINES, TEMPLATE_RATINGS, TEMPLATE_RUNS } from "@/lib/template-agents";
 
 // Recommended templates — curated 4 for the grid
 const RECOMMENDED_SLUGS = [
   "resume-optimizer", "budget-builder", "lease-reviewer",
   "study-plan-maker",
 ];
-
-// Ratings per template
-const TEMPLATE_RATINGS: Record<string, number> = {
-  "resume-optimizer": 4.8,
-  "budget-builder": 4.7,
-  "lease-reviewer": 4.9,
-  "study-plan-maker": 4.6,
-  "meal-prep-planner": 4.8,
-  "freelance-bid-writer": 4.7,
-};
-
-// Pipeline agent preview data per template — matches reference TemplateCard
-const TEMPLATE_PIPELINES: Record<string, { icon: string; label: string; color: string }[]> = {
-  "resume-optimizer": [
-    { icon: "🔍", label: "ATS Scanner", color: "#fb923c" },
-    { icon: "🏷️", label: "Keyword Analyzer", color: "#c084fc" },
-    { icon: "✏️", label: "Bullet Rewriter", color: "#22d3ee" },
-    { icon: "⭐", label: "Scorer", color: "#4ade80" },
-  ],
-  "budget-builder": [
-    { icon: "📊", label: "Income Analyzer", color: "#60a5fa" },
-    { icon: "💳", label: "Expense Tracker", color: "#f472b6" },
-    { icon: "🎯", label: "Budget Planner", color: "#4ade80" },
-    { icon: "📈", label: "Savings Optimizer", color: "#f5a623" },
-  ],
-  "lease-reviewer": [
-    { icon: "📋", label: "Clause Parser", color: "#60a5fa" },
-    { icon: "🔒", label: "Risk Analyzer", color: "#ef4444" },
-    { icon: "⚖️", label: "Legal Checker", color: "#c084fc" },
-    { icon: "📝", label: "Report Writer", color: "#4ade80" },
-  ],
-  "study-plan-maker": [
-    { icon: "📚", label: "Syllabus Analyzer", color: "#22d3ee" },
-    { icon: "🧠", label: "Knowledge Mapper", color: "#7c6fef" },
-    { icon: "📅", label: "Schedule Builder", color: "#fb923c" },
-    { icon: "✅", label: "Progress Tracker", color: "#4ade80" },
-  ],
-};
-
-// Runs count per template
-const TEMPLATE_RUNS: Record<string, string> = {
-  "resume-optimizer": "6.1k",
-  "budget-builder": "3.4k",
-  "lease-reviewer": "2.8k",
-  "study-plan-maker": "4.5k",
-  "meal-prep-planner": "1.9k",
-  "freelance-bid-writer": "2.2k",
-};
 
 // Specialist agents displayed in the "Hire a Specialist" section
 const SPECIALIST_PERSONAS: {
