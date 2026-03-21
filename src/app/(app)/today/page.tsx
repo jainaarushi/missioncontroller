@@ -13,7 +13,7 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P, F, FS, FM } from "@/lib/palette";
 import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
-import { getAgentAvatar } from "@/lib/agent-avatars";
+import { Search, Code2, Palette, BarChart3, PenTool, TrendingUp, ShieldCheck, BrainCircuit } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
 import { CATEGORY_META, TEMPLATE_PIPELINES, TEMPLATE_RATINGS, TEMPLATE_RUNS } from "@/lib/template-agents";
@@ -51,6 +51,17 @@ function Pill({ children, color = P.lime, bg = "rgba(197,241,53,0.13)", size = 1
     }}>{children}</span>
   );
 }
+
+const SPECIALIST_ICONS: Record<string, React.ReactNode> = {
+  "deep-research": <Search size={22} strokeWidth={2.2} />,
+  "fullstack-developer": <Code2 size={22} strokeWidth={2.2} />,
+  "ux-designer": <Palette size={22} strokeWidth={2.2} />,
+  "data-analyst": <BarChart3 size={22} strokeWidth={2.2} />,
+  "content-creator": <PenTool size={22} strokeWidth={2.2} />,
+  "strategy-advisor": <TrendingUp size={22} strokeWidth={2.2} />,
+  "code-reviewer": <ShieldCheck size={22} strokeWidth={2.2} />,
+  "sales-coach": <BrainCircuit size={22} strokeWidth={2.2} />,
+};
 
 /* ─── Specialist Card with 3D tilt ─── */
 function SpecialistCardH({ s, onClick }: {
@@ -108,26 +119,16 @@ function SpecialistCardH({ s, onClick }: {
           <div style={{ position: "absolute", top: 9, right: 11, zIndex: 2 }}>
             <Pill color={s.color1} bg={`${s.color1}30`} size={9}>{s.badge}</Pill>
           </div>
-          {(() => {
-            const av = getAgentAvatar(s.slug);
-            return av ? (
-              <img src={av} alt="" style={{
-                width: 40, height: 40, borderRadius: 11, objectFit: "cover",
-                border: `2.5px solid ${P.bg3}`,
-                position: "absolute", bottom: -16, left: 14,
-                boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
-              }} />
-            ) : (
-              <div style={{
-                width: 40, height: 40, borderRadius: 11,
-                background: `linear-gradient(135deg, ${s.color1}, ${s.color2})`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 20, border: `2.5px solid ${P.bg3}`,
-                position: "absolute", bottom: -16, left: 14,
-                boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
-              }}>{s.emoji}</div>
-            );
-          })()}
+          <div style={{
+            width: 42, height: 42, borderRadius: 12,
+            background: `linear-gradient(135deg, ${s.color1}, ${s.color2})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", border: `2.5px solid ${P.bg3}`,
+            position: "absolute", bottom: -16, left: 14,
+            boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
+          }}>
+            {SPECIALIST_ICONS[s.slug] || <span style={{ fontSize: 20 }}>{s.emoji}</span>}
+          </div>
         </div>
 
         <div style={{ padding: "24px 14px 0", position: "relative", zIndex: 1 }}>
