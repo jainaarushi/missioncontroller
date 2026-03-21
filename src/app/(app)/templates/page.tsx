@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAgents } from "@/lib/hooks/use-agents";
-import { P, F, FS } from "@/lib/palette";
+import { P, F } from "@/lib/palette";
 import {
   CATEGORY_META,
   TEMPLATE_CATEGORIES,
@@ -12,46 +12,13 @@ import {
   TEMPLATE_RUNS,
 } from "@/lib/template-agents";
 
+/* ─── Step border colors by index ─── */
+const STEP_BORDER_COLORS = [P.lime, P.violet, "#7c736b"];
 
-/* ─── Pill component ─── */
-function Pill({ children, color = P.lime, bg = "rgba(30,142,62,0.10)", size = 10 }: {
-  children: React.ReactNode; color?: string; bg?: string; size?: number;
-}) {
-  return (
-    <span style={{
-      fontSize: size, fontWeight: 700, padding: "3px 10px", borderRadius: 100,
-      background: bg, color, letterSpacing: "0.04em", whiteSpace: "nowrap",
-    }}>{children}</span>
-  );
-}
-
-/* ─── FTabs — filter tabs matching reference ─── */
-function FTabs({ tabs, active, onChange }: {
-  tabs: string[]; active: string; onChange: (t: string) => void;
-}) {
-  return (
-    <div style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap" }}>
-      {tabs.map((t) => (
-        <button key={t} onClick={() => onChange(t)} style={{
-          padding: "5px 12px", borderRadius: 100, fontSize: 11,
-          cursor: "pointer", fontFamily: F, fontWeight: active === t ? 700 : 500,
-          border: `1px solid ${active === t ? P.lime : P.border}`,
-          background: active === t ? P.lime : P.bg3,
-          color: active === t ? "#ffffff" : P.textSec,
-          transition: "all 0.15s",
-        }}>{t}</button>
-      ))}
-    </div>
-  );
-}
-
-/* ─── TemplateCard — compact card matching reference exactly ─── */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
+/* ─── TemplateCard ─── */
+function TemplateCard({ agent, rating, pipeline, onUse }: {
   agent: { id: string; icon: string; name: string; description: string | null; slug?: string };
-  cat: { label: string; color: string; catBg: string };
   rating: number;
-  runs: string;
   pipeline: { icon: string; label: string; color: string }[];
   onUse: () => void;
 }) {
@@ -63,86 +30,120 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
       onMouseLeave={() => setHov(false)}
       onClick={onUse}
       style={{
-        background: P.bg2, border: `1px solid ${hov ? P.border2 : P.border}`,
-        borderRadius: 15, overflow: "hidden", cursor: "pointer",
-        display: "flex", flexDirection: "column",
-        transform: hov ? "translateY(-3px)" : "none",
-        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.12)" : "none",
-        transition: "all 0.2s", minWidth: 0,
+        background: P.bg2,
+        border: `1px solid ${hov ? P.border2 : "rgba(0,0,0,0.06)"}`,
+        borderRadius: 16,
+        overflow: "hidden",
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        transform: hov ? "translateY(-2px)" : "none",
+        boxShadow: hov ? P.shadowHover : "none",
+        transition: "all 0.2s",
       }}
     >
-      {/* Gradient stripe */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}44)` }} />
-
-      <div style={{ padding: "13px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Header: icon + name + category pill + rating */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 9,
-              background: cat.catBg,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, flexShrink: 0,
-            }}>{agent.icon}</div>
-            <div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: F, marginBottom: 2 }}>{agent.name}</div>
-              <Pill color={cat.color} bg={cat.catBg} size={9}>{cat.label}</Pill>
-            </div>
+      {/* Top section */}
+      <div style={{ padding: 24, flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Icon row + rating badge */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: P.bg3,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 24, flexShrink: 0,
+          }}>
+            {agent.icon}
           </div>
-          <span style={{ fontSize: 11, color: P.amber, fontWeight: 700 }}>★ {rating}</span>
+          <span style={{
+            background: "#ece0d6",
+            color: P.textSec,
+            fontSize: 12,
+            fontWeight: 700,
+            padding: "2px 8px",
+            borderRadius: 6,
+            fontFamily: F,
+          }}>
+            {rating.toFixed(1)}
+          </span>
+        </div>
+
+        {/* Title */}
+        <div style={{
+          fontSize: 20, fontWeight: 700, fontFamily: F,
+          marginTop: 16, color: P.text, lineHeight: 1.3,
+        }}>
+          {agent.name}
         </div>
 
         {/* Description */}
-        <div style={{ fontSize: 11, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
+        <div style={{
+          fontSize: 14, color: P.textSec, lineHeight: 1.6,
+          marginTop: 8,
+          display: "-webkit-box",
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: "vertical" as const,
+          overflow: "hidden",
+        }}>
           {agent.description}
         </div>
+      </div>
 
-        {/* Pipeline agent preview */}
-        {pipeline.length > 0 && (
+      {/* Sequence / Pipeline section */}
+      {pipeline.length > 0 && (
+        <div style={{ padding: "0 24px 16px" }}>
           <div style={{
-            padding: "9px 11px", background: P.bg3,
-            borderRadius: 8, border: `1px solid ${P.border}`, marginBottom: 10,
+            fontSize: 10, textTransform: "uppercase",
+            letterSpacing: "0.1em", fontWeight: 700,
+            color: P.textTer, marginBottom: 8,
           }}>
-            <div style={{
-              fontSize: 9, textTransform: "uppercase" as const,
-              letterSpacing: "0.08em", color: P.textTer, marginBottom: 6,
-            }}>
-              {pipeline.length} agents
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-              {pipeline.map((step, i) => (
-                <span key={step.label}>
-                  <span style={{
-                    fontSize: 9, padding: "2px 6px", borderRadius: 4,
-                    background: P.bg4, border: `1px solid ${step.color}33`,
-                    color: step.color, fontFamily: F, fontWeight: 600,
-                  }}>
-                    {step.icon} {step.label}
-                  </span>
-                  {i < pipeline.length - 1 && (
-                    <span style={{ color: P.textTer, fontSize: 9, margin: "0 1px" }}>›</span>
-                  )}
-                </span>
-              ))}
-            </div>
+            Sequence
           </div>
-        )}
-
-        {/* Footer: runs + Use Template button */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: "auto", paddingTop: 9,
-          borderTop: `1px solid ${P.border}`,
-        }}>
-          <span style={{ fontSize: 10, color: P.textTer }}>{runs} runs</span>
-          <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
-            fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
-            background: P.lime, color: "#ffffff", border: "none",
-            cursor: "pointer", fontFamily: F,
-          }}>
-            Use Template →
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            {pipeline.map((step, i) => (
+              <span key={step.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 600, fontFamily: F,
+                  padding: "6px 12px", borderRadius: 100,
+                  background: P.bg3,
+                  borderLeft: `4px solid ${STEP_BORDER_COLORS[i % STEP_BORDER_COLORS.length]}`,
+                  color: P.text,
+                  whiteSpace: "nowrap",
+                }}>
+                  {step.icon} {step.label}
+                </span>
+                {i < pipeline.length - 1 && (
+                  <span style={{ color: P.textTer, fontSize: 12, fontWeight: 600 }}>&rarr;</span>
+                )}
+              </span>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Footer */}
+      <div style={{
+        padding: 16, background: P.bg3, borderTop: `1px solid ${P.border}`,
+      }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); onUse(); }}
+          style={{
+            width: "100%",
+            fontSize: 14,
+            fontWeight: 700,
+            padding: "10px 0",
+            borderRadius: 12,
+            background: P.lime,
+            color: "#ffffff",
+            border: "none",
+            cursor: "pointer",
+            fontFamily: F,
+            transition: "background 0.15s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "#156d2e")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = P.lime)}
+        >
+          Use Template
+        </button>
       </div>
     </div>
   );
@@ -182,49 +183,87 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div style={{ padding: "20px 26px" }}>
-      {/* Header — matches reference: serif italic heading */}
-      <div style={{ marginBottom: 18 }}>
-        <h2 style={{
-          fontFamily: FS, fontSize: 22, fontWeight: 400, lineHeight: 1.2, marginBottom: 5,
+    <div style={{ padding: "32px 36px", maxWidth: 1280, margin: "0 auto" }}>
+      <style>{`
+        .tmpl-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .tmpl-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .tmpl-grid { grid-template-columns: repeat(3, 1fr); } }
+      `}</style>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{
+          fontFamily: F,
+          fontSize: 36,
+          fontWeight: 800,
+          letterSpacing: "-0.025em",
+          color: P.text,
+          lineHeight: 1.2,
+          margin: 0,
         }}>
-          Pre-built <span style={{ fontStyle: "italic", color: P.lime2 }}>agent pipelines</span> — ready to run.
-        </h2>
-        <div style={{ fontSize: 11.5, color: P.textSec }}>
-          Click &quot;Use Template&quot; to launch an AI agent pipeline for your task.
-        </div>
+          Template Library
+        </h1>
+        <p style={{
+          fontSize: 15,
+          color: P.textSec,
+          marginTop: 8,
+          lineHeight: 1.6,
+        }}>
+          Discover and deploy ready-to-run AI agent pipelines designed for modern operational excellence.
+        </p>
       </div>
 
-      {/* Filter tabs */}
-      <FTabs tabs={categoryTabs} active={filter} onChange={setFilter} />
+      {/* Category Filter Pills */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
+        {categoryTabs.map((tab) => {
+          const isActive = filter === tab;
+          const label = tab === "All" ? "All Templates" : tab;
+          return (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 100,
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 500,
+                fontFamily: F,
+                cursor: "pointer",
+                border: isActive ? "1px solid #1b1b1b" : "1px solid rgba(0,0,0,0.12)",
+                background: isActive ? "#1b1b1b" : P.bg2,
+                color: isActive ? "#ffffff" : P.textSec,
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) e.currentTarget.style.borderColor = "rgba(0,0,0,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)";
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Template cards grid */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        gap: 12,
-      }}>
+      {/* Template Cards Grid */}
+      <div className="tmpl-grid">
         {allFilteredAgents.map(({ agent, catId }) => {
           const slug = agent.slug || "";
-          const cat = CATEGORY_META[catId] || { label: catId, color: P.textSec, catBg: `${P.textSec}15` };
           const pipeline = TEMPLATE_PIPELINES[slug] || [];
           const rating = TEMPLATE_RATINGS[slug] || 4.5;
-          const runs = TEMPLATE_RUNS[slug] || "1.0k";
 
           return (
             <TemplateCard
               key={agent.id}
               agent={agent}
-              cat={cat}
               rating={rating}
-              runs={runs}
               pipeline={pipeline}
               onUse={() => handleUseTemplate(slug)}
             />
           );
         })}
       </div>
-
     </div>
   );
 }

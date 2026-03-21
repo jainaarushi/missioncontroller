@@ -13,32 +13,32 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
   return (
     <nav style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
-      backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
+      backgroundColor: "#ffffff",
       borderTop: `1px solid ${P.border}`,
       display: "flex", justifyContent: "space-around", alignItems: "center",
-      padding: "8px 0",
-      paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+      padding: "6px 0",
+      paddingBottom: "max(6px, env(safe-area-inset-bottom))",
       minHeight: 56,
     }}>
       {[
-        { href: "/today", icon: "⚡", label: "Dashboard" },
-        { href: "/agents", icon: "🤝", label: "Agents" },
-        { href: "/templates", icon: "🗂️", label: "Templates" },
-        { href: "/analytics", icon: "🎯", label: "Analytics" },
-        { href: "/settings", icon: "⚙️", label: "Settings" },
+        { href: "/today", icon: "\u25A6", label: "Dashboard" },
+        { href: "/agents", icon: "\u263A", label: "Agents" },
+        { href: "/templates", icon: "\uD83D\uDCC1", label: "Templates" },
+        { href: "/analytics", icon: "\uD83D\uDCCA", label: "Analytics" },
+        { href: "/settings", icon: "\u2699\uFE0F", label: "Settings" },
       ].map((item) => (
         <a key={item.href} href={item.href} style={{
           display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-          textDecoration: "none", color: P.textSec, fontSize: 10, fontWeight: 600,
+          textDecoration: "none", color: "#4b5563", fontSize: 10, fontWeight: 500,
           fontFamily: F, position: "relative",
         }}>
-          <span style={{ fontSize: 20 }}>{item.icon}</span>
+          <span style={{ fontSize: 18 }}>{item.icon}</span>
           <span>{item.label}</span>
           {item.href === "/analytics" && reviewCount > 0 && (
             <span style={{
               position: "absolute", top: -2, right: -6,
               width: 16, height: 16, borderRadius: "50%",
-              backgroundColor: P.lime, color: "#fff",
+              backgroundColor: "#1e8e3e", color: "#fff",
               fontSize: 9, fontWeight: 700,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>{reviewCount}</span>
@@ -52,50 +52,83 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
 function Topbar() {
   return (
     <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "11px 26px",
+      display: "flex", alignItems: "center", gap: 12,
+      padding: "0 24px",
+      height: 64, minHeight: 64,
       borderBottom: `1px solid ${P.border}`,
       background: "#ffffff",
       position: "sticky", top: 0, zIndex: 20,
     }}>
-      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F, flexShrink: 0, color: P.text }}>
+      {/* Brand text - mobile only (hidden on desktop via CSS class) */}
+      <div className="topbar-brand-mobile" style={{
+        fontSize: 18, fontWeight: 700, fontFamily: F, color: "#1e8e3e", flexShrink: 0,
+      }}>
         Agent Studio
       </div>
-      <div style={{
-        flex: 1, maxWidth: 380,
-        display: "flex", alignItems: "center", gap: 8,
-        background: P.bg3, border: `1px solid ${P.border}`,
-        borderRadius: 9, padding: "7px 12px", marginLeft: 14,
+
+      {/* Horizontal nav links */}
+      <div className="topbar-nav-links" style={{
+        display: "flex", alignItems: "center", gap: 4, marginLeft: 8,
       }}>
-        <span style={{ color: P.textTer, fontSize: 12 }}>🔍</span>
-        <span style={{ color: P.textTer, fontFamily: F, fontSize: 12, flex: 1 }}>
-          Search agents or tasks...
+        {[
+          { href: "/today", label: "Dashboard" },
+          { href: "/agents", label: "Agents" },
+          { href: "/templates", label: "Templates" },
+          { href: "/settings", label: "Settings" },
+        ].map((item) => (
+          <a key={item.href} href={item.href} style={{
+            padding: "6px 12px",
+            fontSize: 13, fontWeight: 500, fontFamily: F,
+            color: "#4b5563", textDecoration: "none",
+            borderBottom: "2px solid transparent",
+            transition: "color 0.15s, border-color 0.15s",
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#1e8e3e"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#4b5563"; }}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      {/* Search bar */}
+      <div style={{
+        flex: 1, maxWidth: 400,
+        display: "flex", alignItems: "center", gap: 8,
+        background: "#f3f4f6", border: "none",
+        borderRadius: 12, padding: "8px 14px", marginLeft: 16,
+      }}>
+        <span style={{ color: "#9ca3af", fontSize: 14 }}>&#128269;</span>
+        <span style={{ color: "#9ca3af", fontFamily: F, fontSize: 13, flex: 1 }}>
+          Search...
         </span>
         <span style={{
-          fontSize: 9.5, color: P.textTer,
-          background: P.bg4, padding: "1px 6px", borderRadius: 4,
-          border: `1px solid ${P.border}`, whiteSpace: "nowrap",
-        }}>⌘K</span>
+          fontSize: 10, color: "#9ca3af",
+          background: "#e5e7eb", padding: "2px 7px", borderRadius: 5,
+          fontWeight: 500, whiteSpace: "nowrap",
+        }}>&#8984;K</span>
       </div>
+
+      {/* Right icons */}
       <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
         <div style={{
-          width: 31, height: 31, borderRadius: 7,
-          border: `1px solid ${P.border}`, background: P.bg3,
+          width: 40, height: 40, borderRadius: 12,
+          border: `1px solid ${P.border}`, background: "#ffffff",
           display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", fontSize: 13,
-        }}>🔔</div>
-        <div style={{
-          width: 31, height: 31, borderRadius: 7,
-          border: `1px solid ${P.border}`, background: P.bg3,
+          cursor: "pointer", fontSize: 16,
+        }}>&#128276;</div>
+        <a href="/settings" style={{
+          width: 40, height: 40, borderRadius: 12,
+          border: `1px solid ${P.border}`, background: "#ffffff",
           display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", fontSize: 13,
-        }}>⚙️</div>
+          cursor: "pointer", fontSize: 16, textDecoration: "none",
+        }}>&#9881;&#65039;</a>
         <div style={{
-          width: 32, height: 32, borderRadius: "50%",
+          width: 36, height: 36, borderRadius: "50%",
           background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          color: "#fff", fontSize: 13, fontWeight: 700,
-          border: `2px solid ${P.border}`,
+          color: "#fff", fontSize: 14, fontWeight: 700,
+          border: "2px solid #ffffff", boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
         }}>A</div>
       </div>
     </div>
@@ -110,7 +143,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const reviewCount = tasks.filter((t) => t.status === "review").length;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: P.bg, color: P.text, fontFamily: F, fontSize: 13, lineHeight: 1.5 }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f9f9f9", color: P.text, fontFamily: F, fontSize: 13, lineHeight: 1.5 }}>
       <style>{`
         @keyframes slideUp { from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes fadeIn { from{opacity:0}to{opacity:1} }
@@ -134,12 +167,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:3px}
         ::selection{background:rgba(30,142,62,0.15)}
 
+        /* Topbar brand: show only on mobile */
+        .topbar-brand-mobile { display: none; }
+
         /* Mobile bottom nav */
         .mobile-nav { display: none; }
         @media (max-width: 768px) {
           .desktop-sidebar { display: none !important; }
           .mobile-nav { display: flex !important; }
           .app-content-wrapper { padding: 0 !important; }
+          .topbar-brand-mobile { display: block !important; }
+          .topbar-nav-links { display: none !important; }
         }
       `}</style>
       <div className="desktop-sidebar">
@@ -151,7 +189,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto", minWidth: 0 }}>
         <Topbar />
-        <div className="app-content-wrapper" style={{ flex: 1, overflowY: "auto" }}>
+        <div className="app-content-wrapper" style={{ flex: 1, overflowY: "auto", background: "#f9f9f9" }}>
           {children}
         </div>
       </div>

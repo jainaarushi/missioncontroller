@@ -269,28 +269,32 @@ export default function SettingsPage() {
   const activeProviderConfig = providers.find((p) => p.id === activeProvider)!;
 
   return (
-    <>
+    <div style={{ padding: "32px", maxWidth: 800, margin: "0 auto" }}>
       <div style={{ marginBottom: 28, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
         <h1 style={{
-          fontSize: 36, fontWeight: 900, margin: "0 0 6px",
-          letterSpacing: "-0.04em",
-          background: "linear-gradient(135deg, #8B3DFF 0%, #D946EF 50%, #FF3399 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
+          fontSize: 28, fontWeight: 800, margin: "0 0 6px",
+          letterSpacing: "-0.02em",
+          color: "#1b1b1b",
+          fontFamily: F,
         }}>
           Settings
         </h1>
+        <p style={{
+          fontSize: 14, color: "#6b7280", margin: 0, fontFamily: F,
+        }}>
+          Manage your API keys, integrations, and preferences
+        </p>
       </div>
 
       {/* AI Provider Section */}
       <div style={{
-        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        padding: "24px", background: "#ffffff", borderRadius: 16,
+        border: "1px solid #e5e7eb", marginBottom: 16,
         animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.05s both",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
           <span style={{ fontSize: 18 }}>🔑</span>
-          <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>AI Provider</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>AI Provider</div>
         </div>
 
         {/* Provider tabs */}
@@ -304,24 +308,24 @@ export default function SettingsPage() {
                 onClick={() => { setActiveProvider(p.id); setApiKey(""); setMessage(null); }}
                 style={{
                   flex: 1, padding: "14px 16px", borderRadius: 14, cursor: "pointer",
-                  border: `2px solid ${isActive ? p.color + "50" : P.border}`,
-                  backgroundColor: isActive ? p.color + "08" : P.card,
+                  border: `2px solid ${isActive ? p.color : "#e5e7eb"}`,
+                  backgroundColor: isActive ? p.color + "08" : "#ffffff",
                   transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
                   transform: isActive ? "scale(1.02)" : "scale(1)",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 18 }}>{p.icon}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: P.text }}>{p.name}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>{p.name}</span>
                   <span style={{
-                    fontSize: 9, fontWeight: 700, color: "#fff",
-                    backgroundColor: p.badgeColor, padding: "2px 6px",
+                    fontSize: 9, fontWeight: 700, color: "#4b5563",
+                    background: "#f3f4f6", padding: "2px 6px",
                     borderRadius: 4, marginLeft: "auto",
                   }}>
                     {p.badge}
                   </span>
                 </div>
-                <div style={{ fontSize: 11.5, color: P.textTer, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11.5, color: "#4b5563", lineHeight: 1.4, fontFamily: F }}>
                   {p.description}
                 </div>
                 {info?.hasKey && (
@@ -330,11 +334,10 @@ export default function SettingsPage() {
                   }}>
                     <div style={{
                       width: 6, height: 6, borderRadius: "50%",
-                      backgroundColor: P.emerald,
-                      boxShadow: `0 0 6px ${P.emerald}50`,
+                      backgroundColor: "#1e8e3e",
                     }} />
                     <span style={{
-                      fontSize: 10.5, color: P.emerald, fontWeight: 600,
+                      fontSize: 10.5, color: "#1e8e3e", fontWeight: 600,
                       fontFamily: FM,
                     }}>
                       {info.maskedKey}
@@ -355,8 +358,8 @@ export default function SettingsPage() {
             marginBottom: 16,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: P.emerald, boxShadow: `0 0 6px ${P.emerald}50` }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: P.emerald }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#1e8e3e" }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1e8e3e", fontFamily: F }}>
                 {activeProviderConfig.name} key active
               </span>
             </div>
@@ -379,7 +382,7 @@ export default function SettingsPage() {
         {/* Key input */}
         {!currentInfo?.hasKey && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12.5, color: P.textSec, marginBottom: 8 }}>
+            <div style={{ fontSize: 12.5, color: "#4b5563", marginBottom: 8 }}>
               <a href={activeProviderConfig.link} target="_blank" rel="noopener noreferrer"
                 style={{ color: activeProviderConfig.color, fontWeight: 600, textDecoration: "none" }}>
                 {activeProviderConfig.linkText} →
@@ -394,12 +397,12 @@ export default function SettingsPage() {
                   placeholder={activeProviderConfig.placeholder}
                   style={{
                     width: "100%", padding: "11px 38px 11px 14px", borderRadius: 10,
-                    border: `1.5px solid ${P.border}`, fontSize: 13, color: P.text,
+                    border: "1px solid #e5e7eb", fontSize: 13, color: "#1b1b1b",
                     fontFamily: FM,
-                    outline: "none", backgroundColor: P.card,
+                    outline: "none", backgroundColor: "#f9fafb",
                   }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = activeProviderConfig.color + "60"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#1e8e3e"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "#e5e7eb"; }}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSaveKey(); }}
                 />
                 <button
@@ -407,7 +410,7 @@ export default function SettingsPage() {
                   style={{
                     position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
                     background: "none", border: "none", cursor: "pointer",
-                    fontSize: 13, color: P.textTer, padding: "2px",
+                    fontSize: 13, color: "#4b5563", padding: "2px",
                   }}
                 >
                   {showKey ? "🙈" : "👁️"}
@@ -418,8 +421,8 @@ export default function SettingsPage() {
                 disabled={saving || !apiKey.trim()}
                 style={{
                   padding: "11px 18px", borderRadius: 10, border: "none",
-                  background: apiKey.trim() ? activeProviderConfig.gradient : P.border,
-                  color: apiKey.trim() ? "#fff" : P.textTer,
+                  background: apiKey.trim() ? "#1e8e3e" : "#e5e7eb",
+                  color: apiKey.trim() ? "#fff" : "#9ca3af",
                   fontSize: 13, fontWeight: 700, cursor: saving || !apiKey.trim() ? "not-allowed" : "pointer",
                   fontFamily: "inherit", whiteSpace: "nowrap",
                   opacity: saving ? 0.6 : 1,
@@ -434,9 +437,9 @@ export default function SettingsPage() {
         {/* Security info */}
         <div style={{
           padding: "12px 14px", borderRadius: 12,
-          backgroundColor: P.purpleSoft, border: `1px solid ${P.purple}10`,
+          backgroundColor: "#f9fafb", border: "1px solid #e5e7eb",
         }}>
-          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textSec, flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#4b5563", flexWrap: "wrap" as const, fontFamily: F }}>
             <span>AES-256-GCM encrypted</span>
             <span>Decrypted only at execution</span>
             <span>Delete anytime</span>
@@ -450,8 +453,8 @@ export default function SettingsPage() {
             marginTop: 12, padding: "10px 14px", borderRadius: 10,
             backgroundColor: message.type === "success" ? P.emeraldSoft : P.coralSoft,
             border: `1px solid ${message.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
-            fontSize: 13, color: message.type === "success" ? P.emerald : P.coral,
-            fontWeight: 500,
+            fontSize: 13, color: message.type === "success" ? "#1e8e3e" : P.coral,
+            fontWeight: 500, fontFamily: F,
           }}>
             {message.type === "success" ? "✓ " : "✕ "}{message.text}
           </div>
@@ -460,21 +463,21 @@ export default function SettingsPage() {
 
       {/* Voice Input — Wispr */}
       <div style={{
-        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        padding: "24px", background: "#ffffff", borderRadius: 16,
+        border: "1px solid #e5e7eb", marginBottom: 16,
         animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.08s both",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
           <span style={{ fontSize: 18 }}>🎙️</span>
-          <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>Voice Input</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>Voice Input</div>
           <span style={{
-            fontSize: 9, fontWeight: 700, color: "#fff",
-            background: P.purpleGrad, padding: "2px 6px", borderRadius: 4,
+            fontSize: 9, fontWeight: 700, color: "#4b5563",
+            background: "#f3f4f6", padding: "2px 6px", borderRadius: 4,
           }}>
             Wispr Flow
           </span>
         </div>
-        <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 14, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12.5, color: "#4b5563", marginBottom: 14, lineHeight: 1.5, fontFamily: F }}>
           Add your Wispr Flow API key to enable voice-to-text input. Speak instead of typing when creating tasks.
         </p>
 
@@ -482,12 +485,12 @@ export default function SettingsPage() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 14px", borderRadius: 12,
-            backgroundColor: P.purpleSoft, border: `1.5px solid ${P.purple}25`,
+            backgroundColor: "#f9fafb", border: "1px solid #e5e7eb",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: P.purple, boxShadow: `0 0 6px ${P.purple}80` }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: P.purple }}>Wispr key active</span>
-              <span style={{ fontSize: 10.5, color: P.purple, fontFamily: FM, opacity: 0.7 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#1e8e3e" }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1e8e3e", fontFamily: F }}>Wispr key active</span>
+              <span style={{ fontSize: 10.5, color: "#4b5563", fontFamily: FM, opacity: 0.7 }}>
                 {wisprInfo.maskedKey}
               </span>
             </div>
@@ -519,12 +522,12 @@ export default function SettingsPage() {
               placeholder="Wispr API key..."
               style={{
                 flex: 1, padding: "11px 14px", borderRadius: 10,
-                border: `1.5px solid ${P.border}`, fontSize: 13, color: P.text,
+                border: "1px solid #e5e7eb", fontSize: 13, color: "#1b1b1b",
                 fontFamily: FM,
-                outline: "none", backgroundColor: P.card,
+                outline: "none", backgroundColor: "#f9fafb",
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = P.purple + "60"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "#1e8e3e"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "#e5e7eb"; }}
               onKeyDown={(e) => { if (e.key === "Enter" && wisprKey.trim()) handleSaveWispr(); }}
             />
             <button
@@ -532,8 +535,8 @@ export default function SettingsPage() {
               disabled={wisprSaving || !wisprKey.trim()}
               style={{
                 padding: "11px 18px", borderRadius: 10, border: "none",
-                background: wisprKey.trim() ? P.purpleGrad : P.border,
-                color: wisprKey.trim() ? "#fff" : P.textTer,
+                background: wisprKey.trim() ? "#1e8e3e" : "#e5e7eb",
+                color: wisprKey.trim() ? "#fff" : "#9ca3af",
                 fontSize: 13, fontWeight: 700, cursor: wisprSaving || !wisprKey.trim() ? "not-allowed" : "pointer",
                 fontFamily: "inherit", whiteSpace: "nowrap",
               }}
@@ -548,15 +551,16 @@ export default function SettingsPage() {
             marginTop: 10, padding: "8px 12px", borderRadius: 8,
             backgroundColor: wisprMessage.type === "success" ? P.emeraldSoft : P.coralSoft,
             border: `1px solid ${wisprMessage.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
-            fontSize: 12, color: wisprMessage.type === "success" ? P.emerald : P.coral,
+            fontSize: 12, color: wisprMessage.type === "success" ? "#1e8e3e" : P.coral,
+            fontFamily: F,
           }}>
             {wisprMessage.type === "success" ? "✓ " : "✕ "}{wisprMessage.text}
           </div>
         )}
 
-        <div style={{ marginTop: 12, fontSize: 11, color: P.textTer }}>
+        <div style={{ marginTop: 12, fontSize: 11, color: "#4b5563" }}>
           <a href="https://platform.wisprflow.ai/" target="_blank" rel="noopener noreferrer"
-            style={{ color: P.purple, fontWeight: 600, textDecoration: "none" }}>
+            style={{ color: "#1e8e3e", fontWeight: 600, textDecoration: "none" }}>
             Get key at platform.wisprflow.ai →
           </a>
         </div>
@@ -564,21 +568,21 @@ export default function SettingsPage() {
 
       {/* Tool API Keys */}
       <div style={{
-        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        padding: "24px", background: "#ffffff", borderRadius: 16,
+        border: "1px solid #e5e7eb", marginBottom: 16,
         animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.11s both",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <span style={{ fontSize: 18 }}>🔧</span>
-          <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>Tool API Keys</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>Tool API Keys</div>
           <span style={{
-            fontSize: 9, fontWeight: 700, color: "#fff",
-            background: P.purpleGrad, padding: "2px 6px", borderRadius: 4,
+            fontSize: 9, fontWeight: 700, color: "#4b5563",
+            background: "#f3f4f6", padding: "2px 6px", borderRadius: 4,
           }}>
             Optional
           </span>
         </div>
-        <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 16, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12.5, color: "#4b5563", marginBottom: 16, lineHeight: 1.5, fontFamily: F }}>
           Some agents use external tools (web search, scraping) that need their own API keys. Most agents work without these.
         </p>
 
@@ -628,13 +632,13 @@ export default function SettingsPage() {
         ].map((tp) => (
           <div key={tp.id} style={{
             padding: "14px 16px", borderRadius: 12,
-            border: `1.5px solid ${tp.info?.hasKey ? tp.color + "30" : P.border}`,
-            backgroundColor: tp.info?.hasKey ? tp.color + "05" : P.card,
+            border: `1px solid ${tp.info?.hasKey ? tp.color + "30" : "#e5e7eb"}`,
+            backgroundColor: tp.info?.hasKey ? tp.color + "05" : "#ffffff",
             marginBottom: 10,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <span style={{ fontSize: 16 }}>{tp.icon}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{tp.name}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>{tp.name}</span>
               {tp.info?.hasKey && (
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto" }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: tp.color }} />
@@ -660,13 +664,13 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
-            <div style={{ fontSize: 11, color: P.textTer, marginBottom: tp.info?.hasKey ? 0 : 8, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 11, color: "#4b5563", marginBottom: tp.info?.hasKey ? 0 : 8, lineHeight: 1.4, fontFamily: F }}>
               {tp.description}
             </div>
             {!tp.info?.hasKey && (
               <>
-                <div style={{ fontSize: 10.5, color: P.textTer, marginBottom: 6 }}>
-                  Powers: <span style={{ color: P.textSec, fontWeight: 500 }}>{tp.agents}</span>
+                <div style={{ fontSize: 10.5, color: "#4b5563", marginBottom: 6, fontFamily: F }}>
+                  Powers: <span style={{ color: "#1b1b1b", fontWeight: 500 }}>{tp.agents}</span>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <input
@@ -675,13 +679,13 @@ export default function SettingsPage() {
                     onChange={(e) => setToolKeyInputs(prev => ({ ...prev, [tp.id]: e.target.value }))}
                     placeholder={tp.placeholder}
                     style={{
-                      flex: 1, padding: "8px 12px", borderRadius: 8,
-                      border: `1.5px solid ${P.border}`, fontSize: 12, color: P.text,
+                      flex: 1, padding: "8px 12px", borderRadius: 10,
+                      border: "1px solid #e5e7eb", fontSize: 12, color: "#1b1b1b",
                       fontFamily: FM,
-                      outline: "none", backgroundColor: P.card,
+                      outline: "none", backgroundColor: "#f9fafb",
                     }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = tp.color + "60"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "#1e8e3e"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#e5e7eb"; }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && toolKeyInputs[tp.id]?.trim()) {
                         handleSaveToolKey(tp.id, tp.name, tp.setInfo);
@@ -692,9 +696,9 @@ export default function SettingsPage() {
                     onClick={() => handleSaveToolKey(tp.id, tp.name, tp.setInfo)}
                     disabled={toolSaving === tp.id || !toolKeyInputs[tp.id]?.trim()}
                     style={{
-                      padding: "8px 14px", borderRadius: 8, border: "none",
-                      background: toolKeyInputs[tp.id]?.trim() ? tp.gradient : P.border,
-                      color: toolKeyInputs[tp.id]?.trim() ? "#fff" : P.textTer,
+                      padding: "8px 14px", borderRadius: 10, border: "none",
+                      background: toolKeyInputs[tp.id]?.trim() ? "#1e8e3e" : "#e5e7eb",
+                      color: toolKeyInputs[tp.id]?.trim() ? "#fff" : "#9ca3af",
                       fontSize: 12, fontWeight: 700, cursor: toolSaving === tp.id || !toolKeyInputs[tp.id]?.trim() ? "not-allowed" : "pointer",
                       fontFamily: "inherit", whiteSpace: "nowrap",
                     }}
@@ -718,7 +722,8 @@ export default function SettingsPage() {
             marginTop: 8, padding: "8px 12px", borderRadius: 8,
             backgroundColor: toolMessage.type === "success" ? P.emeraldSoft : P.coralSoft,
             border: `1px solid ${toolMessage.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
-            fontSize: 12, color: toolMessage.type === "success" ? P.emerald : P.coral,
+            fontSize: 12, color: toolMessage.type === "success" ? "#1e8e3e" : P.coral,
+            fontFamily: F,
           }}>
             {toolMessage.type === "success" ? "✓ " : "✕ "}{toolMessage.text}
           </div>
@@ -731,40 +736,40 @@ export default function SettingsPage() {
       {/* Connected Apps (Composio) */}
       {composioEnabled && (
         <div style={{
-          padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
-          border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+          padding: "24px", background: "#ffffff", borderRadius: 16,
+          border: "1px solid #e5e7eb", marginBottom: 16,
           animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.12s both",
         }}>
           <div style={{ textAlign: "center" as const, marginBottom: 4 }}>
             <span style={{
-              fontSize: 9, fontWeight: 700, color: "#6C5CE7", letterSpacing: "0.1em",
+              fontSize: 9, fontWeight: 700, color: "#1e8e3e", letterSpacing: "0.1em",
               textTransform: "uppercase" as const,
             }}>
               CONNECTED APPS
             </span>
           </div>
           <div style={{ textAlign: "center" as const, marginBottom: 6 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: P.text, lineHeight: 1.3 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#1b1b1b", lineHeight: 1.3, fontFamily: F }}>
               Real Data Access
             </div>
           </div>
-          <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 16, lineHeight: 1.5, textAlign: "center" as const }}>
+          <p style={{ fontSize: 12.5, color: "#4b5563", marginBottom: 16, lineHeight: 1.5, textAlign: "center" as const, fontFamily: F }}>
             Connect your accounts so agents can access your real data from LinkedIn, Gmail, and more. One-click OAuth — your credentials stay with each provider.
           </p>
 
           {composioUsage && (
-            <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, backgroundColor: P.bg, border: `1px solid ${P.border}` }}>
+            <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, backgroundColor: "#f9fafb", border: "1px solid #e5e7eb" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: P.textSec }}>Monthly usage</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: composioUsage.used >= composioUsage.limit ? P.coral : P.textSec }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#4b5563", fontFamily: F }}>Monthly usage</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: composioUsage.used >= composioUsage.limit ? P.coral : "#4b5563", fontFamily: F }}>
                   {composioUsage.used} / {composioUsage.limit} runs
                 </span>
               </div>
-              <div style={{ height: 4, borderRadius: 2, backgroundColor: P.border, overflow: "hidden" }}>
+              <div style={{ height: 4, borderRadius: 2, backgroundColor: "#e5e7eb", overflow: "hidden" }}>
                 <div style={{
                   height: "100%", borderRadius: 2,
                   width: `${Math.min(100, (composioUsage.used / composioUsage.limit) * 100)}%`,
-                  backgroundColor: composioUsage.used >= composioUsage.limit ? P.coral : "#6C5CE7",
+                  backgroundColor: composioUsage.used >= composioUsage.limit ? P.coral : "#1e8e3e",
                   transition: "width 0.3s ease",
                 }} />
               </div>
@@ -786,8 +791,8 @@ export default function SettingsPage() {
                 <div key={app.id} style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "10px 14px", borderRadius: 10,
-                  backgroundColor: isConnected ? `${app.color}08` : P.bg,
-                  border: `1px solid ${isConnected ? app.color + "30" : P.border}`,
+                  backgroundColor: isConnected ? `${app.color}08` : "#f9fafb",
+                  border: `1px solid ${isConnected ? app.color + "30" : "#e5e7eb"}`,
                   transition: "all 0.2s ease",
                 }}>
                   <div style={{
@@ -799,13 +804,13 @@ export default function SettingsPage() {
                     {app.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{app.name}</div>
-                    <div style={{ fontSize: 11, color: P.textTer }}>{app.desc}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>{app.name}</div>
+                    <div style={{ fontSize: 11, color: "#4b5563", fontFamily: F }}>{app.desc}</div>
                   </div>
                   {isConnected ? (
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{
-                        fontSize: 11, fontWeight: 700, color: P.emerald,
+                        fontSize: 11, fontWeight: 700, color: "#1e8e3e",
                         padding: "4px 10px", borderRadius: 6,
                         backgroundColor: P.emeraldSoft,
                       }}>
@@ -828,9 +833,9 @@ export default function SettingsPage() {
                           setComposioDisconnecting(null);
                         }}
                         style={{
-                          fontSize: 10, fontWeight: 600, color: P.textTer,
+                          fontSize: 10, fontWeight: 600, color: "#4b5563",
                           padding: "4px 8px", borderRadius: 6,
-                          border: `1px solid ${P.border}`, backgroundColor: "transparent",
+                          border: "1px solid #e5e7eb", backgroundColor: "transparent",
                           cursor: isDisconnecting ? "wait" : "pointer",
                           opacity: isDisconnecting ? 0.5 : 1,
                           transition: "all 0.15s ease",
@@ -840,8 +845,8 @@ export default function SettingsPage() {
                           e.currentTarget.style.borderColor = P.coral + "40";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = P.textTer;
-                          e.currentTarget.style.borderColor = P.border;
+                          e.currentTarget.style.color = "#4b5563";
+                          e.currentTarget.style.borderColor = "#e5e7eb";
                         }}
                       >
                         {isDisconnecting ? "..." : "Disconnect"}
@@ -883,14 +888,14 @@ export default function SettingsPage() {
 
           <div style={{
             marginTop: 12, padding: "8px 12px", borderRadius: 8,
-            backgroundColor: P.bg, border: `1px solid ${P.border}`,
+            backgroundColor: "#f9fafb", border: "1px solid #e5e7eb",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
           }}>
             <div style={{
               width: 6, height: 6, borderRadius: "50%",
-              backgroundColor: Object.values(composioApps).some(Boolean) ? P.emerald : P.textTer,
+              backgroundColor: Object.values(composioApps).some(Boolean) ? "#1e8e3e" : "#4b5563",
             }} />
-            <span style={{ fontSize: 10.5, color: P.textTer }}>
+            <span style={{ fontSize: 10.5, color: "#4b5563", fontFamily: F }}>
               {Object.values(composioApps).some(Boolean)
                 ? `${Object.values(composioApps).filter(Boolean).length} app${Object.values(composioApps).filter(Boolean).length > 1 ? "s" : ""} connected via REST API`
                 : "No apps connected yet"
@@ -902,34 +907,34 @@ export default function SettingsPage() {
 
       {/* MCP Servers */}
       <div style={{
-        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        padding: "24px", background: "#ffffff", borderRadius: 16,
+        border: "1px solid #e5e7eb", marginBottom: 16,
         animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.14s both",
       }}>
         <div style={{ textAlign: "center" as const, marginBottom: 4 }}>
           <span style={{
-            fontSize: 9, fontWeight: 700, color: P.purple, letterSpacing: "0.1em",
+            fontSize: 9, fontWeight: 700, color: "#1e8e3e", letterSpacing: "0.1em",
             textTransform: "uppercase" as const,
           }}>
             INTEGRATIONS
           </span>
         </div>
         <div style={{ textAlign: "center" as const, marginBottom: 6 }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: P.text, lineHeight: 1.3 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#1b1b1b", lineHeight: 1.3, fontFamily: F }}>
             {mcpSuggestions.filter(s => s.type !== "custom").length}+ Tools
           </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: P.text, lineHeight: 1.3 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#1b1b1b", lineHeight: 1.3, fontFamily: F }}>
             Ready to Connect
           </div>
         </div>
-        <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 16, lineHeight: 1.5, textAlign: "center" as const }}>
+        <p style={{ fontSize: 12.5, color: "#4b5563", marginBottom: 16, lineHeight: 1.5, textAlign: "center" as const, fontFamily: F }}>
           Connect your AI agents to the tools you already use. CRMs, messaging, project management, analytics, and more.
         </p>
 
         {/* Connected servers */}
         {mcpServers.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5563", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.05em", fontFamily: F }}>
               Connected Servers
             </div>
             {mcpServers.map((server) => {
@@ -938,20 +943,20 @@ export default function SettingsPage() {
                 <div key={server.id} style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "12px 14px", borderRadius: 12, marginBottom: 8,
-                  backgroundColor: server.enabled ? (suggestion?.color || P.purple) + "08" : P.bg,
-                  border: `1.5px solid ${server.enabled ? (suggestion?.color || P.purple) + "30" : P.border}`,
+                  backgroundColor: server.enabled ? (suggestion?.color || "#1e8e3e") + "08" : "#f9fafb",
+                  border: `1px solid ${server.enabled ? (suggestion?.color || "#1e8e3e") + "30" : "#e5e7eb"}`,
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                      backgroundColor: (suggestion?.color || P.purple) + "15", color: suggestion?.color || P.purple,
+                      backgroundColor: (suggestion?.color || "#1e8e3e") + "15", color: suggestion?.color || "#1e8e3e",
                       fontSize: 11, fontWeight: 800,
                     }}>
                       {suggestion?.icon || "MCP"}
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{server.name}</div>
-                      <div style={{ fontSize: 10.5, color: P.textTer, fontFamily: FM }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>{server.name}</div>
+                      <div style={{ fontSize: 10.5, color: "#4b5563", fontFamily: FM }}>
                         {server.url.length > 40 ? server.url.slice(0, 40) + "..." : server.url}
                       </div>
                     </div>
@@ -970,9 +975,9 @@ export default function SettingsPage() {
                       }}
                       style={{
                         padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-                        border: `1px solid ${server.enabled ? P.emerald + "30" : P.border}`,
-                        backgroundColor: server.enabled ? P.emeraldSoft : P.bg,
-                        color: server.enabled ? P.emerald : P.textTer,
+                        border: `1px solid ${server.enabled ? "#1e8e3e" + "30" : "#e5e7eb"}`,
+                        backgroundColor: server.enabled ? P.emeraldSoft : "#f9fafb",
+                        color: server.enabled ? "#1e8e3e" : "#4b5563",
                         cursor: "pointer", fontFamily: "inherit",
                       }}
                     >
@@ -1011,23 +1016,23 @@ export default function SettingsPage() {
           return (
             <div style={{
               padding: "16px", borderRadius: 12, marginBottom: 14,
-              border: `2px solid ${(suggestion?.color || P.purple) + "40"}`,
-              backgroundColor: (suggestion?.color || P.purple) + "05",
+              border: `2px solid ${(suggestion?.color || "#1e8e3e") + "40"}`,
+              backgroundColor: (suggestion?.color || "#1e8e3e") + "05",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
-                  backgroundColor: (suggestion?.color || P.purple) + "15", color: suggestion?.color || P.purple,
+                  backgroundColor: (suggestion?.color || "#1e8e3e") + "15", color: suggestion?.color || "#1e8e3e",
                   fontSize: 10, fontWeight: 800,
                 }}>
                   {suggestion?.icon || "MCP"}
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: P.text }}>Add {suggestion?.name || "Custom"} Server</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#1b1b1b", fontFamily: F }}>Add {suggestion?.name || "Custom"} Server</span>
                 <button
                   onClick={() => { setMcpAdding(null); setMcpForm({ name: "", url: "", authToken: "" }); }}
                   style={{
                     marginLeft: "auto", background: "none", border: "none",
-                    color: P.textTer, cursor: "pointer", fontSize: 16, fontFamily: "inherit",
+                    color: "#4b5563", cursor: "pointer", fontSize: 16, fontFamily: "inherit",
                   }}
                 >
                   x
@@ -1039,8 +1044,8 @@ export default function SettingsPage() {
                   onChange={(e) => setMcpForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder={`Server name (e.g., "My ${suggestion?.name || "Server"}")`}
                   style={{
-                    padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
-                    fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
+                    padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb",
+                    fontSize: 12.5, color: "#1b1b1b", outline: "none", backgroundColor: "#f9fafb",
                     fontFamily: "inherit",
                   }}
                 />
@@ -1049,8 +1054,8 @@ export default function SettingsPage() {
                   onChange={(e) => setMcpForm(prev => ({ ...prev, url: e.target.value }))}
                   placeholder={suggestion?.urlPlaceholder || "https://your-server.com/mcp"}
                   style={{
-                    padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
-                    fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
+                    padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb",
+                    fontSize: 12.5, color: "#1b1b1b", outline: "none", backgroundColor: "#f9fafb",
                     fontFamily: FM,
                   }}
                 />
@@ -1060,20 +1065,20 @@ export default function SettingsPage() {
                   onChange={(e) => setMcpForm(prev => ({ ...prev, authToken: e.target.value }))}
                   placeholder={suggestion?.authPlaceholder || "Auth token (optional)"}
                   style={{
-                    padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
-                    fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
+                    padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb",
+                    fontSize: 12.5, color: "#1b1b1b", outline: "none", backgroundColor: "#f9fafb",
                     fontFamily: FM,
                   }}
                 />
                 {suggestion?.docsUrl && (
-                  <div style={{ fontSize: 11, color: P.textTer }}>
+                  <div style={{ fontSize: 11, color: "#4b5563" }}>
                     <a href={suggestion.docsUrl} target="_blank" rel="noopener noreferrer"
                       style={{ color: suggestion.color, fontWeight: 600, textDecoration: "none" }}>
                       Setup docs →
                     </a>
                     {suggestion.recommendedAgents.length > 0 && (
                       <span style={{ marginLeft: 12 }}>
-                        Powers: <span style={{ color: P.textSec, fontWeight: 500 }}>{suggestion.recommendedAgents.join(", ")}</span>
+                        Powers: <span style={{ color: "#1b1b1b", fontWeight: 500 }}>{suggestion.recommendedAgents.join(", ")}</span>
                       </span>
                     )}
                   </div>
@@ -1112,11 +1117,11 @@ export default function SettingsPage() {
                   }}
                   disabled={mcpSaving || !mcpForm.name.trim() || !mcpForm.url.trim()}
                   style={{
-                    padding: "10px 18px", borderRadius: 8, border: "none",
+                    padding: "10px 18px", borderRadius: 10, border: "none",
                     background: mcpForm.name.trim() && mcpForm.url.trim()
-                      ? `linear-gradient(135deg, ${suggestion?.color || P.purple}, ${suggestion?.color || P.purple}cc)`
-                      : P.border,
-                    color: mcpForm.name.trim() && mcpForm.url.trim() ? "#fff" : P.textTer,
+                      ? "#1e8e3e"
+                      : "#e5e7eb",
+                    color: mcpForm.name.trim() && mcpForm.url.trim() ? "#fff" : "#9ca3af",
                     fontSize: 13, fontWeight: 700, cursor: mcpSaving ? "not-allowed" : "pointer",
                     fontFamily: "inherit", opacity: mcpSaving ? 0.6 : 1,
                   }}
@@ -1141,7 +1146,7 @@ export default function SettingsPage() {
             <div>
               {/* Header + count */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "0.05em", fontFamily: F }}>
                   {filtered.length}+ Integrations Ready to Connect
                 </div>
               </div>
@@ -1152,8 +1157,8 @@ export default function SettingsPage() {
                 onChange={(e) => setMcpSearch(e.target.value)}
                 placeholder="Search integrations..."
                 style={{
-                  width: "100%", padding: "9px 14px", borderRadius: 10, border: `1.5px solid ${P.border}`,
-                  fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.bg,
+                  width: "100%", padding: "9px 14px", borderRadius: 10, border: "1px solid #e5e7eb",
+                  fontSize: 12.5, color: "#1b1b1b", outline: "none", backgroundColor: "#f9fafb",
                   fontFamily: "inherit", marginBottom: 14, boxSizing: "border-box" as const,
                 }}
               />
@@ -1176,8 +1181,8 @@ export default function SettingsPage() {
                       }}
                       style={{
                         padding: "14px 8px", borderRadius: 12, cursor: "pointer",
-                        border: `1.5px solid ${isConnected ? P.emerald + "40" : P.border}`,
-                        backgroundColor: isConnected ? P.emeraldSoft : P.card,
+                        border: `1px solid ${isConnected ? "#1e8e3e" + "40" : "#e5e7eb"}`,
+                        backgroundColor: isConnected ? P.emeraldSoft : "#ffffff",
                         display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 8,
                         fontFamily: "inherit", position: "relative" as const,
                         transition: "all 0.15s ease",
@@ -1187,15 +1192,15 @@ export default function SettingsPage() {
                         e.currentTarget.style.backgroundColor = s.color + "08";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = isConnected ? P.emerald + "40" : P.border;
-                        e.currentTarget.style.backgroundColor = isConnected ? P.emeraldSoft : P.card;
+                        e.currentTarget.style.borderColor = isConnected ? "#1e8e3e" + "40" : "#e5e7eb";
+                        e.currentTarget.style.backgroundColor = isConnected ? P.emeraldSoft : "#ffffff";
                       }}
                     >
                       {isConnected && (
                         <div style={{
                           position: "absolute" as const, top: 4, right: 4,
                           width: 8, height: 8, borderRadius: "50%",
-                          backgroundColor: P.emerald,
+                          backgroundColor: "#1e8e3e",
                         }} />
                       )}
                       <div style={{
@@ -1205,7 +1210,7 @@ export default function SettingsPage() {
                       }}>
                         {s.icon}
                       </div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: P.text, textAlign: "center" as const, lineHeight: 1.2 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#1b1b1b", textAlign: "center" as const, lineHeight: 1.2, fontFamily: F }}>
                         {s.name}
                       </div>
                     </button>
@@ -1219,7 +1224,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => setMcpShowAll(true)}
                     style={{
-                      fontSize: 12, fontWeight: 600, color: P.purple, cursor: "pointer",
+                      fontSize: 12, fontWeight: 600, color: "#1e8e3e", cursor: "pointer",
                       background: "none", border: "none", fontFamily: "inherit", padding: 0,
                     }}
                   >
@@ -1230,7 +1235,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => setMcpShowAll(false)}
                     style={{
-                      fontSize: 12, fontWeight: 600, color: P.textTer, cursor: "pointer",
+                      fontSize: 12, fontWeight: 600, color: "#4b5563", cursor: "pointer",
                       background: "none", border: "none", fontFamily: "inherit", padding: 0,
                     }}
                   >
@@ -1245,8 +1250,8 @@ export default function SettingsPage() {
                       setMcpMessage(null);
                     }}
                     style={{
-                      fontSize: 12, fontWeight: 600, color: P.purple, cursor: "pointer",
-                      background: "none", border: `1.5px solid ${P.purple}30`, borderRadius: 8,
+                      fontSize: 12, fontWeight: 600, color: "#1e8e3e", cursor: "pointer",
+                      background: "none", border: "1.5px solid rgba(30,142,62,0.3)", borderRadius: 8,
                       fontFamily: "inherit", padding: "6px 14px", marginLeft: "auto",
                     }}
                   >
@@ -1263,7 +1268,8 @@ export default function SettingsPage() {
             marginTop: 12, padding: "8px 12px", borderRadius: 8,
             backgroundColor: mcpMessage.type === "success" ? P.emeraldSoft : P.coralSoft,
             border: `1px solid ${mcpMessage.type === "success" ? P.emerald + "30" : P.coral + "30"}`,
-            fontSize: 12, color: mcpMessage.type === "success" ? P.emerald : P.coral,
+            fontSize: 12, color: mcpMessage.type === "success" ? "#1e8e3e" : P.coral,
+            fontFamily: F,
           }}>
             {mcpMessage.type === "success" ? "ok " : "x "}{mcpMessage.text}
           </div>
@@ -1272,9 +1278,9 @@ export default function SettingsPage() {
         {/* Security info */}
         <div style={{
           marginTop: 14, padding: "12px 14px", borderRadius: 12,
-          backgroundColor: P.purpleSoft, border: `1px solid ${P.purple}10`,
+          backgroundColor: "#f9fafb", border: "1px solid #e5e7eb",
         }}>
-          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textSec, flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#4b5563", flexWrap: "wrap" as const, fontFamily: F }}>
             <span>AES-256 encrypted</span>
             <span>HTTPS required for remote</span>
             <span>30s timeout per tool call</span>
@@ -1285,19 +1291,19 @@ export default function SettingsPage() {
 
       {/* Status */}
       <div style={{
-        padding: "18px 22px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        padding: "24px", background: "#ffffff", borderRadius: 16,
+        border: "1px solid #e5e7eb", marginBottom: 16,
         animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both",
       }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: P.textSec, marginBottom: 10 }}>Status</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#4b5563", marginBottom: 10, fontFamily: F }}>Status</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: supabaseEnabled ? P.emerald : P.amber }} />
-            <span style={{ fontSize: 13, color: P.text }}>Database: <strong>{supabaseEnabled ? "Connected" : "Demo"}</strong></span>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: supabaseEnabled ? "#1e8e3e" : P.amber }} />
+            <span style={{ fontSize: 13, color: "#1b1b1b", fontFamily: F }}>Database: <strong>{supabaseEnabled ? "Connected" : "Demo"}</strong></span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: (openaiInfo?.hasKey || geminiInfo?.hasKey || anthropicInfo?.hasKey) ? P.emerald : P.textGhost }} />
-            <span style={{ fontSize: 13, color: P.text }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: (openaiInfo?.hasKey || geminiInfo?.hasKey || anthropicInfo?.hasKey) ? "#1e8e3e" : "#d1d5db" }} />
+            <span style={{ fontSize: 13, color: "#1b1b1b", fontFamily: F }}>
               AI: <strong>{openaiInfo?.hasKey ? "OpenAI active" : geminiInfo?.hasKey ? "Gemini active" : anthropicInfo?.hasKey ? "Claude active" : "No key — demo mode"}</strong>
             </span>
           </div>
@@ -1306,11 +1312,11 @@ export default function SettingsPage() {
 
       {/* Account */}
       <div style={{
-        padding: "18px 22px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow,
+        padding: "24px", background: "#ffffff", borderRadius: 16,
+        border: "1px solid #e5e7eb",
         animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.15s both",
       }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: P.textSec, marginBottom: 10 }}>Account</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#4b5563", marginBottom: 10, fontFamily: F }}>Account</div>
         <button
           onClick={handleSignOut}
           style={{
@@ -1323,6 +1329,6 @@ export default function SettingsPage() {
           Sign Out
         </button>
       </div>
-    </>
+    </div>
   );
 }

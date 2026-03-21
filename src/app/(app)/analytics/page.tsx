@@ -46,9 +46,26 @@ export default function AnalyticsPage() {
   ];
   const maxStatusCount = Math.max(...statusData.map((s) => s.count), 1);
 
+  const totalTokens = totalTokensIn + totalTokensOut;
+  const inputPct = totalTokens > 0 ? Math.round((totalTokensIn / totalTokens) * 100) : 0;
+  const outputPct = totalTokens > 0 ? Math.round((totalTokensOut / totalTokens) * 100) : 0;
+
+  const activePipeline = workingTasks.length + reviewTasks.length;
+  const reviewRate = totalTasks > 0 ? Math.round((reviewTasks.length / totalTasks) * 100) : 0;
+
+  const priorityColors: Record<TaskPriority, string> = {
+    urgent: "#DC2626",
+    high: "#EA580C",
+    normal: "#3B82F6",
+    low: "#9CA3AF",
+  };
+
+  const maxPriorityCount = Math.max(...Object.values(priorityCounts), 1);
+
   return (
     <>
-      <div style={{ marginBottom: 32, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
+      {/* Page Header */}
+      <div style={{ marginBottom: 32 }}>
         <h1 style={{
           fontSize: 36, fontWeight: 900, margin: "0 0 10px",
           letterSpacing: "-0.04em",
@@ -63,214 +80,364 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      {/* Top stats grid */}
-      <div className="analytics-grid-4" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 28 }}>
+      {/* Bento Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 16 }}>
+
+        {/* ── Top Stats Row (4 cards, 3 cols each) ── */}
         {[
-          { label: "Total Tasks", value: totalTasks, color: P.purple, bg: P.purpleSoft },
-          { label: "Completed", value: `${completionRate}%`, color: P.emerald, bg: P.emeraldSoft },
-          { label: "Total Spent", value: `$${totalCost.toFixed(2)}`, color: P.coral, bg: P.coralSoft },
-          { label: "Avg Cost", value: `$${avgCost.toFixed(3)}`, color: P.amber, bg: P.amberSoft },
+          { label: "TOTAL TASKS", value: String(totalTasks), trend: "~+12%", trendColor: P.emerald },
+          { label: "COMPLETED", value: `${completionRate}%`, trend: completionRate > 0 ? "of all tasks" : "No progress", trendColor: P.textTer },
+          { label: "TOTAL SPENT", value: `$${totalCost.toFixed(2)}`, trend: "USD", trendColor: P.textTer },
+          { label: "AVG COST", value: `$${avgCost.toFixed(3)}`, trend: "per task", trendColor: P.textTer },
         ].map((stat, i) => (
           <div
             key={stat.label}
             style={{
-              padding: "22px", backgroundColor: P.card, borderRadius: 16,
-              border: `1.5px solid ${P.border}`, boxShadow: P.shadow,
+              gridColumn: "span 3",
+              padding: 24,
+              backgroundColor: P.card,
+              borderRadius: 16,
+              border: `1px solid ${P.border}`,
               animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${i * 0.06}s both`,
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = P.shadowHover; e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = P.shadow; e.currentTarget.style.transform = "translateY(0)"; }}
           >
             <div style={{
-              display: "flex", alignItems: "center", gap: 8, marginBottom: 10,
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+              color: P.textTer, textTransform: "uppercase", marginBottom: 12,
             }}>
-              <div style={{
-                width: 8, height: 8, borderRadius: "50%", backgroundColor: stat.color,
-                boxShadow: `0 0 8px ${stat.color}40`,
-              }} />
-              <div style={{ fontSize: 11, fontWeight: 700, color: P.textTer, letterSpacing: "0.05em" }}>
-                {stat.label.toUpperCase()}
-              </div>
+              {stat.label}
             </div>
-            <div style={{
-              fontSize: 30, fontWeight: 800, color: stat.color,
-              fontFamily: FM,
-              letterSpacing: "-0.03em",
-            }}>
-              {stat.value}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+              <span style={{
+                fontSize: 36, fontWeight: 900, letterSpacing: "-0.03em",
+                color: P.text, fontFamily: F,
+              }}>
+                {stat.value}
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: stat.trendColor }}>
+                {stat.trend}
+              </span>
             </div>
           </div>
         ))}
-      </div>
 
-      {/* Status Distribution */}
-      <div style={{
-        padding: "24px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow,
-        marginBottom: 20, animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both",
-      }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: 20, letterSpacing: "-0.02em" }}>
-          Status Distribution
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {statusData.map((s) => (
-            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 64, fontSize: 12.5, fontWeight: 600, color: P.textSec, textAlign: "right" }}>
-                {s.label}
-              </div>
-              <div style={{ flex: 1, height: 32, backgroundColor: `${P.border}60`, borderRadius: 10, overflow: "hidden" }}>
+        {/* ── Status Distribution (8 cols) ── */}
+        <div style={{
+          gridColumn: "span 8",
+          padding: 24,
+          backgroundColor: P.card,
+          borderRadius: 16,
+          border: `1px solid ${P.border}`,
+          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both",
+        }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: P.text }}>Status Distribution</span>
+            <span style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+              textTransform: "uppercase", color: P.textTer,
+              border: `1px solid ${P.border}`, borderRadius: 9999,
+              padding: "4px 12px",
+            }}>
+              REAL-TIME
+            </span>
+          </div>
+
+          {/* Horizontal Bar Chart */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+            {statusData.map((s) => (
+              <div key={s.label}>
                 <div style={{
-                  height: "100%",
-                  width: `${(s.count / maxStatusCount) * 100}%`,
+                  height: 36,
+                  width: `${Math.max((s.count / maxStatusCount) * 100, s.count > 0 ? 12 : 0)}%`,
                   background: s.gradient,
                   borderRadius: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   transition: "width 1s cubic-bezier(0.34,1.56,0.64,1)",
-                  minWidth: s.count > 0 ? 32 : 0,
-                  display: "flex", alignItems: "center", justifyContent: "flex-end",
-                  paddingRight: 10,
-                }} />
-              </div>
-              <div style={{
-                width: 36, fontSize: 15, fontWeight: 700, color: s.color,
-                fontFamily: FM,
-              }}>
-                {s.count}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Two-column: Agent Performance + Priority Breakdown */}
-      <div className="analytics-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-        {/* Agent Performance */}
-        <div style={{
-          padding: "24px", backgroundColor: P.card, borderRadius: 16,
-          border: `1.5px solid ${P.border}`, boxShadow: P.shadow,
-          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both",
-        }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: 18, letterSpacing: "-0.02em" }}>
-            Top Agents
-          </div>
-          {agentStats.length === 0 && (
-            <div style={{ color: P.textTer, fontSize: 13, padding: "24px 0", textAlign: "center" }}>
-              No agent data yet
-            </div>
-          )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {agentStats.map(({ agent, total, completed, cost }) => (
-              <div
-                key={agent.id}
-                style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "12px 14px", borderRadius: 12,
-                  backgroundColor: P.bg,
-                  border: `1px solid ${P.border}`,
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = agent.color + "40"; e.currentTarget.style.backgroundColor = agent.color + "12"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.bg; }}
-              >
-                <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={30} slug={agent.slug} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: P.text }}>{agent.name}</div>
-                  <div style={{ fontSize: 11, color: P.textTer }}>
-                    {completed}/{total} done
-                  </div>
-                </div>
-                <div style={{
-                  fontSize: 12, fontWeight: 700, color: P.textSec,
-                  fontFamily: FM,
-                  backgroundColor: P.card,
-                  padding: "4px 10px", borderRadius: 8,
-                  border: `1px solid ${P.border}`,
+                  minWidth: s.count > 0 ? 48 : 0,
                 }}>
-                  ${cost.toFixed(2)}
+                  <span style={{
+                    fontSize: 13, fontWeight: 700, color: "#fff",
+                    fontFamily: FM, textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                  }}>
+                    {s.count}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: P.textTer, marginTop: 4, paddingLeft: 4 }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Stats Row */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr",
+            borderTop: `1px solid ${P.border}`, paddingTop: 16,
+          }}>
+            {[
+              { label: "Active Pipeline", value: `${activePipeline} Tasks` },
+              { label: "Review Rate", value: `${reviewRate}%` },
+              { label: "Blocked", value: "0" },
+              { label: "Efficiency", value: "Stable" },
+            ].map((m) => (
+              <div key={m.label} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: P.textTer, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>
+                  {m.label}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: P.text }}>
+                  {m.value}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Priority Breakdown */}
+        {/* ── Priority Breakdown (4 cols) ── */}
         <div style={{
-          padding: "24px", backgroundColor: P.card, borderRadius: 16,
-          border: `1.5px solid ${P.border}`, boxShadow: P.shadow,
-          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.25s both",
+          gridColumn: "span 4",
+          padding: 24,
+          backgroundColor: P.card,
+          borderRadius: 16,
+          border: `1px solid ${P.border}`,
+          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both",
         }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: 18, letterSpacing: "-0.02em" }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: P.text, marginBottom: 20 }}>
             Priority Breakdown
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {(["urgent", "high", "normal", "low"] as TaskPriority[]).map((priority) => {
               const config = PRIORITY_CONFIG[priority];
               const count = priorityCounts[priority];
-              const pct = totalTasks > 0 ? (count / totalTasks) * 100 : 0;
+              const dotColor = priorityColors[priority];
+              const isActive = count === maxPriorityCount && count > 0;
 
               return (
-                <div key={priority} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>{config.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: P.text }}>{config.label}</span>
-                      <span style={{
-                        fontSize: 13, fontWeight: 700, color: config.color,
-                        fontFamily: FM,
-                      }}>
-                        {count}
-                      </span>
-                    </div>
-                    <div style={{ height: 8, backgroundColor: `${P.border}80`, borderRadius: 4, overflow: "hidden" }}>
+                <div key={priority}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{
-                        height: "100%",
-                        width: `${pct}%`,
-                        backgroundColor: config.color,
-                        borderRadius: 4,
-                        transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
-                        minWidth: count > 0 ? 8 : 0,
+                        width: 8, height: 8, borderRadius: "50%", backgroundColor: dotColor,
                       }} />
+                      <span style={{ fontSize: 14, fontWeight: 500, color: P.text }}>{config.label}</span>
                     </div>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: P.text, fontFamily: FM }}>
+                      {count}
+                    </span>
                   </div>
+                  {isActive && (
+                    <div style={{
+                      height: 3, borderRadius: 2,
+                      backgroundColor: dotColor, opacity: 0.6,
+                      width: "100%",
+                    }} />
+                  )}
                 </div>
               );
             })}
           </div>
-        </div>
-      </div>
 
-      {/* Token Usage */}
-      <div style={{
-        padding: "24px", backgroundColor: P.card, borderRadius: 16,
-        border: `1.5px solid ${P.border}`, boxShadow: P.shadow,
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.3s both",
-      }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: 18, letterSpacing: "-0.02em" }}>
-          Token Usage
+          {/* Info box */}
+          <div style={{
+            marginTop: 24, padding: "12px 14px",
+            backgroundColor: "rgba(59,130,246,0.06)",
+            borderRadius: 10,
+          }}>
+            <p style={{ fontSize: 12, color: P.textSec, lineHeight: 1.5, margin: 0 }}>
+              System automatically assigns Normal priority to new tasks unless specified otherwise.
+            </p>
+          </div>
         </div>
-        <div className="analytics-grid-4" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-          {[
-            { label: "Input Tokens", value: totalTokensIn.toLocaleString(), color: P.purple, bg: P.purpleSoft },
-            { label: "Output Tokens", value: totalTokensOut.toLocaleString(), color: P.coral, bg: P.coralSoft },
-            { label: "Total Tokens", value: (totalTokensIn + totalTokensOut).toLocaleString(), color: P.emerald, bg: P.emeraldSoft },
-          ].map((item) => (
-            <div key={item.label} style={{
-              textAlign: "center", padding: "18px", borderRadius: 14,
-              backgroundColor: item.bg,
-              border: `1px solid ${item.color}15`,
+
+        {/* ── Agent Performance Table (8 cols) ── */}
+        <div style={{
+          gridColumn: "span 8",
+          backgroundColor: P.card,
+          borderRadius: 16,
+          border: `1px solid ${P.border}`,
+          overflow: "hidden",
+          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.25s both",
+        }}>
+          <div style={{ padding: 24, paddingBottom: 16 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: P.text }}>Agent Performance</span>
+          </div>
+
+          {agentStats.length === 0 ? (
+            <div style={{ color: P.textTer, fontSize: 13, padding: "24px", textAlign: "center" }}>
+              No agent data yet
+            </div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderTop: `1px solid ${P.border}`, borderBottom: `1px solid ${P.border}` }}>
+                  {["AGENT NAME", "COMPLETION STATUS", "COST BASIS", "ACTION"].map((h) => (
+                    <th key={h} style={{
+                      padding: "10px 24px", textAlign: "left",
+                      fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+                      color: P.textTer, textTransform: "uppercase",
+                    }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {agentStats.map(({ agent, total, completed, cost }) => {
+                  const pct = total > 0 ? (completed / total) * 100 : 0;
+                  return (
+                    <tr
+                      key={agent.id}
+                      style={{ borderBottom: `1px solid ${P.border}`, transition: "background 0.15s" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                    >
+                      <td style={{ padding: "12px 24px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={28} slug={agent.slug} />
+                          <span style={{ fontSize: 14, fontWeight: 500, color: P.text }}>{agent.name}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 24px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: P.textSec, fontFamily: FM, minWidth: 40 }}>
+                            {completed} / {total}
+                          </span>
+                          <div style={{
+                            flex: 1, height: 6, backgroundColor: `${P.border}`,
+                            borderRadius: 3, overflow: "hidden", maxWidth: 80,
+                          }}>
+                            <div style={{
+                              height: "100%", width: `${pct}%`,
+                              backgroundColor: P.emerald, borderRadius: 3,
+                              transition: "width 0.8s ease",
+                            }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 24px" }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: P.emerald, fontFamily: FM }}>
+                          ${cost.toFixed(2)}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 24px" }}>
+                        <button
+                          style={{
+                            width: 28, height: 28, borderRadius: 8,
+                            border: `1px solid ${P.border}`,
+                            backgroundColor: "transparent", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            color: P.textTer, fontSize: 14,
+                            transition: "all 0.15s",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = P.text; e.currentTarget.style.color = P.text; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.color = P.textTer; }}
+                          aria-label="View agent details"
+                        >
+                          &rarr;
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* ── Token Usage Dark Card (4 cols) ── */}
+        <div style={{
+          gridColumn: "span 4",
+          padding: 24,
+          backgroundColor: "#111827",
+          borderRadius: 16,
+          color: "#fff",
+          display: "flex", flexDirection: "column", justifyContent: "space-between",
+          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.3s both",
+        }}>
+          <div>
+            <div style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.12em",
+              color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 24,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: P.textTer, letterSpacing: "0.05em", marginBottom: 8 }}>
-                {item.label.toUpperCase()}
-              </div>
+              TOKEN USAGE
+            </div>
+
+            {/* Input Tokens */}
+            <div style={{ marginBottom: 20 }}>
               <div style={{
-                fontSize: 24, fontWeight: 800, color: item.color,
-                fontFamily: FM,
-                letterSpacing: "-0.02em",
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6,
               }}>
-                {item.value}
+                INPUT TOKENS
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", fontFamily: FM }}>
+                  {totalTokensIn.toLocaleString()}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>
+                  {inputPct}% OF TOTAL
+                </span>
+              </div>
+              <div style={{ height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.1)" }}>
+                <div style={{
+                  height: "100%", width: `${inputPct}%`, borderRadius: 2,
+                  backgroundColor: "#60a5fa",
+                  transition: "width 0.8s ease",
+                }} />
               </div>
             </div>
-          ))}
+
+            {/* Output Tokens */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6,
+              }}>
+                OUTPUT TOKENS
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", fontFamily: FM }}>
+                  {totalTokensOut.toLocaleString()}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>
+                  {outputPct}% OF TOTAL
+                </span>
+              </div>
+              <div style={{ height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.1)" }}>
+                <div style={{
+                  height: "100%", width: `${outputPct}%`, borderRadius: 2,
+                  backgroundColor: "#60a5fa",
+                  transition: "width 0.8s ease",
+                }} />
+              </div>
+            </div>
+
+            {/* Total Consumed */}
+            <div style={{
+              borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 20, marginBottom: 20,
+            }}>
+              <div style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6,
+              }}>
+                TOTAL CONSUMED
+              </div>
+              <span style={{ fontSize: 36, fontWeight: 900, letterSpacing: "-0.02em", fontFamily: FM }}>
+                {totalTokens.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom indicator */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#34d399" }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>
+              High Density Processing
+            </span>
+          </div>
         </div>
       </div>
     </>

@@ -39,6 +39,24 @@ const CATEGORY_ICONS: Record<string, string> = {
   star: "\u{2B50}",
 };
 
+// Soft gradient backgrounds for agent card headers
+const CARD_GRADIENTS = [
+  "linear-gradient(135deg, #dbeafe, #ede9fe)",
+  "linear-gradient(135deg, #fce7f3, #fde68a)",
+  "linear-gradient(135deg, #d1fae5, #cffafe)",
+  "linear-gradient(135deg, #fef3c7, #fce7f3)",
+  "linear-gradient(135deg, #ede9fe, #dbeafe)",
+  "linear-gradient(135deg, #cffafe, #d1fae5)",
+  "linear-gradient(135deg, #fde68a, #fef9c3)",
+  "linear-gradient(135deg, #e0e7ff, #f3e8ff)",
+];
+
+function getCardGradient(agent: { gradient?: string; color?: string }, index: number): string {
+  if (agent.gradient) return agent.gradient;
+  if (agent.color) return `linear-gradient(135deg, ${agent.color}20, ${agent.color}10)`;
+  return CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+}
+
 export default function AgentsPage() {
   const { agents, mutate } = useAgents();
   const [showCreate, setShowCreate] = useState(false);
@@ -96,428 +114,352 @@ export default function AgentsPage() {
     }
   }
 
-  const visibleCategories = activeCategory
-    ? SPECIALIST_CATEGORIES.filter(c => c.id === activeCategory)
-    : SPECIALIST_CATEGORIES;
+  // Compute total visible agent count
+  const totalAgentCount = useMemo(() => {
+    let count = 0;
+    for (const cat of SPECIALIST_CATEGORIES) {
+      count += (categorizedAgents[cat.id] || []).length;
+    }
+    count += (categorizedAgents["custom"] || []).length;
+    return count;
+  }, [categorizedAgents]);
+
+  // All agents to display in the grid (filtered or category-filtered)
+  const displayAgents = useMemo(() => {
+    if (filteredAgents) return filteredAgents;
+    if (activeCategory) {
+      return categorizedAgents[activeCategory] || [];
+    }
+    // All agents from all categories
+    const all: typeof agents = [];
+    for (const cat of SPECIALIST_CATEGORIES) {
+      all.push(...(categorizedAgents[cat.id] || []));
+    }
+    all.push(...(categorizedAgents["custom"] || []));
+    return all;
+  }, [filteredAgents, activeCategory, categorizedAgents]);
 
   return (
     <>
       <style>{`
-        @keyframes createPulse { 0%,100%{box-shadow:0 0 0 0 rgba(30,142,62,0.18)}50%{box-shadow:0 0 0 14px rgba(30,142,62,0)} }
-        @keyframes popIn { 0%{opacity:0;transform:scale(0.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)} }
-        @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)} }
+        @keyframes popIn { 0%{opacity:0;transform:scale(0.95) translateY(8px)}100%{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes fadeUp { 0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)} }
-        @keyframes gentleFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
-        @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
-        @keyframes gradientShift { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
       `}</style>
 
-      {/* Hero Header */}
-      <div style={{
-        marginBottom: 32,
-        animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
-        padding: "36px 40px 32px",
-        borderRadius: 24,
-        background: `linear-gradient(135deg, ${P.bg2} 0%, ${P.bg3} 50%, ${P.bg2} 100%)`,
-        border: `1.5px solid ${P.border}`,
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Decorative background elements */}
-        <div style={{
-          position: "absolute", top: -40, right: -20,
-          width: 180, height: 180, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(30,142,62,0.08) 0%, transparent 70%)",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -30, left: "40%",
-          width: 120, height: 120, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(66,63,247,0.04) 0%, transparent 70%)",
-        }} />
+      <div style={{ display: "flex", gap: 0, minHeight: "100%" }}>
+        {/* ── Main Content Area ── */}
+        <div style={{ flex: 1, minWidth: 0, padding: "32px 32px 48px" }}>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
-          <div>
-            <h1 style={{
-              fontSize: 38, fontWeight: 900, margin: "0 0 8px",
-              letterSpacing: "-0.04em",
-              background: "linear-gradient(135deg, #1e8e3e, #423ff7)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              lineHeight: 1.1,
+          {/* Header */}
+          <div style={{
+            display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+            marginBottom: 28,
+            animation: "fadeUp 0.4s ease both",
+          }}>
+            <div>
+              <h1 style={{
+                fontSize: 28,
+                fontWeight: 800,
+                letterSpacing: "-0.025em",
+                color: P.text,
+                margin: 0,
+                lineHeight: 1.2,
+                fontFamily: F,
+              }}>
+                AI Agent Agency
+              </h1>
+              <p style={{
+                fontSize: 14,
+                color: P.textTer,
+                margin: "6px 0 0",
+                fontFamily: F,
+              }}>
+                {totalAgentCount} specialized agents ready to deploy
+              </p>
+            </div>
+            <button
+              onClick={() => setShowCreate(true)}
+              style={{
+                padding: "10px 22px",
+                borderRadius: 12,
+                border: "none",
+                background: "#1e8e3e",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: F,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                transition: "all 0.2s ease",
+                boxShadow: "0 2px 8px rgba(30,142,62,0.25)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#177332";
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow = "0 4px 14px rgba(30,142,62,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#1e8e3e";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(30,142,62,0.25)";
+              }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1, fontWeight: 400 }}>+</span>
+              Create Agent
+            </button>
+          </div>
+
+          {/* Search + Sort Row */}
+          <div style={{
+            display: "flex", gap: 12, marginBottom: 28,
+            animation: "fadeUp 0.4s ease 0.05s both",
+          }}>
+            {/* Search Bar */}
+            <div style={{ flex: 1, position: "relative" }}>
+              <svg
+                style={{
+                  position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+                  width: 18, height: 18, color: searchFocused ? P.textSec : P.textGhost,
+                  transition: "color 0.2s",
+                  pointerEvents: "none",
+                }}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for agents..."
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                style={{
+                  width: "100%",
+                  height: 44,
+                  padding: "0 16px 0 42px",
+                  borderRadius: 12,
+                  border: `1px solid ${searchFocused ? P.borderHover : "rgba(0,0,0,0.08)"}`,
+                  fontSize: 14,
+                  color: P.text,
+                  outline: "none",
+                  backgroundColor: "#fff",
+                  fontFamily: F,
+                  transition: "border-color 0.2s, box-shadow 0.2s",
+                  boxShadow: searchFocused ? "0 0 0 3px rgba(30,142,62,0.08)" : "none",
+                }}
+              />
+            </div>
+            {/* Sort Dropdown */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "0 16px",
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.08)",
+              backgroundColor: "#fff",
+              fontSize: 12,
+              fontWeight: 600,
+              color: P.textSec,
+              cursor: "pointer",
+              fontFamily: F,
+              letterSpacing: "0.03em",
+              whiteSpace: "nowrap",
+              userSelect: "none",
             }}>
-              AI Agency
-            </h1>
+              <span style={{ color: P.textTer, fontWeight: 500, textTransform: "uppercase", fontSize: 10, letterSpacing: "0.08em" }}>Sort:</span>
+              <span>Top Rated</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ marginLeft: 2 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Search result count */}
+          {filteredAgents && (
+            <div style={{
+              fontSize: 13, fontWeight: 600, color: P.textSec, marginBottom: 16,
+              fontFamily: F,
+              animation: "fadeUp 0.3s ease both",
+            }}>
+              {filteredAgents.length} result{filteredAgents.length !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
+            </div>
+          )}
+
+          {/* Agent Grid */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 20,
+            animation: "fadeUp 0.4s ease 0.1s both",
+          }}>
+            {displayAgents.map((agent, i) => (
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                index={i}
+                hoveredId={hoveredId}
+                setHoveredId={setHoveredId}
+                onDelete={handleDelete}
+                router={router}
+              />
+            ))}
+          </div>
+
+          {displayAgents.length === 0 && (
+            <div style={{
+              textAlign: "center", padding: "60px 20px",
+              color: P.textTer, fontSize: 14, fontFamily: F,
+            }}>
+              No agents found.
+            </div>
+          )}
+        </div>
+
+        {/* ── Right Category Sidebar ── */}
+        <div style={{
+          width: 288,
+          flexShrink: 0,
+          borderLeft: "1px solid rgba(0,0,0,0.06)",
+          padding: "32px 20px",
+          overflowY: "auto",
+          animation: "fadeUp 0.4s ease 0.15s both",
+        }}>
+          <div style={{ marginBottom: 4 }}>
+            <h2 style={{
+              fontSize: 18, fontWeight: 700, color: P.text, margin: 0,
+              fontFamily: F,
+            }}>
+              Categories
+            </h2>
             <p style={{
-              fontSize: 16, color: P.textSec, lineHeight: 1.6, margin: 0,
-              maxWidth: 440,
+              fontSize: 12, color: "#1e8e3e", fontWeight: 500, margin: "4px 0 0",
+              fontFamily: F,
             }}>
-              Your team of AI specialists across {SPECIALIST_CATEGORIES.length} categories.
-              <span style={{ color: P.lime, fontWeight: 600 }}> From idea to revenue.</span>
+              Filter by expertise
             </p>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            style={{
-              padding: "14px 28px", borderRadius: 12, border: "none",
-              background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
-              color: "#fff",
-              fontSize: 14, fontWeight: 700, cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: "0 4px 16px rgba(30,142,62,0.3)",
-              transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-              whiteSpace: "nowrap",
-              display: "flex", alignItems: "center", gap: 8,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-3px)";
-              e.currentTarget.style.boxShadow = "0 8px 24px rgba(30,142,62,0.35)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 16px rgba(30,142,62,0.3)";
-            }}
-          >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
-            Create Agent
-          </button>
-        </div>
-      </div>
 
-      {/* Large Search Bar */}
-      <div style={{
-        marginBottom: 24, animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both",
-        position: "relative",
-      }}>
-        <div style={{
-          position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)",
-          fontSize: 18, color: searchFocused ? P.lime : P.textTer,
-          transition: "color 0.2s",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}>
-          {"\u{1F50D}"}
-        </div>
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search agents..."
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-          style={{
-            width: "100%", height: 56, padding: "0 20px 0 52px",
-            borderRadius: 16,
-            border: `2px solid ${searchFocused ? P.lime : P.border}`,
-            fontSize: 16, color: P.text,
-            outline: "none",
-            backgroundColor: P.card,
-            fontFamily: "inherit",
-            transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-            boxShadow: searchFocused
-              ? `0 0 0 4px ${P.lime}15, 0 4px 16px rgba(0,0,0,0.08)`
-              : P.shadow,
-          }}
-        />
-      </div>
-
-      {/* Category Filter Pills */}
-      <div style={{
-        display: "flex", gap: 10, marginBottom: 32, flexWrap: "wrap" as const,
-        animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both",
-      }}>
-        <button
-          onClick={() => setActiveCategory(null)}
-          style={{
-            padding: "10px 20px", borderRadius: 20,
-            background: !activeCategory
-              ? "linear-gradient(135deg, #1e8e3e, #15e11e)"
-              : P.card,
-            color: !activeCategory ? "#fff" : P.textSec,
-            fontSize: 13, fontWeight: 700, cursor: "pointer",
-            fontFamily: "inherit", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-            boxShadow: !activeCategory
-              ? "0 4px 14px rgba(30,142,62,0.25)"
-              : P.shadow,
-            border: activeCategory ? `1.5px solid ${P.border}` : "1.5px solid transparent",
-          }}
-          onMouseEnter={(e) => {
-            if (activeCategory) {
-              e.currentTarget.style.borderColor = P.borderHover;
-              e.currentTarget.style.boxShadow = P.shadowHover;
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeCategory) {
-              e.currentTarget.style.borderColor = P.border;
-              e.currentTarget.style.boxShadow = P.shadow;
-              e.currentTarget.style.transform = "translateY(0)";
-            }
-          }}
-        >
-          All
-        </button>
-        {SPECIALIST_CATEGORIES.map((cat) => {
-          const count = categorizedAgents[cat.id]?.length || 0;
-          const isActive = activeCategory === cat.id;
-          return (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 2 }}>
+            {/* All category */}
             <button
-              key={cat.id}
-              onClick={() => setActiveCategory(isActive ? null : cat.id)}
+              onClick={() => setActiveCategory(null)}
               style={{
-                padding: "10px 18px", borderRadius: 20,
-                border: isActive ? "1.5px solid transparent" : `1.5px solid ${P.border}`,
-                background: isActive ? cat.gradient : P.card,
-                color: isActive ? "#fff" : P.textSec,
-                fontSize: 13, fontWeight: 700, cursor: "pointer",
-                fontFamily: "inherit",
-                transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-                boxShadow: isActive ? `0 4px 14px ${cat.color}30` : P.shadow,
-                display: "flex", alignItems: "center", gap: 7,
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "none",
+                background: !activeCategory ? "rgba(30,142,62,0.06)" : "transparent",
+                cursor: "pointer",
+                fontFamily: F,
+                fontSize: 13,
+                fontWeight: !activeCategory ? 600 : 500,
+                color: !activeCategory ? "#1e8e3e" : P.textSec,
+                transition: "all 0.15s ease",
+                width: "100%",
+                textAlign: "left",
               }}
               onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.borderColor = cat.color + "60";
-                  e.currentTarget.style.color = cat.color;
-                  e.currentTarget.style.boxShadow = P.shadowHover;
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }
+                if (activeCategory) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
               }}
               onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.borderColor = P.border;
-                  e.currentTarget.style.color = P.textSec;
-                  e.currentTarget.style.boxShadow = P.shadow;
-                  e.currentTarget.style.transform = "translateY(0)";
-                }
+                if (activeCategory) e.currentTarget.style.background = "transparent";
               }}
             >
-              <span style={{ fontSize: 15 }}>{CATEGORY_ICONS[cat.icon] || ""}</span>
-              {cat.name}
+              <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>*</span>
+              <span style={{ flex: 1 }}>All Agents</span>
               <span style={{
-                fontSize: 11, fontWeight: 800,
-                backgroundColor: isActive ? "rgba(255,255,255,0.25)" : cat.color + "12",
-                padding: "2px 8px", borderRadius: 10,
-                color: isActive ? "#fff" : cat.color,
+                fontSize: 11, fontWeight: 600,
+                padding: "2px 8px", borderRadius: 6,
+                backgroundColor: !activeCategory ? "rgba(30,142,62,0.1)" : "rgba(0,0,0,0.04)",
+                color: !activeCategory ? "#1e8e3e" : P.textTer,
               }}>
-                {count}
+                {totalAgentCount}
               </span>
             </button>
-          );
-        })}
-      </div>
 
-      {/* Search Results */}
-      {filteredAgents && (
-        <div style={{ marginBottom: 36 }}>
-          <div style={{
-            fontSize: 15, fontWeight: 700, color: P.textSec, marginBottom: 18,
-            display: "flex", alignItems: "center", gap: 8,
-          }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              width: 28, height: 28, borderRadius: 8,
-              background: "linear-gradient(135deg, #1e8e3e, #15e11e)", color: "#fff", fontSize: 12, fontWeight: 800,
-            }}>
-              {filteredAgents.length}
-            </span>
-            result{filteredAgents.length !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
-          </div>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 20,
-          }}>
-            {filteredAgents.map((agent, i) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                index={i}
-                hoveredId={hoveredId}
-                setHoveredId={setHoveredId}
-                onDelete={handleDelete}
-                router={router}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+            {SPECIALIST_CATEGORIES.map((cat) => {
+              const count = categorizedAgents[cat.id]?.length || 0;
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(isActive ? null : cat.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    border: "none",
+                    background: isActive ? "rgba(30,142,62,0.06)" : "transparent",
+                    cursor: "pointer",
+                    fontFamily: F,
+                    fontSize: 13,
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? "#1e8e3e" : P.textSec,
+                    transition: "all 0.15s ease",
+                    width: "100%",
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>{CATEGORY_ICONS[cat.icon] || ""}</span>
+                  <span style={{ flex: 1 }}>{cat.name}</span>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600,
+                    padding: "2px 8px", borderRadius: 6,
+                    backgroundColor: isActive ? "rgba(30,142,62,0.1)" : "rgba(0,0,0,0.04)",
+                    color: isActive ? "#1e8e3e" : P.textTer,
+                  }}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
 
-      {/* Category Sections */}
-      {!filteredAgents && visibleCategories.map((cat, catIdx) => {
-        const catAgents = categorizedAgents[cat.id] || [];
-        if (catAgents.length === 0) return null;
-        return (
-          <div key={cat.id} style={{
-            marginBottom: 40,
-            animation: `fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) ${0.15 + catIdx * 0.05}s both`,
-          }}>
-            {/* Category Header */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 14, marginBottom: 20,
-              padding: "16px 20px", borderRadius: 18,
-              background: P.card,
-              border: `1.5px solid ${P.border}`,
-              boxShadow: P.shadow,
-            }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 14,
-                background: cat.gradient,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22,
-                boxShadow: `0 4px 14px ${cat.color}25`,
-                flexShrink: 0,
-              }}>
-                {CATEGORY_ICONS[cat.icon] || ""}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontSize: 17, fontWeight: 800, color: P.text,
-                  letterSpacing: "-0.02em",
-                }}>
-                  {cat.name}
-                </div>
-                <div style={{
-                  fontSize: 13, color: P.textSec, fontWeight: 500,
-                }}>
-                  {cat.tagline}
-                </div>
-              </div>
-              <div style={{
-                padding: "6px 14px", borderRadius: 20,
-                background: cat.color + "10",
-                fontSize: 12, fontWeight: 800, color: cat.color,
-              }}>
-                {catAgents.length} agent{catAgents.length !== 1 ? "s" : ""}
-              </div>
-            </div>
-
-            {/* Agent Grid */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: 20,
-            }}>
-              {catAgents.map((agent, i) => (
-                <AgentCard
-                  key={agent.id}
-                  agent={agent}
-                  index={i}
-                  hoveredId={hoveredId}
-                  setHoveredId={setHoveredId}
-                  onDelete={handleDelete}
-                  router={router}
-                  categoryColor={cat.color}
-                  categoryName={cat.name}
-                />
-              ))}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Custom agents section */}
-      {!filteredAgents && !activeCategory && (categorizedAgents["custom"]?.length > 0 || true) && (
-        <div style={{
-          marginBottom: 40,
-          animation: `fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.5s both`,
-        }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 14, marginBottom: 20,
-            padding: "16px 20px", borderRadius: 18,
-            background: P.card,
-            border: `1.5px solid ${P.border}`,
-            boxShadow: P.shadow,
-          }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 14,
-              background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 22, color: "#fff", fontWeight: 700,
-              boxShadow: "0 4px 14px rgba(30,142,62,0.25)",
-              flexShrink: 0,
-            }}>
-              +
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{
-                fontSize: 17, fontWeight: 800, color: P.text,
-                letterSpacing: "-0.02em",
-              }}>
-                Your Custom Agents
-              </div>
-              <div style={{
-                fontSize: 13, color: P.textSec, fontWeight: 500,
-              }}>
-                Build your own AI specialists
-              </div>
-            </div>
-          </div>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 20,
-          }}>
-            {(categorizedAgents["custom"] || []).map((agent, i) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                index={i}
-                hoveredId={hoveredId}
-                setHoveredId={setHoveredId}
-                onDelete={handleDelete}
-                router={router}
-              />
-            ))}
-            {/* Create Agent card */}
-            <div
-              onClick={() => setShowCreate(true)}
+            {/* Custom agents category */}
+            <button
+              onClick={() => setActiveCategory(activeCategory === "custom" ? null : "custom")}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "none",
+                background: activeCategory === "custom" ? "rgba(30,142,62,0.06)" : "transparent",
+                cursor: "pointer",
+                fontFamily: F,
+                fontSize: 13,
+                fontWeight: activeCategory === "custom" ? 600 : 500,
+                color: activeCategory === "custom" ? "#1e8e3e" : P.textSec,
+                transition: "all 0.15s ease",
+                width: "100%",
+                textAlign: "left",
+              }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-4px) scale(1.03)";
-                e.currentTarget.style.boxShadow = P.shadowFloat;
-                e.currentTarget.style.borderColor = P.lime + "50";
+                if (activeCategory !== "custom") e.currentTarget.style.background = "rgba(0,0,0,0.03)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0) scale(1)";
-                e.currentTarget.style.boxShadow = P.shadow;
-                e.currentTarget.style.borderColor = P.lime + "30";
-              }}
-              style={{
-                position: "relative",
-                padding: "24px 20px 20px",
-                borderRadius: 16, cursor: "pointer",
-                overflow: "hidden", minHeight: 220,
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center", gap: 14,
-                border: `2.5px dashed ${P.lime}30`,
-                backgroundColor: P.emeraldSoft,
-                transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-                boxShadow: P.shadow,
+                if (activeCategory !== "custom") e.currentTarget.style.background = "transparent";
               }}
             >
-              <div style={{
-                width: 56, height: 56, borderRadius: 16,
-                background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 28, color: "#fff", fontWeight: 300,
-                boxShadow: "0 6px 20px rgba(30,142,62,0.25)",
-                animation: "createPulse 3s ease-in-out infinite",
+              <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>+</span>
+              <span style={{ flex: 1 }}>Custom Agents</span>
+              <span style={{
+                fontSize: 11, fontWeight: 600,
+                padding: "2px 8px", borderRadius: 6,
+                backgroundColor: activeCategory === "custom" ? "rgba(30,142,62,0.1)" : "rgba(0,0,0,0.04)",
+                color: activeCategory === "custom" ? "#1e8e3e" : P.textTer,
               }}>
-                +
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: P.text, marginBottom: 4 }}>
-                  Create your own
-                </div>
-                <div style={{ fontSize: 13, color: P.textSec }}>
-                  Custom AI agent
-                </div>
-              </div>
-            </div>
+                {(categorizedAgents["custom"] || []).length}
+              </span>
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       <AgentCreateModal
         open={showCreate}
@@ -543,9 +485,26 @@ interface AgentCardProps {
   categoryName?: string;
 }
 
-function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router, categoryColor, categoryName }: AgentCardProps) {
+function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: AgentCardProps) {
   const isHovered = hoveredId === agent.id;
-  const accentColor = categoryColor || agent.color || P.lime;
+
+  // Extract skill tags from agent
+  const tags = useMemo(() => {
+    const t: string[] = [];
+    if (agent.slug) {
+      const parts = agent.slug.split("-");
+      if (parts.length >= 2) {
+        t.push(parts[0].toUpperCase());
+        t.push(parts[parts.length - 1].toUpperCase());
+      } else {
+        t.push(parts[0].toUpperCase());
+      }
+    }
+    if (t.length === 0) {
+      t.push("AI", "AGENT");
+    }
+    return t.slice(0, 2);
+  }, [agent.slug]);
 
   return (
     <div
@@ -554,134 +513,171 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router, ca
       onMouseLeave={() => setHoveredId(null)}
       style={{
         position: "relative",
-        borderRadius: 16, cursor: "pointer",
+        borderRadius: 12,
+        cursor: "pointer",
         overflow: "hidden",
-        backgroundColor: P.card,
-        animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${index * 0.04}s both`,
-        transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        transform: isHovered ? "translateY(-4px) scale(1.03)" : "translateY(0) scale(1)",
-        boxShadow: isHovered ? P.shadowHover : P.shadow,
-        border: `1.5px solid ${isHovered ? accentColor + "30" : P.border}`,
-        display: "flex", flexDirection: "column",
+        backgroundColor: "#fff",
+        animation: `popIn 0.4s ease ${index * 0.03}s both`,
+        transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+        transform: isHovered ? "translateY(-4px)" : "translateY(0)",
+        boxShadow: isHovered
+          ? "0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08)"
+          : "0 1px 3px rgba(0,0,0,0.06)",
+        border: "1px solid rgba(0,0,0,0.06)",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      {/* Gradient accent bar at top */}
-      <div style={{
-        height: 4,
-        background: agent.gradient || `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
-        transition: "height 0.25s ease",
-      }} />
-
       {/* Delete for custom */}
       {!agent.is_preset && (
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(agent.id); }}
           style={{
-            position: "absolute", top: 12, right: 12, zIndex: 10,
-            width: 28, height: 28, borderRadius: 8,
-            border: `1px solid ${P.border}`,
-            backgroundColor: P.card,
+            position: "absolute", top: 8, right: 8, zIndex: 10,
+            width: 26, height: 26, borderRadius: 8,
+            border: "1px solid rgba(0,0,0,0.08)",
+            backgroundColor: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: 12, color: P.textSec,
+            cursor: "pointer", fontSize: 11, color: P.textTer,
             transition: "all 0.2s",
             opacity: isHovered ? 1 : 0,
-            boxShadow: P.shadow,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.12)";
+            e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.1)";
             e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)";
             e.currentTarget.style.color = "#f87171";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = P.card;
-            e.currentTarget.style.borderColor = P.border;
-            e.currentTarget.style.color = P.textSec;
+            e.currentTarget.style.backgroundColor = "#fff";
+            e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
+            e.currentTarget.style.color = P.textTer;
           }}
         >
           x
         </button>
       )}
 
-      {/* Card body */}
-      <div style={{ padding: "20px 20px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
-        {/* Icon area */}
-        {(() => {
-          const av = getAgentAvatar(agent.slug);
-          return av ? (
-            <img src={av} alt="" style={{
-              width: 56, height: 56, borderRadius: 16, objectFit: "cover",
-              border: `1.5px solid ${accentColor}15`,
-              transition: "all 0.3s ease",
-              animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
-            }} />
-          ) : (
-            <div style={{
-              width: 56, height: 56, borderRadius: 16,
-              background: `linear-gradient(135deg, ${accentColor}12, ${accentColor}06)`,
-              border: `1.5px solid ${accentColor}15`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 32,
-              transition: "all 0.3s ease",
-              animation: isHovered ? "gentleFloat 3s ease-in-out infinite" : "none",
-            }}>
-              {agent.icon || ""}
-            </div>
-          );
-        })()}
+      {/* Gradient Header Area */}
+      <div style={{
+        height: 140,
+        background: getCardGradient(agent, index),
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        paddingBottom: 0,
+        position: "relative",
+      }}>
+        {/* Avatar - centered, overlapping bottom edge */}
+        <div style={{
+          position: "absolute",
+          bottom: -32,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}>
+          {(() => {
+            const av = getAgentAvatar(agent.slug);
+            return av ? (
+              <img src={av} alt="" style={{
+                width: 96, height: 96, borderRadius: 12, objectFit: "cover",
+                border: "4px solid #fff",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+              }} />
+            ) : (
+              <div style={{
+                width: 96, height: 96, borderRadius: 12,
+                background: `linear-gradient(135deg, ${agent.color || P.lime}30, ${agent.color || P.lime}15)`,
+                border: "4px solid #fff",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 42,
+              }}>
+                {agent.icon || ""}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
 
-        {/* Text content */}
-        <div>
-          <div style={{
-            fontSize: 16, fontWeight: 700, color: P.text,
-            letterSpacing: "-0.02em", lineHeight: 1.3,
-            marginBottom: 6,
-          }}>
-            {agent.name}
-          </div>
-          <div style={{
-            fontSize: 13, fontWeight: 400, color: P.textSec,
-            lineHeight: 1.5,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}>
-            {agent.description}
-          </div>
+      {/* Card Body */}
+      <div style={{
+        padding: "44px 20px 20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 10,
+        flex: 1,
+      }}>
+        {/* Agent name */}
+        <div style={{
+          fontSize: 18,
+          fontWeight: 700,
+          color: P.text,
+          textAlign: "center",
+          lineHeight: 1.3,
+          fontFamily: F,
+        }}>
+          {agent.name}
         </div>
 
-        {/* Category badge + Hire CTA */}
+        {/* Description */}
         <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: "auto",
+          fontSize: 13,
+          color: P.textTer,
+          textAlign: "center",
+          lineHeight: 1.5,
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          fontFamily: F,
         }}>
-          {categoryName ? (
-            <span style={{
-              fontSize: 11, fontWeight: 700, color: accentColor,
-              backgroundColor: accentColor + "10",
-              padding: "4px 10px", borderRadius: 8,
-              letterSpacing: "0.02em",
-            }}>
-              {categoryName}
-            </span>
-          ) : (
-            <span />
-          )}
+          {agent.description}
+        </div>
 
-          {/* Hover CTA */}
-          <div style={{
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? "translateX(0)" : "translateX(6px)",
-            transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-          }}>
-            <span style={{
-              fontSize: 12, fontWeight: 700, color: "#fff",
-              background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
-              padding: "6px 16px", borderRadius: 8,
-              boxShadow: "0 2px 8px rgba(30,142,62,0.25)",
+        {/* Tags */}
+        <div style={{
+          display: "flex", gap: 6, marginTop: 4,
+        }}>
+          {tags.map((tag, ti) => (
+            <span key={ti} style={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: "0.06em",
+              color: P.textTer,
+              backgroundColor: "rgba(0,0,0,0.04)",
+              padding: "4px 8px",
+              borderRadius: 6,
+              fontFamily: F,
+              textTransform: "uppercase",
             }}>
-              Hire &rarr;
+              {tag}
             </span>
+          ))}
+        </div>
+
+        {/* Hire Me Button */}
+        <div style={{
+          width: "100%",
+          marginTop: "auto",
+          paddingTop: 12,
+          opacity: isHovered ? 1 : 0,
+          transform: isHovered ? "translateY(0)" : "translateY(6px)",
+          transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+        }}>
+          <div style={{
+            width: "100%",
+            textAlign: "center",
+            padding: "10px 0",
+            borderRadius: 12,
+            backgroundColor: "#1e8e3e",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 700,
+            fontFamily: F,
+            boxShadow: "0 2px 8px rgba(30,142,62,0.25)",
+          }}>
+            Hire me
           </div>
         </div>
       </div>

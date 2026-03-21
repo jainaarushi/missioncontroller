@@ -294,7 +294,7 @@ export default function TodayPage() {
           <button
             onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
             className="px-5 py-2.5 font-bold rounded-lg flex items-center gap-2 transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#1978e5", color: "#fff" }}
+            style={{ backgroundColor: "#1e8e3e", color: "#fff" }}
           >
             <Plus size={18} />
             <span>Deploy Specialist</span>
@@ -419,14 +419,14 @@ export default function TodayPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl border shadow-sm flex flex-col" style={{ borderColor: "#e5e7eb" }}>
             <div className="flex justify-between items-start mb-4">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(25,120,229,0.1)" }}>
-                <BrainCircuit size={20} style={{ color: "#1978e5" }} />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(30,142,62,0.1)" }}>
+                <BrainCircuit size={20} style={{ color: "#1e8e3e" }} />
               </div>
-              <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ color: "#1978e5", backgroundColor: "rgba(25,120,229,0.1)" }}>LIVE</span>
+              <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ color: "#1e8e3e", backgroundColor: "rgba(30,142,62,0.1)" }}>LIVE</span>
             </div>
             <span className="text-sm font-semibold mb-1" style={{ color: "#44474e" }}>Active Agents</span>
             <div className="text-4xl font-black" style={{ color: "#1b1b1b" }}>{workingTasks.length}</div>
-            <div className="mt-4 flex items-center gap-1 text-xs font-bold" style={{ color: "#1978e5" }}>
+            <div className="mt-4 flex items-center gap-1 text-xs font-bold" style={{ color: "#1e8e3e" }}>
               <TrendingUp size={14} />
               <span>{tasks.length} tasks today</span>
             </div>
@@ -453,7 +453,7 @@ export default function TodayPage() {
               <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: "#e5e7eb" }}>
                 <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "#f3f4f6" }}>
                   <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Active Workflows</h2>
-                  <a href="/analytics" className="text-sm font-bold flex items-center gap-1" style={{ color: "#1978e5" }}>
+                  <a href="/analytics" className="text-sm font-bold flex items-center gap-1" style={{ color: "#1e8e3e" }}>
                     <span>View All</span>
                     <ArrowRight size={16} />
                   </a>
@@ -464,7 +464,7 @@ export default function TodayPage() {
                     return (
                       <div key={t.id} onClick={() => setSelectedTask(t)} className="p-5 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(25,120,229,0.1)", color: "#1978e5" }}>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(30,142,62,0.1)", color: "#1e8e3e" }}>
                             <span className="text-lg">{t.agent?.icon || "📋"}</span>
                           </div>
                           <div>
@@ -474,9 +474,9 @@ export default function TodayPage() {
                         </div>
                         <div className="flex items-center gap-6">
                           <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: t.status === "review" ? "#22c55e" : "#1978e5" }} />
+                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: t.status === "review" ? "#22c55e" : "#1e8e3e" }} />
                           </div>
-                          <span className="text-xs font-bold" style={{ color: t.status === "review" ? "#16a34a" : "#1978e5" }}>{progress}%</span>
+                          <span className="text-xs font-bold" style={{ color: t.status === "review" ? "#16a34a" : "#1e8e3e" }}>{progress}%</span>
                         </div>
                       </div>
                     );
@@ -494,9 +494,9 @@ export default function TodayPage() {
                     onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
                     className="px-4 py-2 rounded-lg text-sm font-semibold border transition-all"
                     style={{
-                      borderColor: bulkMode ? "#1978e5" : "#e5e7eb",
-                      backgroundColor: bulkMode ? "rgba(25,120,229,0.1)" : "#fff",
-                      color: bulkMode ? "#1978e5" : "#6b7280",
+                      borderColor: bulkMode ? "#1e8e3e" : "#e5e7eb",
+                      backgroundColor: bulkMode ? "rgba(30,142,62,0.1)" : "#fff",
+                      color: bulkMode ? "#1e8e3e" : "#6b7280",
                     }}
                   >
                     {bulkMode ? "Cancel" : "Select"}
@@ -562,7 +562,7 @@ export default function TodayPage() {
                     {i < 3 && (
                       <div className="absolute w-[2px] bg-gray-100" style={{ left: 15, top: 32, bottom: -24 }} />
                     )}
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10" style={{ backgroundColor: "rgba(25,120,229,0.1)" }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10" style={{ backgroundColor: "rgba(30,142,62,0.1)" }}>
                       <span className="text-sm">{t.agent?.icon || "📋"}</span>
                     </div>
                     <div>
@@ -588,8 +588,8 @@ export default function TodayPage() {
         {/* System Status Footer */}
         <div className="p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6" style={{ backgroundColor: "#303030", color: "#fff" }}>
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full flex items-center justify-center animate-pulse" style={{ border: "4px solid rgba(25,120,229,0.3)" }}>
-              <div className="h-4 w-4 rounded-full" style={{ backgroundColor: "#1978e5" }} />
+            <div className="h-12 w-12 rounded-full flex items-center justify-center animate-pulse" style={{ border: "4px solid rgba(30,142,62,0.3)" }}>
+              <div className="h-4 w-4 rounded-full" style={{ backgroundColor: "#1e8e3e" }} />
             </div>
             <div>
               <h4 className="font-bold text-lg">Swarm Sync Active</h4>
@@ -600,7 +600,7 @@ export default function TodayPage() {
             <button
               onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
               className="px-6 py-2 font-bold rounded-lg transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#1978e5", color: "#fff" }}
+              style={{ backgroundColor: "#1e8e3e", color: "#fff" }}
             >
               Launch New Agent
             </button>
@@ -652,7 +652,7 @@ export default function TodayPage() {
                 <button
                   onClick={() => { setCreateAgentId(previewAgent?.id || null); setPreviewAgent(null); setShowCreateModal(true); }}
                   className="flex-1 py-3 rounded-xl font-bold text-sm transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "#1978e5", color: "#fff" }}
+                  style={{ backgroundColor: "#1e8e3e", color: "#fff" }}
                 >
                   Hire this specialist
                 </button>
@@ -701,12 +701,12 @@ export default function TodayPage() {
           <div className="bg-white rounded-3xl shadow-xl relative text-center" style={{ width: "min(480px, 90vw)", padding: "48px 28px" }}>
             <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style={{
               background: authPrompt === "login"
-                ? "linear-gradient(90deg, #1978e5, #e91e63)"
+                ? "linear-gradient(90deg, #1e8e3e, #e91e63)"
                 : "linear-gradient(90deg, #f5a623, #fb923c)",
             }} />
             <div className="w-[72px] h-[72px] rounded-2xl mx-auto mb-5 flex items-center justify-center text-3xl" style={{
               background: authPrompt === "login"
-                ? "linear-gradient(135deg, #1978e5, #e91e63)"
+                ? "linear-gradient(135deg, #1e8e3e, #e91e63)"
                 : "linear-gradient(135deg, #f5a623, #fb923c)",
             }}>
               {authPrompt === "login" ? "🔐" : "🔑"}
@@ -722,17 +722,17 @@ export default function TodayPage() {
             <a
               href={authPrompt === "login" ? "/login" : "/settings"}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#1978e5", color: "#fff", textDecoration: "none" }}
+              style={{ backgroundColor: "#1e8e3e", color: "#fff", textDecoration: "none" }}
             >
               {authPrompt === "login" ? "Sign In Free" : "Go to Settings"}
             </a>
             <p className="text-sm mt-5 mb-0" style={{ color: "#9ca3af" }}>
-              Redirecting in <span className="font-bold" style={{ color: "#1978e5", fontFamily: "monospace" }}>{authCountdown}s</span>
+              Redirecting in <span className="font-bold" style={{ color: "#1e8e3e", fontFamily: "monospace" }}>{authCountdown}s</span>
             </p>
             <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all duration-1000" style={{
                 width: `${((10 - authCountdown) / 10) * 100}%`,
-                background: "linear-gradient(90deg, #1978e5, #22c55e)",
+                background: "linear-gradient(90deg, #1e8e3e, #22c55e)",
               }} />
             </div>
           </div>
@@ -743,7 +743,7 @@ export default function TodayPage() {
       <button
         onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
         className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"
-        style={{ backgroundColor: "#1978e5", color: "#fff" }}
+        style={{ backgroundColor: "#1e8e3e", color: "#fff" }}
       >
         <Plus size={24} />
       </button>
