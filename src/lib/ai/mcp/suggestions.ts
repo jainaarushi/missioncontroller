@@ -51,7 +51,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3003/sse",
     authPlaceholder: "Google service account JSON key",
     authRequired: true,
-    recommendedAgents: ["data-analyst", "project-planner", "recruitment-agent", "budget-builder", "retirement-planner", "debt-snowball", "invoice-generator", "grocery-optimizer", "college-savings", "chore-organizer", "client-proposal", "rate-calculator", "meal-prep-planner", "renovation-planner", "moving-coordinator", "wedding-planner", "scholarship-hunter", "college-advisor"],
+    recommendedAgents: ["data-analyst", "project-planner", "recruitment-agent", "budget-builder", "retirement-planner", "debt-snowball", "invoice-generator", "grocery-optimizer", "college-savings", "client-proposal", "rate-calculator", "meal-prep-planner", "renovation-planner", "moving-coordinator", "wedding-planner", "scholarship-hunter", "college-advisor"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/google-sheets",
   },
   {
@@ -87,7 +87,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3006/sse",
     authPlaceholder: "Notion integration token (secret_...)",
     authRequired: true,
-    recommendedAgents: ["meeting-notes", "project-planner", "technical-writer", "chore-organizer", "contract-reviewer"],
+    recommendedAgents: ["meeting-notes", "project-planner", "technical-writer", "contract-reviewer"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/notion",
   },
   {
@@ -111,7 +111,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3008/sse",
     authPlaceholder: "Browserbase API key",
     authRequired: true,
-    recommendedAgents: ["web-intel", "competitor-intel", "sales-rep", "job-hunter", "auto-applier", "deal-spotter", "tech-buyer", "flight-deal-hunter", "car-buy-negotiator", "school-chooser", "linkedin-optimizer", "apartment-scout", "gift-finder", "scholarship-hunter", "college-advisor"],
+    recommendedAgents: ["web-intel", "competitor-intel", "sales-rep", "job-hunter", "auto-applier", "deal-spotter", "tech-buyer", "flight-deal-hunter", "car-buy-negotiator", "school-chooser", "linkedin-optimizer", "apartment-scout", "scholarship-hunter", "college-advisor"],
     docsUrl: "https://github.com/browserbase/mcp-server-browserbase",
   },
   {
@@ -692,13 +692,6 @@ const AGENT_MCP_RECOMMENDATIONS: Record<string, MCPRecommendation> = {
     message: "Connect Google Sheets to export your optimized shopping list to a shareable spreadsheet.",
     settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
   },
-  "gift-finder": {
-    serverTypes: ["browserbase"],
-    serverNames: ["Browserbase"],
-    message: "Connect Browserbase to scrape real prices and availability from gift retailers.",
-    settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
-  },
-
   // Travel templates
   "flight-deal-hunter": {
     serverTypes: ["browserbase", "gmail"],
@@ -732,13 +725,6 @@ const AGENT_MCP_RECOMMENDATIONS: Record<string, MCPRecommendation> = {
     message: "Connect Google Sheets to create a live college savings projection tracker.",
     settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
   },
-  "chore-organizer": {
-    serverTypes: ["google-sheets", "notion"],
-    serverNames: ["Google Sheets", "Notion"],
-    message: "Connect Google Sheets or Notion to create a shareable family chore chart.",
-    settingsHint: "Add Google Sheets or Notion MCP servers in Settings → Integrations.",
-  },
-
   // Freelance templates
   "freelance-bid-writer": {
     serverTypes: ["gmail"],

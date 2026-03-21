@@ -37,7 +37,7 @@ const ALL_SLUGS = [
   // Legal & Rights
   "dispute-fighter", "benefits-finder", "lease-reviewer", "immigration-helper", "small-claims-advisor",
   // Housing & Moving
-  "apartment-scout", "moving-coordinator", "utility-optimizer", "roommate-matcher",
+  "apartment-scout", "moving-coordinator", "utility-optimizer",
   // Health & Medical
   "medical-bill-auditor", "insurance-comparer", "symptom-researcher", "prescription-saver",
   // Education

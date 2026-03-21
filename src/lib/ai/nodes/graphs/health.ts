@@ -85,27 +85,4 @@ export const HEALTH_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "supplement-advisor": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Health Goals", description: "Understanding your supplement needs", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_evidence", type: "search", label: "Research Evidence", description: "Finding scientific evidence for supplements", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`${ctx.latestText.slice(0, 50)} supplements evidence based`, `best supplements ${ctx.latestText.slice(0, 30)} research`, `supplement interactions safety`], maxResults: 6 } },
-      { id: "recommend", type: "ai", label: "Build Supplement Plan", description: "Creating your evidence-based supplement guide", icon: "💊", color: "#4ade80", inputs: ["input", "search_evidence"], config: { type: "ai", specialistSlug: "deep-research", userPromptTemplate: "Create a supplement guide for: {{input}}\n\nEvidence:\n{{search_evidence}}\n\nProvide:\n1. Recommended Supplements Table (Supplement | Dose | Evidence Level | Benefits | Risks)\n2. Evidence quality rating for each (A/B/C/D)\n3. Interaction warnings\n4. Best time to take each\n5. Quality brands to look for\n6. Supplements to avoid (hype vs evidence)\n7. Diet-first alternatives\n8. Disclaimer: consult your doctor before starting supplements", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "allergy-navigator": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Allergies", description: "Understanding your allergy situation", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_info", type: "search", label: "Research Allergens", description: "Finding allergy management information", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`${ctx.latestText.slice(0, 50)} allergy management tips`, `allergy-free alternatives ${ctx.latestText.slice(0, 30)}`, `allergy treatment options ${ctx.today.split(",").pop()?.trim()}`], maxResults: 5 } },
-      { id: "guide", type: "ai", label: "Allergy Management Plan", description: "Creating your allergy management guide", icon: "🤧", color: "#f472b6", inputs: ["input", "search_info"], config: { type: "ai", specialistSlug: "deep-research", userPromptTemplate: "Create an allergy management plan for: {{input}}\n\nResearch:\n{{search_info}}\n\nProvide:\n1. Allergen avoidance strategy\n2. Safe alternatives and substitutes\n3. Label reading guide\n4. Restaurant dining tips\n5. Emergency action plan\n6. Medication options (OTC and prescription)\n7. When to see an allergist\n8. Allergy-friendly product recommendations\n9. Seasonal management calendar\n10. Disclaimer: consult your allergist for medical advice", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };

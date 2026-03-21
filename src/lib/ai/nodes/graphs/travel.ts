@@ -63,15 +63,4 @@ export const TRAVEL_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "packing-assistant": {
-    nodes: [
-      { id: "input", type: "input", label: "Trip Details", description: "Understanding your trip", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_weather", type: "search", label: "Check Weather", description: "Finding weather forecast for your destination", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`weather ${ctx.latestText.slice(0, 50)}`, `packing list ${ctx.latestText.slice(0, 40)}`, `travel essentials ${ctx.latestText.slice(0, 30)}`], maxResults: 5 } },
-      { id: "pack", type: "ai", label: "Build Packing List", description: "Creating your personalized packing list", icon: "🧳", color: "#2dd4bf", inputs: ["input", "search_weather"], config: { type: "ai", specialistSlug: "travel-planner", userPromptTemplate: "Create a packing list for: {{input}}\n\nWeather/research:\n{{search_weather}}\n\nProvide:\n1. Categorized Packing Checklist (Clothing | Toiletries | Tech | Documents | Misc)\n2. Weather-appropriate clothing\n3. Carry-on vs checked strategy\n4. Airline baggage restrictions\n5. Travel-size essentials\n6. Destination-specific items\n7. Things people always forget\n8. Packing organization tips\n9. What NOT to pack", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };

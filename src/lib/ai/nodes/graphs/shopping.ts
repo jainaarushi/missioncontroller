@@ -65,15 +65,4 @@ export const SHOPPING_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "gift-finder": {
-    nodes: [
-      { id: "input", type: "input", label: "Gift Recipient", description: "Understanding who you're shopping for", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_gifts", type: "search", label: "Search Gift Ideas", description: "Finding trending and unique gift ideas", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`best gift ideas ${ctx.latestText.slice(0, 50)} ${ctx.today.split(",").pop()?.trim()}`, `unique gifts ${ctx.latestText.slice(0, 40)}`, `trending gifts ${ctx.latestText.slice(0, 30)}`], maxResults: 6 } },
-      { id: "recommend", type: "ai", label: "Curate Gift List", description: "Creating your personalized gift recommendations", icon: "🎁", color: "#c084fc", inputs: ["input", "search_gifts"], config: { type: "ai", specialistSlug: "content-creator", userPromptTemplate: "Find the perfect gifts for: {{input}}\n\nGift research:\n{{search_gifts}}\n\nProvide:\n1. Top Gift Recommendations Table (Gift | Price | Category | Why They'll Love It | Where to Buy)\n2. Budget categories: Under $25, $25-50, $50-100, $100+\n3. Experience gifts\n4. Personalized gift ideas\n5. Subscription gift options\n6. DIY/homemade alternatives\n7. Last-minute options\n8. Gift wrapping and presentation tips", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };

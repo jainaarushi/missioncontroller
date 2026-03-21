@@ -734,17 +734,6 @@ const PERSONAS: Record<string, AgentPersona> = {
     tasksLabel: "2.2k tasks",
     about: "Finds the best plan at the lowest price.",
   },
-  "roommate-matcher": {
-    humanName: "Alex Rivera",
-    title: "Roommate Compatibility Expert",
-    animal: "\u{1F91D}",
-    yearsExp: 5,
-    rating: 4.7,
-    specialties: ["Compatibility", "Agreements", "Conflict Resolution"],
-    tasksLabel: "1.1k tasks",
-    about: "Prevents roommate horror stories.",
-  },
-
   // ── Health & Medical ────────────────────────────────
   "medical-bill-auditor": {
     humanName: "Patricia Nguyen",

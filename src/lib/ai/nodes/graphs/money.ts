@@ -87,18 +87,6 @@ export const MONEY_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "crypto-tax-helper": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Crypto Activity", description: "Reviewing your crypto transactions", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_rules", type: "search", label: "Research Tax Rules", description: "Finding current crypto tax regulations", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`cryptocurrency tax rules ${ctx.today.split(",").pop()?.trim()}`, `crypto capital gains tax reporting requirements`, `crypto tax loss harvesting strategies`], maxResults: 6 } },
-      { id: "analyze", type: "ai", label: "Calculate & Advise", description: "Analyzing your crypto tax situation", icon: "🧮", color: "#f97316", inputs: ["input", "search_rules"], config: { type: "ai", specialistSlug: "personal-finance", userPromptTemplate: "Analyze crypto tax situation for: {{input}}\n\nCurrent rules:\n{{search_rules}}\n\nProvide:\n1. Transaction Classification (income, short-term CG, long-term CG)\n2. Estimated tax liability\n3. Tax-loss harvesting opportunities\n4. Reporting requirements (forms needed)\n5. Deadline reminders\n6. Software recommendations for tracking\n7. Common mistakes to avoid\n8. Disclaimer: consult a crypto-savvy CPA", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
   "retirement-planner": {
     nodes: [
       { id: "input", type: "input", label: "Your Retirement Info", description: "Understanding your retirement goals", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
@@ -111,17 +99,4 @@ export const MONEY_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "cashback-maximizer": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Spending", description: "Analyzing your spending categories", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_cards", type: "search", label: "Research Cards", description: "Finding best cashback and rewards cards", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`best cashback credit cards ${ctx.today.split(",").pop()?.trim()}`, `credit card rewards maximize ${ctx.latestText.slice(0, 40)}`, `credit card sign up bonus current offers`], maxResults: 6 } },
-      { id: "scrape", type: "scrape", label: "Get Card Details", description: "Extracting card terms and rewards", icon: "🌐", color: "#10b981", inputs: ["search_cards"], config: { type: "scrape", urlsFrom: "search_cards", maxUrls: 4 } },
-      { id: "optimize", type: "ai", label: "Build Rewards Strategy", description: "Optimizing your cashback across all spending", icon: "💳", color: "#f5a623", inputs: ["input", "search_cards", "scrape"], config: { type: "ai", specialistSlug: "personal-finance", userPromptTemplate: "Maximize cashback for this spending profile: {{input}}\n\nCard research:\n{{search_cards}}\n\nCard details:\n{{scrape}}\n\nProvide:\n1. Recommended Card Setup (2-3 cards that cover all categories)\n2. Card Comparison Table (Card | Annual Fee | Categories | Cashback % | Sign-up Bonus)\n3. Which card to use for each spending category\n4. Estimated annual cashback earnings\n5. Sign-up bonus strategy (order and timing)\n6. Cashback portals and apps to stack\n7. Monthly review strategy", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "Web Scrape", icon: "🌐", color: "#10b981" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };

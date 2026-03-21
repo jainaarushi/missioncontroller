@@ -16,7 +16,15 @@
       "Bash(ls:*)",
       "Read(//private/tmp/**)",
       "Bash(gh repo clone msitarzewski/agency-agents -- --depth 1)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(npx next:*)",
+      "Bash(python3:*)",
+      "Bash(git:*)",
+      "Bash(gh auth:*)",
+      "WebFetch(domain:www.jobauto.ai)",
+      "WebFetch(domain:mcp.composio.dev)",
+      "WebFetch(domain:docs.composio.dev)"
     ]
   }
 }

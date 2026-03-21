@@ -573,14 +573,12 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "networking-coach": "tmpl_career",
   // Money & Bills
   "tax-deduction-finder": "tmpl_tax_finance",
-  "crypto-tax-helper": "tmpl_tax_finance",
   "retirement-planner": "tmpl_tax_finance",
   "debt-snowball": "tmpl_budget_debt",
   "budget-builder": "tmpl_budget_debt",
   "subscription-killer": "tmpl_budget_debt",
   "bill-negotiator": "tmpl_budget_debt",
   "credit-score-coach": "tmpl_budget_debt",
-  "cashback-maximizer": "tmpl_budget_debt",
   // Legal & Rights
   "dispute-fighter": "tmpl_legal",
   "tenant-rights": "tmpl_legal",
@@ -593,17 +591,12 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "contract-reviewer": "tmpl_legal_doc",
   // Housing & Moving
   "apartment-scout": "tmpl_home",
-  "home-inspector": "tmpl_home",
   "renovation-planner": "tmpl_home",
-  "neighborhood-scout": "tmpl_home",
   "moving-coordinator": "tmpl_home",
   "utility-optimizer": "tmpl_home",
-  "roommate-matcher": "tmpl_home",
   // Health & Medical
   "symptom-researcher": "tmpl_health",
   "therapy-finder": "tmpl_health",
-  "supplement-advisor": "tmpl_health",
-  "allergy-navigator": "tmpl_health",
   "sleep-optimizer": "tmpl_health",
   "medical-bill-auditor": "tmpl_health_bills",
   "insurance-comparer": "tmpl_health_bills",
@@ -622,7 +615,6 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "warranty-claimer": "tmpl_shopping",
   "tech-buyer": "tmpl_shopping",
   "grocery-optimizer": "tmpl_shopping",
-  "gift-finder": "tmpl_shopping",
   "return-assistant": "tmpl_shopping",
   // Freelance & Side Income
   "freelance-bid-writer": "tmpl_freelance",
@@ -633,15 +625,11 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   // Parenting & Family
   "baby-name-picker": "tmpl_parenting",
   "school-chooser": "tmpl_parenting",
-  "chore-organizer": "tmpl_parenting",
   "college-savings": "tmpl_parenting",
-  "childcare-finder": "tmpl_parenting",
-  "summer-camp-finder": "tmpl_parenting",
   // Travel & Events
   "flight-deal-hunter": "tmpl_travel",
   "visa-advisor": "tmpl_travel",
   "road-trip-planner": "tmpl_travel",
-  "packing-assistant": "tmpl_travel",
   "wedding-planner": "tmpl_event",
   "party-planner": "tmpl_event",
   // Personal Growth
@@ -649,8 +637,6 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "journaling-coach": "tmpl_wellness",
   "morning-routine": "tmpl_wellness",
   "social-skills": "tmpl_wellness",
-  "dating-profile": "tmpl_wellness",
-  "pet-care-advisor": "tmpl_pet",
   // ── Agency Agents ──────────────────────────────────
   // Design
   "image-prompt-engineer": "architect",

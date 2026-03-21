@@ -369,9 +369,7 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "deal-spotter": "finance_personal",
   "debt-snowball": "finance_personal",
   "budget-builder": "finance_personal",
-  "crypto-tax-helper": "finance_personal",
   "retirement-planner": "finance_personal",
-  "cashback-maximizer": "finance_personal",
 
   // Legal & Rights
   "dispute-fighter": "legal_personal",
@@ -387,10 +385,7 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "apartment-scout": "housing",
   "moving-coordinator": "housing",
   "utility-optimizer": "housing",
-  "roommate-matcher": "housing",
-  "home-inspector": "housing",
   "renovation-planner": "housing",
-  "neighborhood-scout": "housing",
 
   // Health & Medical
   "medical-bill-auditor": "health_personal",
@@ -400,8 +395,6 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "meal-prep-planner": "health_personal",
   "sleep-optimizer": "health_personal",
   "therapy-finder": "health_personal",
-  "supplement-advisor": "health_personal",
-  "allergy-navigator": "health_personal",
 
   // Education
   "scholarship-hunter": "education",
@@ -417,7 +410,6 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "warranty-claimer": "shopping",
   "tech-buyer": "shopping",
   "grocery-optimizer": "shopping",
-  "gift-finder": "shopping",
 
   // Freelance & Side Income
   "freelance-bid-writer": "freelance",
@@ -430,10 +422,7 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   // Parenting & Family
   "baby-name-picker": "parenting",
   "school-chooser": "parenting",
-  "chore-organizer": "parenting",
   "college-savings": "parenting",
-  "childcare-finder": "parenting",
-  "summer-camp-finder": "parenting",
 
   // Travel & Events
   "flight-deal-hunter": "travel_events",
@@ -441,15 +430,12 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "party-planner": "travel_events",
   "visa-advisor": "travel_events",
   "road-trip-planner": "travel_events",
-  "packing-assistant": "travel_events",
 
   // Personal Growth
   "habit-tracker": "personal_growth",
   "journaling-coach": "personal_growth",
   "morning-routine": "personal_growth",
   "social-skills": "personal_growth",
-  "dating-profile": "personal_growth",
-  "pet-care-advisor": "personal_growth",
 
   // Engineering
   "ai-data-remediation-engineer": "engineering",

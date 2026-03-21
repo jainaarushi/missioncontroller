@@ -27,18 +27,6 @@ export const PARENTING_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "chore-organizer": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Household", description: "Understanding your family and home", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_tips", type: "search", label: "Research Methods", description: "Finding family chore management strategies", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`family chore chart system ${ctx.latestText.slice(0, 40)}`, `age appropriate chores kids`, `household management tips`], maxResults: 4 } },
-      { id: "organize", type: "ai", label: "Build Chore System", description: "Creating your family chore system", icon: "📋", color: "#a99cf5", inputs: ["input", "search_tips"], config: { type: "ai", specialistSlug: "project-planner", userPromptTemplate: "Create a chore system for: {{input}}\n\nResearch:\n{{search_tips}}\n\nProvide:\n1. Weekly Chore Chart (Person | Mon-Sun tasks)\n2. Age-appropriate task assignments\n3. Reward/incentive system\n4. Rotation schedule\n5. Daily, weekly, monthly task breakdown\n6. Cleaning supply checklist\n7. Time estimates per task\n8. App recommendations for tracking\n9. How to get kids on board", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
   "college-savings": {
     nodes: [
       { id: "input", type: "input", label: "Your Savings Goals", description: "Understanding your college savings situation", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
@@ -51,27 +39,4 @@ export const PARENTING_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "childcare-finder": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Childcare Needs", description: "Understanding your childcare requirements", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_options", type: "search", label: "Find Options", description: "Searching for childcare providers", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`childcare near ${ctx.latestText.slice(0, 50)}`, `daycare reviews ratings ${ctx.latestText.slice(0, 40)}`, `childcare cost comparison ${ctx.latestText.slice(0, 30)}`], maxResults: 6 } },
-      { id: "compare", type: "ai", label: "Compare & Recommend", description: "Comparing childcare options for your family", icon: "👨‍👩‍👧", color: "#a99cf5", inputs: ["input", "search_options"], config: { type: "ai", specialistSlug: "deep-research", userPromptTemplate: "Find childcare for: {{input}}\n\nOptions found:\n{{search_options}}\n\nProvide:\n1. Childcare Options Table (Provider | Type | Hours | Cost | Rating | Location)\n2. Type comparison (daycare vs nanny vs au pair vs family)\n3. Interview questions for each type\n4. Safety checklist\n5. Cost optimization tips (FSA, employer benefits, tax credits)\n6. Backup care plan\n7. Transition strategy for your child\n8. Red flags to watch for", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "summer-camp-finder": {
-    nodes: [
-      { id: "input", type: "input", label: "Camp Preferences", description: "Understanding your camp requirements", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_camps", type: "search", label: "Search Camps", description: "Finding summer camps that match", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`summer camps ${ctx.latestText.slice(0, 50)} ${ctx.today.split(",").pop()?.trim()}`, `best kids camps ${ctx.latestText.slice(0, 40)} reviews`, `camp scholarships financial aid`], maxResults: 6 } },
-      { id: "recommend", type: "ai", label: "Recommend Camps", description: "Matching camps to your child's interests", icon: "⛺", color: "#a99cf5", inputs: ["input", "search_camps"], config: { type: "ai", specialistSlug: "deep-research", userPromptTemplate: "Find summer camps for: {{input}}\n\nCamps found:\n{{search_camps}}\n\nProvide:\n1. Camp Comparison Table (Camp | Type | Ages | Dates | Cost | Location | Rating)\n2. Top 3 recommendations with reasoning\n3. Scholarship/financial aid options\n4. Registration deadlines\n5. What to pack checklist\n6. Preparation tips for kids\n7. Questions to ask camp directors\n8. Homesickness prevention strategies", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };

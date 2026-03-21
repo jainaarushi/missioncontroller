@@ -487,14 +487,6 @@ export const AGENT_INPUT_CONFIGS: Record<string, AgentInputConfig> = {
       { id: "needs", type: "textarea", label: "Your Needs", placeholder: "e.g., work from home, need 500+ Mbps, 2 people streaming" },
     ],
   },
-  "roommate-matcher": {
-    fields: [
-      { id: "habits", type: "textarea", label: "Your Living Habits", placeholder: "Describe your schedule, cleanliness level, noise preferences, social style", required: true, fullWidth: true },
-      { id: "deal_breakers", type: "textarea", label: "Deal Breakers", placeholder: "e.g., no smoking, no pets, no overnight guests on weekdays" },
-      { id: "rent_split", type: "text", label: "Rent & Split", placeholder: "e.g., $2,400 total, splitting 50/50" },
-    ],
-  },
-
   // ── Health & Medical ──────────────────────────────────
   "medical-bill-auditor": {
     fields: [
@@ -726,8 +718,6 @@ export function generateTaskTitle(slug: string, values: Record<string, unknown>)
       return `Moving plan: ${values.from_to || "move"}`;
     case "utility-optimizer":
       return `Compare ${values.utility_type || "utility"} plans`;
-    case "roommate-matcher":
-      return "Roommate compatibility kit";
     case "medical-bill-auditor":
       return `Medical bill audit: $${values.total_amount || "amount"}`;
     case "insurance-comparer":

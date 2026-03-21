@@ -49,27 +49,4 @@ export const GROWTH_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "dating-profile": {
-    nodes: [
-      { id: "input", type: "input", label: "About You", description: "Understanding who you are and what you're looking for", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_tips", type: "search", label: "Research What Works", description: "Finding dating profile optimization tips", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`dating profile tips that work ${ctx.today.split(",").pop()?.trim()}`, `best dating app bio examples`, `dating profile photos tips`], maxResults: 5 } },
-      { id: "create", type: "ai", label: "Build Your Profile", description: "Creating your optimized dating profile", icon: "💝", color: "#f5a623", inputs: ["input", "search_tips"], config: { type: "ai", specialistSlug: "content-creator", userPromptTemplate: "Optimize a dating profile for: {{input}}\n\nTips:\n{{search_tips}}\n\nProvide:\n1. Bio options (3 different styles: witty, sincere, adventurous)\n2. Profile prompt answers (6 prompts)\n3. Photo strategy and order\n4. App-specific optimization (Hinge vs Bumble vs Tinder)\n5. Conversation starters to use\n6. Red flags to avoid in your profile\n7. First date suggestions\n8. Messaging strategy", tools: ["web-search"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "pet-care-advisor": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Pet", description: "Understanding your pet's needs", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_care", type: "search", label: "Research Care", description: "Finding pet care best practices", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`${ctx.latestText.slice(0, 50)} care guide`, `${ctx.latestText.slice(0, 40)} health tips`, `${ctx.latestText.slice(0, 30)} nutrition diet best`], maxResults: 5 } },
-      { id: "guide", type: "ai", label: "Build Care Guide", description: "Creating your personalized pet care plan", icon: "🐾", color: "#f5a623", inputs: ["input", "search_care"], config: { type: "ai", specialistSlug: "deep-research", userPromptTemplate: "Create a pet care guide for: {{input}}\n\nResearch:\n{{search_care}}\n\nProvide:\n1. Daily Care Schedule\n2. Nutrition guide (diet, portions, treats)\n3. Exercise and enrichment plan\n4. Health checklist (vaccines, checkups)\n5. Grooming schedule\n6. Training tips\n7. Emergency preparedness\n8. Cost estimation (monthly/annual)\n9. Pet-proofing your home\n10. Signs of illness to watch for", tools: ["web-search"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };

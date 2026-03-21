@@ -101,8 +101,6 @@ const KEYWORD_MAP: { keywords: string[]; slugs: string[]; weight: number }[] = [
   { keywords: ["apartment", "rent apartment", "apartment search", "find apartment", "neighborhood"], slugs: ["apartment-scout"], weight: 4 },
   { keywords: ["moving", "relocate", "relocation", "move to", "packing", "movers"], slugs: ["moving-coordinator"], weight: 4 },
   { keywords: ["utility", "internet plan", "electric plan", "energy plan", "internet provider", "compare plans"], slugs: ["utility-optimizer"], weight: 4 },
-  { keywords: ["roommate", "roommate agreement", "living together", "shared apartment", "room share"], slugs: ["roommate-matcher"], weight: 4 },
-
   // Health & Medical
   { keywords: ["medical bill", "hospital bill", "healthcare cost", "billing error medical", "medical debt"], slugs: ["medical-bill-auditor"], weight: 4 },
   { keywords: ["insurance", "health insurance", "auto insurance", "home insurance", "compare insurance", "insurance plan"], slugs: ["insurance-comparer"], weight: 4 },
@@ -236,7 +234,6 @@ function getReasonForSlug(slug: string, matchedKeyword: string): string {
     "apartment-scout": `Can research ${matchedKeyword} options`,
     "moving-coordinator": `Can plan your ${matchedKeyword}`,
     "utility-optimizer": `Can compare ${matchedKeyword} plans`,
-    "roommate-matcher": `Can help find a compatible ${matchedKeyword}`,
     "medical-bill-auditor": `Can audit your ${matchedKeyword}`,
     "insurance-comparer": `Can compare ${matchedKeyword} plans`,
     "symptom-researcher": `Can research ${matchedKeyword} from trusted sources`,
