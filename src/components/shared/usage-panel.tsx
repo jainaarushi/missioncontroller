@@ -47,7 +47,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
       {/* Thin rainbow accent */}
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0, height: 2,
-        background: "linear-gradient(90deg, #10B981, #6366F1, #F97066)",
+        background: "linear-gradient(90deg, #1e8e3e, #423ff7, #15e11e)",
       }} />
 
       {/* Summary bar */}
@@ -58,7 +58,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
           padding: "12px 18px", cursor: "pointer",
           transition: "background-color 0.15s",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(99,102,241,0.06)"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(30,142,62,0.06)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
@@ -87,7 +87,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
               width: 28, height: 28, borderRadius: 8,
-              background: "linear-gradient(135deg, #6366F1, #4F46E5)",
+              background: "linear-gradient(135deg, #423ff7, #3532d4)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <Zap size={14} color="#fff" strokeWidth={2.5} />
@@ -130,7 +130,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
           display: "flex", alignItems: "center", gap: 5,
           color: P.indigo, fontSize: 11, fontWeight: 600,
           padding: "4px 10px", borderRadius: 7,
-          backgroundColor: "rgba(99,102,241,0.08)",
+          backgroundColor: "rgba(30,142,62,0.08)",
         }}>
           {expanded ? "Hide" : "Details"}
           {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}

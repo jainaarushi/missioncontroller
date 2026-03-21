@@ -46,7 +46,7 @@ const CATEGORY_AGENTS: Record<string, string[]> = {
 
 // Quick mission templates
 const MISSION_TEMPLATES = [
-  { title: "Research top competitors in my space", icon: "🔍", color: "#6366F1" },
+  { title: "Research top competitors in my space", icon: "🔍", color: "#1e8e3e" },
   { title: "Roast me based on my LinkedIn bio", icon: "🔥", color: "#EF4444" },
   { title: "Write a viral LinkedIn post about AI", icon: "💼", color: "#0A66C2" },
   { title: "Create a 4-week workout plan", icon: "💪", color: "#14B8A6" },
@@ -481,7 +481,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                 style={{
                   width: "100%", padding: "14px 20px", borderRadius: 14,
                   border: "none",
-                  background: missionTitle.trim() ? "linear-gradient(135deg, #6366F1, #8B5CF6)" : P.border,
+                  background: missionTitle.trim() ? "linear-gradient(135deg, #1e8e3e, #15e11e)" : P.border,
                   color: missionTitle.trim() ? "#fff" : P.textTer,
                   fontSize: 15, fontWeight: 700, cursor: missionTitle.trim() ? "pointer" : "default",
                   fontFamily: "inherit",
@@ -720,7 +720,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                     padding: "12px 24px", borderRadius: 12,
                     border: "none",
                     background: recruitedIds.length > 0
-                      ? "linear-gradient(135deg, #6366F1, #8B5CF6)"
+                      ? "linear-gradient(135deg, #1e8e3e, #15e11e)"
                       : missionTitle.trim()
                       ? P.coralGrad
                       : P.border,
@@ -746,7 +746,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
               {/* Mission briefing card */}
               <div style={{
                 padding: "24px", borderRadius: 18,
-                background: "linear-gradient(135deg, #6366F108, #8B5CF608)",
+                background: "linear-gradient(135deg, #1e8e3e08, #15e11e08)",
                 border: `1px solid ${P.indigo}15`,
                 marginBottom: 24,
               }}>
@@ -919,7 +919,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                   border: "none",
                   background: launching
                     ? "linear-gradient(135deg, #10B981, #34D399)"
-                    : "linear-gradient(135deg, #6366F1, #8B5CF6, #A855F7)",
+                    : "linear-gradient(135deg, #1e8e3e, #15e11e, #156d2e)",
                   color: "#fff",
                   fontSize: 16, fontWeight: 800, cursor: launching ? "default" : "pointer",
                   fontFamily: "inherit",

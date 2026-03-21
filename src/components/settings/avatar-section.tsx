@@ -7,7 +7,7 @@ import { AVATAR_PROMPTS } from "@/lib/ai/avatar-prompts";
 import { AGENT_CATEGORIES } from "@/lib/agent-categories";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  product: "#6366F1",
+  product: "#1e8e3e",
   research: "#0EA5E9",
   sales: "#10B981",
   marketing: "#F43F5E",
@@ -241,7 +241,7 @@ export function AvatarSection({ hasGeminiKey }: AvatarSectionProps) {
             border: "none",
             background: (!faceFile || !hasGeminiKey)
               ? P.border
-              : "linear-gradient(135deg, #8B5CF6, #6366F1)",
+              : "linear-gradient(135deg, #1e8e3e, #15e11e)",
             color: (!faceFile || !hasGeminiKey) ? P.textTer : "#fff",
             fontSize: 14,
             fontWeight: 700,

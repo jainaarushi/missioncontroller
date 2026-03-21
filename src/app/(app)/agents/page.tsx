@@ -103,7 +103,7 @@ export default function AgentsPage() {
   return (
     <>
       <style>{`
-        @keyframes createPulse { 0%,100%{box-shadow:0 0 0 0 rgba(124,111,239,0.18)}50%{box-shadow:0 0 0 14px rgba(124,111,239,0)} }
+        @keyframes createPulse { 0%,100%{box-shadow:0 0 0 0 rgba(30,142,62,0.18)}50%{box-shadow:0 0 0 14px rgba(30,142,62,0)} }
         @keyframes popIn { 0%{opacity:0;transform:scale(0.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)} }
         @keyframes fadeUp { 0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)} }
@@ -127,12 +127,12 @@ export default function AgentsPage() {
         <div style={{
           position: "absolute", top: -40, right: -20,
           width: 180, height: 180, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(124,111,239,0.12) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(30,142,62,0.08) 0%, transparent 70%)",
         }} />
         <div style={{
           position: "absolute", bottom: -30, left: "40%",
           width: 120, height: 120, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(197,241,53,0.06) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(66,63,247,0.04) 0%, transparent 70%)",
         }} />
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
@@ -140,7 +140,7 @@ export default function AgentsPage() {
             <h1 style={{
               fontSize: 38, fontWeight: 900, margin: "0 0 8px",
               letterSpacing: "-0.04em",
-              background: P.purpleGrad,
+              background: "linear-gradient(135deg, #1e8e3e, #423ff7)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -153,29 +153,29 @@ export default function AgentsPage() {
               maxWidth: 440,
             }}>
               Your team of AI specialists across {SPECIALIST_CATEGORIES.length} categories.
-              <span style={{ color: P.purple, fontWeight: 600 }}> From idea to revenue.</span>
+              <span style={{ color: P.lime, fontWeight: 600 }}> From idea to revenue.</span>
             </p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
             style={{
               padding: "14px 28px", borderRadius: 12, border: "none",
-              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
               color: "#fff",
               fontSize: 14, fontWeight: 700, cursor: "pointer",
               fontFamily: "inherit",
-              boxShadow: "0 4px 16px rgba(102,126,234,0.35)",
+              boxShadow: "0 4px 16px rgba(30,142,62,0.3)",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
               whiteSpace: "nowrap",
               display: "flex", alignItems: "center", gap: 8,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-3px)";
-              e.currentTarget.style.boxShadow = "0 8px 24px rgba(102,126,234,0.4)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(30,142,62,0.35)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 16px rgba(102,126,234,0.35)";
+              e.currentTarget.style.boxShadow = "0 4px 16px rgba(30,142,62,0.3)";
             }}
           >
             <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
@@ -191,7 +191,7 @@ export default function AgentsPage() {
       }}>
         <div style={{
           position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)",
-          fontSize: 18, color: searchFocused ? P.purple : P.textTer,
+          fontSize: 18, color: searchFocused ? P.lime : P.textTer,
           transition: "color 0.2s",
           pointerEvents: "none",
           zIndex: 1,
@@ -207,14 +207,14 @@ export default function AgentsPage() {
           style={{
             width: "100%", height: 56, padding: "0 20px 0 52px",
             borderRadius: 16,
-            border: `2px solid ${searchFocused ? P.purple : P.border}`,
+            border: `2px solid ${searchFocused ? P.lime : P.border}`,
             fontSize: 16, color: P.text,
             outline: "none",
             backgroundColor: P.card,
             fontFamily: "inherit",
             transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             boxShadow: searchFocused
-              ? `0 0 0 4px ${P.purple}15, 0 4px 16px rgba(0,0,0,0.3)`
+              ? `0 0 0 4px ${P.lime}15, 0 4px 16px rgba(0,0,0,0.08)`
               : P.shadow,
           }}
         />
@@ -230,13 +230,13 @@ export default function AgentsPage() {
           style={{
             padding: "10px 20px", borderRadius: 20,
             background: !activeCategory
-              ? "linear-gradient(135deg, #667eea, #764ba2)"
+              ? "linear-gradient(135deg, #1e8e3e, #15e11e)"
               : P.card,
             color: !activeCategory ? "#fff" : P.textSec,
             fontSize: 13, fontWeight: 700, cursor: "pointer",
             fontFamily: "inherit", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             boxShadow: !activeCategory
-              ? "0 4px 14px rgba(102,126,234,0.3)"
+              ? "0 4px 14px rgba(30,142,62,0.25)"
               : P.shadow,
             border: activeCategory ? `1.5px solid ${P.border}` : "1.5px solid transparent",
           }}
@@ -317,7 +317,7 @@ export default function AgentsPage() {
             <span style={{
               display: "inline-flex", alignItems: "center", justifyContent: "center",
               width: 28, height: 28, borderRadius: 8,
-              background: P.purpleGrad, color: "#fff", fontSize: 12, fontWeight: 800,
+              background: "linear-gradient(135deg, #1e8e3e, #15e11e)", color: "#fff", fontSize: 12, fontWeight: 800,
             }}>
               {filteredAgents.length}
             </span>
@@ -431,10 +431,10 @@ export default function AgentsPage() {
           }}>
             <div style={{
               width: 44, height: 44, borderRadius: 14,
-              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 22, color: "#fff", fontWeight: 700,
-              boxShadow: "0 4px 14px rgba(102,126,234,0.25)",
+              boxShadow: "0 4px 14px rgba(30,142,62,0.25)",
               flexShrink: 0,
             }}>
               +
@@ -476,12 +476,12 @@ export default function AgentsPage() {
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "translateY(-4px) scale(1.03)";
                 e.currentTarget.style.boxShadow = P.shadowFloat;
-                e.currentTarget.style.borderColor = P.purple + "50";
+                e.currentTarget.style.borderColor = P.lime + "50";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0) scale(1)";
                 e.currentTarget.style.boxShadow = P.shadow;
-                e.currentTarget.style.borderColor = P.purple + "30";
+                e.currentTarget.style.borderColor = P.lime + "30";
               }}
               style={{
                 position: "relative",
@@ -490,18 +490,18 @@ export default function AgentsPage() {
                 overflow: "hidden", minHeight: 220,
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center", gap: 14,
-                border: `2.5px dashed ${P.purple}30`,
-                backgroundColor: P.purpleLight,
+                border: `2.5px dashed ${P.lime}30`,
+                backgroundColor: P.emeraldSoft,
                 transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
                 boxShadow: P.shadow,
               }}
             >
               <div style={{
                 width: 56, height: 56, borderRadius: 16,
-                background: "linear-gradient(135deg, #667eea, #764ba2)",
+                background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 28, color: "#fff", fontWeight: 300,
-                boxShadow: "0 6px 20px rgba(102,126,234,0.3)",
+                boxShadow: "0 6px 20px rgba(30,142,62,0.25)",
                 animation: "createPulse 3s ease-in-out infinite",
               }}>
                 +
@@ -545,7 +545,7 @@ interface AgentCardProps {
 
 function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router, categoryColor, categoryName }: AgentCardProps) {
   const isHovered = hoveredId === agent.id;
-  const accentColor = categoryColor || agent.color || P.purple;
+  const accentColor = categoryColor || agent.color || P.lime;
 
   return (
     <div
@@ -676,9 +676,9 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router, ca
           }}>
             <span style={{
               fontSize: 12, fontWeight: 700, color: "#fff",
-              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
               padding: "6px 16px", borderRadius: 8,
-              boxShadow: "0 2px 8px rgba(102,126,234,0.3)",
+              boxShadow: "0 2px 8px rgba(30,142,62,0.25)",
             }}>
               Hire &rarr;
             </span>

@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="w-full text-white"
                 style={{
-                  background: "linear-gradient(135deg, #4F46E5, #6366F1)",
+                  background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
                 }}
                 disabled={loading}
               >

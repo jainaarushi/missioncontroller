@@ -142,7 +142,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full text-white"
               style={{
-                background: "linear-gradient(135deg, #4F46E5, #6366F1)",
+                background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
               }}
               disabled={loading}
             >
@@ -175,7 +175,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => { setIsForgot(false); setError(null); setMessage(null); }}
                 className="font-medium"
-                style={{ color: "#4F46E5" }}
+                style={{ color: "#1e8e3e" }}
               >
                 Back to sign in
               </button>
@@ -186,7 +186,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => { setIsSignUp(!isSignUp); setError(null); setMessage(null); }}
                   className="font-medium"
-                  style={{ color: "#4F46E5" }}
+                  style={{ color: "#1e8e3e" }}
                 >
                   {isSignUp ? "Sign in" : "Sign up"}
                 </button>

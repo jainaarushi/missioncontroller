@@ -136,7 +136,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
         >
           <div style={{
             width: 26, height: 26, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${P.violet}, ${P.rose})`,
+            background: `linear-gradient(135deg, ${P.lime}, ${P.lime2})`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 10, fontWeight: 700, flexShrink: 0, color: "#fff",
           }}>
@@ -159,7 +159,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
               width: 200, backgroundColor: P.bg3,
               borderRadius: 12, padding: "8px",
               border: `1px solid ${P.border2}`,
-              boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
               zIndex: 100,
             }}>
               <div style={{ padding: "10px 12px", borderBottom: `1px solid ${P.border}`, marginBottom: 4 }}>

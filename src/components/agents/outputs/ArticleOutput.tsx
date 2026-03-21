@@ -97,7 +97,7 @@ function formatArticle(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#6366F1;text-decoration:underline;text-decoration-color:#6366F133">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#1e8e3e;text-decoration:underline;text-decoration-color:#1e8e3e33">$1</a>')
     .replace(/^> (.+)$/gm, '<blockquote style="border-left:3px solid #e2e8f0;padding-left:16px;margin:12px 0;color:#64748B;font-style:italic">$1</blockquote>')
     .replace(/^- (.+)$/gm, '<li style="margin:4px 0;padding-left:4px">$1</li>')
     .replace(/^\d+\. (.+)$/gm, '<li style="margin:4px 0;padding-left:4px">$1</li>')

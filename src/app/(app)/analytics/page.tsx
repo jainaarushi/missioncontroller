@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
         <h1 style={{
           fontSize: 36, fontWeight: 900, margin: "0 0 10px",
           letterSpacing: "-0.04em",
-          background: `linear-gradient(135deg, ${P.violet} 0%, ${P.purple} 50%, ${P.rose} 100%)`,
+          background: `linear-gradient(135deg, #1e8e3e 0%, #423ff7 50%, #15e11e 100%)`,
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
         }}>

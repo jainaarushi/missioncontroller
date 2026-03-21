@@ -23,18 +23,18 @@ const POPULAR_AGENTS = [
 ];
 
 const FEATURES = [
-  { icon: Brain, title: "Every agent you need", desc: "Research, writing, coding, finance, health, fun \u2014 all under one roof. No more switching between tools.", accent: P.purple },
-  { icon: Layers, title: "Multi-Agent Pipelines", desc: "Chain agents together. Research \u2192 Write \u2192 Edit. Drag to reorder the sequence.", accent: P.pink },
-  { icon: MessageSquare, title: "Human Feedback Loop", desc: "Don't like the output? Give feedback and the agent revises \u2014 getting better each time.", accent: P.cyan },
-  { icon: BarChart3, title: "Track every dollar & token", desc: "Unlike other AI tools that hide usage, AgentStudio shows exactly what each task costs \u2014 per agent, per token. Full transparency, one dashboard.", accent: P.orange },
-  { icon: Zap, title: "Replace 10 tools in 10 seconds", desc: "No signup needed to explore. Try any agent free \u2014 replace your entire AI toolkit.", accent: P.purple },
-  { icon: Shield, title: "Your Keys, Your Data", desc: "Bring your own API keys. Encrypted with AES-256. We never see or store your keys in plain text.", accent: P.cyan },
+  { icon: Brain, title: "Every agent you need", desc: "Research, writing, coding, finance, health, fun \u2014 all under one roof. No more switching between tools.", accent: P.lime },
+  { icon: Layers, title: "Multi-Agent Pipelines", desc: "Chain agents together. Research \u2192 Write \u2192 Edit. Drag to reorder the sequence.", accent: P.violet },
+  { icon: MessageSquare, title: "Human Feedback Loop", desc: "Don't like the output? Give feedback and the agent revises \u2014 getting better each time.", accent: P.amber },
+  { icon: BarChart3, title: "Track every dollar & token", desc: "Unlike other AI tools that hide usage, AgentStudio shows exactly what each task costs \u2014 per agent, per token. Full transparency, one dashboard.", accent: P.lime },
+  { icon: Zap, title: "Replace 10 tools in 10 seconds", desc: "No signup needed to explore. Try any agent free \u2014 replace your entire AI toolkit.", accent: P.violet },
+  { icon: Shield, title: "Your Keys, Your Data", desc: "Bring your own API keys. Encrypted with AES-256. We never see or store your keys in plain text.", accent: P.teal },
 ];
 
 const STEPS = [
-  { num: "1", title: "Pick an Agent", desc: "Browse specialized AI agents. Click one to see what it does \u2014 from research to rap battles.", grad: "linear-gradient(135deg, #8B3DFF, #667eea)" },
-  { num: "2", title: "Describe Your Task", desc: "Type what you need in plain English. The agent understands context, tone, and nuance.", grad: "linear-gradient(135deg, #FF3399, #f093fb)" },
-  { num: "3", title: "Review & Iterate", desc: "Get polished output in seconds. Not perfect? Add feedback and the agent revises.", grad: "linear-gradient(135deg, #00C4CC, #4facfe)" },
+  { num: "1", title: "Pick an Agent", desc: "Browse specialized AI agents. Click one to see what it does \u2014 from research to rap battles.", grad: "linear-gradient(135deg, #1e8e3e, #423ff7)" },
+  { num: "2", title: "Describe Your Task", desc: "Type what you need in plain English. The agent understands context, tone, and nuance.", grad: "linear-gradient(135deg, #15e11e, #1e8e3e)" },
+  { num: "3", title: "Review & Iterate", desc: "Get polished output in seconds. Not perfect? Add feedback and the agent revises.", grad: "linear-gradient(135deg, #423ff7, #1e8e3e)" },
 ];
 
 const STATS = [
@@ -90,9 +90,9 @@ export default function LandingPage() {
       {/* --- NAV (Frosted Glass) --- */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
-        backgroundColor: "rgba(26,26,46,0.75)", backdropFilter: "blur(20px)",
+        backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid rgba(0,0,0,0.06)",
       }}>
         <div style={{
           maxWidth: 1200, margin: "0 auto", padding: "0 24px",
@@ -102,25 +102,25 @@ export default function LandingPage() {
             <img src="/logo.png" alt="AgentStudio" style={{
               width: 34, height: 34, borderRadius: 10, objectFit: "cover",
             }} />
-            <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.03em", color: "#fff" }}>AgentStudio</span>
+            <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.03em", color: P.text }}>AgentStudio</span>
           </div>
           <a className="landing-mobile-cta" href="/today" style={{
             display: "none", alignItems: "center",
             padding: "10px 20px", borderRadius: 12,
-            background: P.purpleGrad,
+            background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
             color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none",
           }}>Get Started</a>
           <div className="landing-nav-links" style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="#features" style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", textDecoration: "none", transition: "color 0.2s" }}>Features</a>
-            <a href="#agents" style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", textDecoration: "none", transition: "color 0.2s" }}>Agents</a>
-            <a href="#how-it-works" style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", textDecoration: "none", transition: "color 0.2s" }}>How It Works</a>
+            <a href="#features" style={{ fontSize: 14, color: P.textSec, textDecoration: "none", transition: "color 0.2s" }}>Features</a>
+            <a href="#agents" style={{ fontSize: 14, color: P.textSec, textDecoration: "none", transition: "color 0.2s" }}>Agents</a>
+            <a href="#how-it-works" style={{ fontSize: 14, color: P.textSec, textDecoration: "none", transition: "color 0.2s" }}>How It Works</a>
             <a
               href="/today"
               style={{
                 padding: "10px 24px", borderRadius: 12,
-                background: P.purpleGrad,
+                background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
                 color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none",
-                boxShadow: "0 4px 20px rgba(102,126,234,0.4)",
+                boxShadow: "0 4px 20px rgba(30,142,62,0.3)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
@@ -133,23 +133,23 @@ export default function LandingPage() {
       {/* --- DARK HERO --- */}
       <section className="landing-hero" style={{
         position: "relative", paddingTop: 160, paddingBottom: 100,
-        background: "linear-gradient(180deg, #0F0F1A 0%, #1A1A2E 40%, #1E1E3A 70%, #F8F9FC 100%)",
+        background: "linear-gradient(180deg, #f9f9f9 0%, #f3f3f3 40%, #eef7f0 70%, #f9f9f9 100%)",
         overflow: "hidden",
       }}>
         {/* Animated gradient orbs */}
         <div className="landing-hero-blobs" style={{
           position: "absolute", top: 60, left: "5%", width: 500, height: 500,
-          background: "radial-gradient(circle, rgba(139,61,255,0.2) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(30,142,62,0.12) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0, filter: "blur(60px)",
         }} />
         <div className="landing-hero-blobs" style={{
           position: "absolute", top: 120, right: "5%", width: 400, height: 400,
-          background: "radial-gradient(circle, rgba(255,51,153,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(21,225,30,0.08) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0, filter: "blur(60px)",
         }} />
         <div className="landing-hero-blobs" style={{
           position: "absolute", top: 300, left: "40%", width: 350, height: 350,
-          background: "radial-gradient(circle, rgba(0,196,204,0.12) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(66,63,247,0.06) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0, filter: "blur(50px)",
         }} />
 
@@ -159,8 +159,8 @@ export default function LandingPage() {
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               padding: "8px 20px", borderRadius: 50,
-              backgroundColor: "rgba(139,61,255,0.15)", border: "1px solid rgba(139,61,255,0.3)",
-              fontSize: 13, fontWeight: 700, color: "#c4a0ff",
+              backgroundColor: "rgba(30,142,62,0.10)", border: "1px solid rgba(30,142,62,0.25)",
+              fontSize: 13, fontWeight: 700, color: "#1e8e3e",
             }}>
               <Sparkles size={14} /> Think Canva, but for AI Agents
             </span>
@@ -174,13 +174,13 @@ export default function LandingPage() {
             style={{
               fontSize: "clamp(42px, 6.5vw, 78px)", fontWeight: 900,
               letterSpacing: "-0.04em", lineHeight: 1.06,
-              margin: "32px 0 24px", color: "#fff",
+              margin: "32px 0 24px", color: P.text,
             }}
           >
             All your AI agents.
             <br />
             <span style={{
-              background: `linear-gradient(135deg, ${P.purple}, ${P.pink}, ${P.cyan})`,
+              background: `linear-gradient(135deg, #1e8e3e, #423ff7)`,
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
@@ -193,7 +193,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            style={{ fontSize: 20, color: "rgba(255,255,255,0.6)", maxWidth: 580, margin: "0 auto 40px", lineHeight: 1.65 }}
+            style={{ fontSize: 20, color: P.textSec, maxWidth: 580, margin: "0 auto 40px", lineHeight: 1.65 }}
           >
             Stop juggling ChatGPT, Jasper, Copy.ai, and 10 other tools. AgentStudio brings every specialized agent into one clean workspace — research, write, code, analyze, and create without switching tabs.
           </motion.p>
@@ -210,9 +210,9 @@ export default function LandingPage() {
               style={{
                 display: "inline-flex", alignItems: "center", gap: 10,
                 padding: "16px 36px", borderRadius: 16, height: 54,
-                background: P.purpleGrad,
+                background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
                 color: "#fff", fontSize: 17, fontWeight: 700, textDecoration: "none",
-                boxShadow: "0 8px 32px rgba(102,126,234,0.4)",
+                boxShadow: "0 8px 32px rgba(30,142,62,0.3)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
@@ -223,9 +223,9 @@ export default function LandingPage() {
               style={{
                 display: "inline-flex", alignItems: "center", gap: 10,
                 padding: "16px 36px", borderRadius: 16, height: 54,
-                backgroundColor: "rgba(255,255,255,0.08)", color: "#fff",
+                backgroundColor: "rgba(0,0,0,0.04)", color: P.text,
                 fontSize: 17, fontWeight: 600, textDecoration: "none",
-                border: "1.5px solid rgba(255,255,255,0.15)",
+                border: "1.5px solid rgba(0,0,0,0.10)",
                 backdropFilter: "blur(10px)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
@@ -244,18 +244,18 @@ export default function LandingPage() {
           >
             <div style={{
               position: "absolute", inset: -30,
-              background: `linear-gradient(135deg, rgba(139,61,255,0.12), rgba(255,51,153,0.08), rgba(0,196,204,0.06))`,
+              background: `linear-gradient(135deg, rgba(30,142,62,0.08), rgba(21,225,30,0.05), rgba(66,63,247,0.04))`,
               borderRadius: 36, filter: "blur(40px)",
             }} />
             <div style={{
               position: "relative", borderRadius: 24, overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(0,0,0,0.08)",
               boxShadow: P.shadowFloat,
             }}>
               <img src="/hero-dashboard.png" alt="AgentStudio workspace" style={{ width: "100%", display: "block" }} />
               <div style={{
                 position: "absolute", inset: 0,
-                background: "linear-gradient(to top, rgba(248,249,252,0.5) 0%, transparent 40%)",
+                background: "linear-gradient(to top, rgba(249,249,249,0.5) 0%, transparent 40%)",
               }} />
             </div>
           </motion.div>
@@ -283,7 +283,7 @@ export default function LandingPage() {
             }}>
               <div style={{
                 fontSize: 34, fontWeight: 900, letterSpacing: "-0.03em",
-                background: `linear-gradient(135deg, ${P.purple}, ${P.pink})`,
+                background: `linear-gradient(135deg, #1e8e3e, #423ff7)`,
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
               }}>{s.num}</div>
@@ -330,9 +330,9 @@ export default function LandingPage() {
             <div className="landing-problem-arrow" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{
                 width: 48, height: 48, borderRadius: 14,
-                background: P.purpleGrad,
+                background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(102,126,234,0.3)",
+                boxShadow: "0 4px 16px rgba(30,142,62,0.3)",
               }}>
                 <ArrowRight size={24} color="#fff" />
               </div>
@@ -361,13 +361,13 @@ export default function LandingPage() {
             initial={fadeUp.hidden} whileInView={fadeUp.show} viewport={{ once: true }}
             style={{
               marginTop: 48, padding: "28px 32px", borderRadius: 20,
-              background: `linear-gradient(135deg, rgba(139,61,255,0.08), rgba(255,51,153,0.05))`,
-              border: "1px solid rgba(139,61,255,0.15)",
+              background: `linear-gradient(135deg, rgba(30,142,62,0.06), rgba(66,63,247,0.04))`,
+              border: "1px solid rgba(30,142,62,0.12)",
               textAlign: "center",
             }}
           >
             <p style={{ fontSize: 16, color: P.textSec, lineHeight: 1.7, maxWidth: 640, margin: "0 auto" }}>
-              <span style={{ fontWeight: 700, color: P.purple }}>Other AI tools hide your costs.</span>{" "}
+              <span style={{ fontWeight: 700, color: P.lime }}>Other AI tools hide your costs.</span>{" "}
               AgentStudio shows you exactly what every task costs — per agent, per token, in real time. No surprises on your bill.
             </p>
           </motion.div>
@@ -380,7 +380,7 @@ export default function LandingPage() {
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56, padding: "0 24px" }}>
             <span style={{
               fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const,
-              background: `linear-gradient(135deg, ${P.purple}, ${P.pink})`,
+              background: `linear-gradient(135deg, #1e8e3e, #423ff7)`,
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>Meet Your Agents</span>
@@ -428,11 +428,11 @@ export default function LandingPage() {
             <a href="/today" style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 16, fontWeight: 700, textDecoration: "none",
-              background: `linear-gradient(135deg, ${P.purple}, ${P.pink})`,
+              background: `linear-gradient(135deg, #1e8e3e, #423ff7)`,
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
-              See all agents <ArrowRight size={16} style={{ color: P.purple }} />
+              See all agents <ArrowRight size={16} style={{ color: "#1e8e3e" }} />
             </a>
           </motion.div>
         </div>
@@ -444,7 +444,7 @@ export default function LandingPage() {
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 64 }}>
             <span style={{
               fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const,
-              background: `linear-gradient(135deg, ${P.cyan}, ${P.purple})`,
+              background: `linear-gradient(135deg, #1e8e3e, #423ff7)`,
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>Features</span>
@@ -497,7 +497,7 @@ export default function LandingPage() {
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 64 }}>
             <span style={{
               fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const,
-              background: `linear-gradient(135deg, ${P.orange}, ${P.pink})`,
+              background: `linear-gradient(135deg, #1e8e3e, #15e11e)`,
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>How It Works</span>
@@ -548,15 +548,15 @@ export default function LandingPage() {
           style={{
             maxWidth: 900, margin: "0 auto", textAlign: "center" as const,
             padding: "72px 48px", borderRadius: 32,
-            background: "linear-gradient(135deg, #0F0F1A, #1A1A2E, #2A1A3E)",
+            background: "linear-gradient(135deg, #0d3b1a, #1e8e3e, #156d2e)",
             position: "relative", overflow: "hidden",
-            boxShadow: "0 24px 80px rgba(0,0,0,0.3)",
+            boxShadow: "0 24px 80px rgba(30,142,62,0.2)",
           }}
         >
           {/* Decorative gradient orbs */}
-          <div style={{ position: "absolute", top: -80, right: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, rgba(139,61,255,0.2), transparent 70%)`, filter: "blur(40px)" }} />
-          <div style={{ position: "absolute", bottom: -80, left: -40, width: 350, height: 350, borderRadius: "50%", background: `radial-gradient(circle, rgba(255,51,153,0.12), transparent 70%)`, filter: "blur(40px)" }} />
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, rgba(0,196,204,0.08), transparent 70%)`, filter: "blur(50px)" }} />
+          <div style={{ position: "absolute", top: -80, right: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, rgba(21,225,30,0.2), transparent 70%)`, filter: "blur(40px)" }} />
+          <div style={{ position: "absolute", bottom: -80, left: -40, width: 350, height: 350, borderRadius: "50%", background: `radial-gradient(circle, rgba(30,142,62,0.15), transparent 70%)`, filter: "blur(40px)" }} />
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, rgba(66,63,247,0.1), transparent 70%)`, filter: "blur(50px)" }} />
 
           <div style={{ position: "relative", zIndex: 1 }}>
             <h2 style={{
@@ -575,10 +575,10 @@ export default function LandingPage() {
               style={{
                 display: "inline-flex", alignItems: "center", gap: 10,
                 padding: "16px 40px", borderRadius: 16, height: 56,
-                background: P.purpleGrad,
+                background: "linear-gradient(135deg, #15e11e, #1e8e3e)",
                 color: "#fff",
                 fontSize: 17, fontWeight: 700, textDecoration: "none",
-                boxShadow: "0 8px 32px rgba(102,126,234,0.4)",
+                boxShadow: "0 8px 32px rgba(21,225,30,0.3)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
@@ -603,7 +603,7 @@ export default function LandingPage() {
           </div>
           <p>&copy; {new Date().getFullYear()} AgentStudio. All rights reserved.</p>
           <a href="/login" style={{
-            color: P.purple, textDecoration: "none", fontWeight: 700,
+            color: P.lime, textDecoration: "none", fontWeight: 700,
             transition: "opacity 0.2s",
           }}>
             Sign Up &rarr;

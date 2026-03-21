@@ -76,7 +76,7 @@ function formatContent(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:#6366F1;text-decoration:none">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:#1e8e3e;text-decoration:none">$1</a>')
     .replace(/^- (.+)$/gm, '<div style="padding-left:12px;position:relative"><span style="position:absolute;left:0">-</span> $1</div>')
     .replace(/\$[\d,.]+/g, '<span style="font-weight:600;color:#059669">$&</span>')
     .replace(/\n\n/g, '<br/>');

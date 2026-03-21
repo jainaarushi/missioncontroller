@@ -75,7 +75,7 @@ export function TaskSection({
         }}>{label}</span>
         {tasks.length > 0 && (
           <span style={{
-            fontSize: 11.5, fontWeight: 700, color: "#0b0b0e",
+            fontSize: 11.5, fontWeight: 700, color: "#ffffff",
             backgroundColor: color === P.textGhost ? P.textTer : color,
             padding: "2px 8px", borderRadius: 10,
             marginLeft: 2,

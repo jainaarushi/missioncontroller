@@ -71,8 +71,8 @@ export function TaskCard({
       onDrop={draggable ? handleDrop : undefined}
       style={{
         display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px",
-        backgroundColor: selected ? P.purpleSoft : P.card, borderRadius: 16, cursor: draggable ? "grab" : "pointer",
-        border: `1.5px solid ${selected ? P.purple + "40" : isReview && agent ? agent.color + "50" : P.border}`,
+        backgroundColor: selected ? P.emeraldSoft : P.card, borderRadius: 16, cursor: draggable ? "grab" : "pointer",
+        border: `1.5px solid ${selected ? P.lime + "40" : isReview && agent ? agent.color + "50" : P.border}`,
         boxShadow: isReview && agent ? `0 4px 20px ${agent.color}20` : P.shadow,
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         animation: `slideUp 0.5s cubic-bezier(0.22,1,0.36,1) ${delay}s both`,
@@ -81,12 +81,12 @@ export function TaskCard({
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = P.shadowHover;
         e.currentTarget.style.transform = "translateY(-3px) scale(1.008)";
-        e.currentTarget.style.borderColor = selected ? P.purple + "60" : isReview && agent ? agent.color + "70" : P.borderHover;
+        e.currentTarget.style.borderColor = selected ? P.lime + "60" : isReview && agent ? agent.color + "70" : P.borderHover;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.boxShadow = isReview && agent ? `0 4px 20px ${agent.color}20` : P.shadow;
         e.currentTarget.style.transform = "translateY(0) scale(1)";
-        e.currentTarget.style.borderColor = selected ? P.purple + "40" : isReview && agent ? agent.color + "50" : P.border;
+        e.currentTarget.style.borderColor = selected ? P.lime + "40" : isReview && agent ? agent.color + "50" : P.border;
       }}
     >
       {/* Top progress line */}
@@ -122,12 +122,12 @@ export function TaskCard({
           onClick={(e) => { e.stopPropagation(); onSelect?.(task.id); }}
           style={{
             marginTop: 3, flexShrink: 0, width: 22, height: 22, borderRadius: 7,
-            border: `2px solid ${selected ? P.purple : P.textGhost}`,
-            backgroundColor: selected ? P.purple : "transparent",
+            border: `2px solid ${selected ? P.lime : P.textGhost}`,
+            backgroundColor: selected ? P.lime : "transparent",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             transform: selected ? "scale(1.1)" : "scale(1)",
-            boxShadow: selected ? `0 2px 8px ${P.purple}30` : "none",
+            boxShadow: selected ? `0 2px 8px ${P.lime}30` : "none",
           }}
         >
           {selected && <span style={{ color: P.text, fontSize: 11, fontWeight: 900 }}>✓</span>}
@@ -221,7 +221,7 @@ export function TaskCard({
         {task.cost_usd > 0 && <span style={{ fontSize: 11, color: P.textGhost, fontFamily: "'JetBrains Mono', var(--font-mono), monospace", fontWeight: 500 }}>${task.cost_usd < 0.01 ? task.cost_usd.toFixed(4) : task.cost_usd.toFixed(2)}</span>}
         {!task.agent_id && !isDone && (
           <span style={{
-            fontSize: 11.5, fontWeight: 600, color: P.purple, backgroundColor: P.purpleLight,
+            fontSize: 11.5, fontWeight: 600, color: P.lime, backgroundColor: P.emeraldSoft,
             padding: "4px 12px", borderRadius: 8,
             transition: "all 0.2s",
           }}>+ assign</span>

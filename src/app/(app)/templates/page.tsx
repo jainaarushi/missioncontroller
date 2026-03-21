@@ -14,7 +14,7 @@ import {
 
 
 /* ─── Pill component ─── */
-function Pill({ children, color = P.lime, bg = "rgba(197,241,53,0.13)", size = 10 }: {
+function Pill({ children, color = P.lime, bg = "rgba(30,142,62,0.10)", size = 10 }: {
   children: React.ReactNode; color?: string; bg?: string; size?: number;
 }) {
   return (
@@ -37,7 +37,7 @@ function FTabs({ tabs, active, onChange }: {
           cursor: "pointer", fontFamily: F, fontWeight: active === t ? 700 : 500,
           border: `1px solid ${active === t ? P.lime : P.border}`,
           background: active === t ? P.lime : P.bg3,
-          color: active === t ? "#0b0b0e" : P.textSec,
+          color: active === t ? "#ffffff" : P.textSec,
           transition: "all 0.15s",
         }}>{t}</button>
       ))}
@@ -67,7 +67,7 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
         borderRadius: 15, overflow: "hidden", cursor: "pointer",
         display: "flex", flexDirection: "column",
         transform: hov ? "translateY(-3px)" : "none",
-        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.5)" : "none",
+        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.12)" : "none",
         transition: "all 0.2s", minWidth: 0,
       }}
     >
@@ -137,7 +137,7 @@ function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
           <span style={{ fontSize: 10, color: P.textTer }}>{runs} runs</span>
           <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
             fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
-            background: P.lime, color: "#0b0b0e", border: "none",
+            background: P.lime, color: "#ffffff", border: "none",
             cursor: "pointer", fontFamily: F,
           }}>
             Use Template →

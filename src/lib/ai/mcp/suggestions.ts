@@ -395,7 +395,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     name: "Custom Server",
     description: "Connect any MCP-compatible server. Provide the Streamable HTTP or SSE endpoint URL.",
     icon: "MCP",
-    color: "#6366F1",
+    color: "#1e8e3e",
     urlPlaceholder: "https://your-server.com/mcp or http://localhost:PORT/sse",
     authPlaceholder: "Auth token (optional)",
     authRequired: false,

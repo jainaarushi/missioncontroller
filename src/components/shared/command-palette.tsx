@@ -158,7 +158,7 @@ export function CommandPalette({ tasks, agents }: CommandPaletteProps) {
         style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(0,0,0,0.7)",
+          backgroundColor: "rgba(0,0,0,0.3)",
           backdropFilter: "blur(8px)",
           animation: "fadeIn 0.15s ease",
         }}

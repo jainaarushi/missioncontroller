@@ -142,7 +142,7 @@ function formatContent(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#6366F1;text-decoration:none;font-weight:500">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#1e8e3e;text-decoration:none;font-weight:500">$1</a>')
     .replace(/^- (.+)$/gm, '<li style="margin:2px 0">$1</li>')
     .replace(/^\d+\. (.+)$/gm, '<li style="margin:2px 0">$1</li>')
     .replace(/\n\n/g, '<br/><br/>');

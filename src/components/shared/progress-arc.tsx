@@ -4,7 +4,7 @@ interface ProgressArcProps {
   color?: string;
 }
 
-export function ProgressArc({ pct, size = 22, color = "#6366F1" }: ProgressArcProps) {
+export function ProgressArc({ pct, size = 22, color = "#1e8e3e" }: ProgressArcProps) {
   const r = (size - 3.5) / 2;
   const c = 2 * Math.PI * r;
   return (

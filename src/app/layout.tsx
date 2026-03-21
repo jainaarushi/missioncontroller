@@ -26,11 +26,11 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
       </head>
       <body
         className={`${jetbrainsMono.variable} antialiased`}
-        style={{ fontFamily: "'Syne', system-ui, sans-serif", background: "#0b0b0e", color: "#eceae4" }}
+        style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#f9f9f9", color: "#1b1b1b" }}
       >
         <TooltipProvider>{children}</TooltipProvider>
       </body>

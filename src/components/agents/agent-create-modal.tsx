@@ -11,7 +11,7 @@ interface AgentCreateModalProps {
 
 const ICON_OPTIONS = ["🤖", "🧠", "🔬", "🎯", "💡", "🛠️", "📝", "🎨", "🔍", "⚡", "🌐", "🏗️"];
 const COLOR_OPTIONS = [
-  { color: "#6366F1", gradient: "linear-gradient(135deg, #6366F1, #818CF8)" },
+  { color: "#1e8e3e", gradient: "linear-gradient(135deg, #1e8e3e, #15e11e)" },
   { color: "#EC4899", gradient: "linear-gradient(135deg, #EC4899, #F472B6)" },
   { color: "#10B981", gradient: "linear-gradient(135deg, #10B981, #34D399)" },
   { color: "#F59E0B", gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)" },

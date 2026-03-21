@@ -756,7 +756,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                     opacity: transcribing ? 0.5 : 1,
                     animation: recording ? "pulseGlow 1.5s ease-in-out infinite" : "none",
                   }}
-                  onMouseEnter={(e) => { if (!recording) { e.currentTarget.style.borderColor = "#8B5CF6"; e.currentTarget.style.backgroundColor = P.sidebar; } }}
+                  onMouseEnter={(e) => { if (!recording) { e.currentTarget.style.borderColor = "#1e8e3e"; e.currentTarget.style.backgroundColor = P.sidebar; } }}
                   onMouseLeave={(e) => { if (!recording) { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.card; } }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1041,7 +1041,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                 <PipelineBuilder
                   steps={pipelineSteps}
                   agentColor={agent?.color || P.indigo}
-                  agentGradient={agent?.gradient || "linear-gradient(135deg, #4F46E5, #7C3AED)"}
+                  agentGradient={agent?.gradient || "linear-gradient(135deg, #1e8e3e, #15e11e)"}
                   editable={false}
                   stepStatuses={stepStatuses}
                   stepOutputs={hasAnyOutput ? stepOutputs : undefined}
@@ -1091,7 +1091,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                         style={{
                           padding: "6px 16px", borderRadius: 7,
                           border: "none",
-                          background: agent?.gradient || "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                          background: agent?.gradient || "linear-gradient(135deg, #1e8e3e, #15e11e)",
                           color: "#fff", fontSize: 12, fontWeight: 700,
                           cursor: rerunLoading ? "default" : "pointer",
                           fontFamily: "inherit",

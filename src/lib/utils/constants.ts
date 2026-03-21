@@ -58,8 +58,8 @@ export const PRIORITY_CONFIG: Record<
   normal: {
     label: "Normal",
     icon: "🔵",
-    color: "#6366F1",
-    bgColor: "#EEF2FF",
+    color: "#1e8e3e",
+    bgColor: "#eef7f0",
     sortWeight: 2,
   },
   low: {

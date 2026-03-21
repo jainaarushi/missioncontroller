@@ -13,7 +13,7 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
   return (
     <nav style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
-      backgroundColor: "rgba(17,17,21,0.96)", backdropFilter: "blur(12px)",
+      backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
       borderTop: `1px solid ${P.border}`,
       display: "flex", justifyContent: "space-around", alignItems: "center",
       padding: "8px 0",
@@ -21,10 +21,10 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
       minHeight: 56,
     }}>
       {[
-        { href: "/today", icon: "⚡", label: "Today" },
-        { href: "/agents", icon: "🤝", label: "Specialists" },
+        { href: "/today", icon: "⚡", label: "Dashboard" },
+        { href: "/agents", icon: "🤝", label: "Agents" },
         { href: "/templates", icon: "🗂️", label: "Templates" },
-        { href: "/analytics", icon: "🎯", label: "Jobs" },
+        { href: "/analytics", icon: "🎯", label: "Analytics" },
         { href: "/settings", icon: "⚙️", label: "Settings" },
       ].map((item) => (
         <a key={item.href} href={item.href} style={{
@@ -38,7 +38,7 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
             <span style={{
               position: "absolute", top: -2, right: -6,
               width: 16, height: 16, borderRadius: "50%",
-              backgroundColor: P.violet, color: "#fff",
+              backgroundColor: P.lime, color: "#fff",
               fontSize: 9, fontWeight: 700,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>{reviewCount}</span>
@@ -55,11 +55,11 @@ function Topbar() {
       display: "flex", alignItems: "center", gap: 10,
       padding: "11px 26px",
       borderBottom: `1px solid ${P.border}`,
-      background: P.bg2,
+      background: "#ffffff",
       position: "sticky", top: 0, zIndex: 20,
     }}>
-      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F, flexShrink: 0 }}>
-        Dashboard
+      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F, flexShrink: 0, color: P.text }}>
+        Agent Studio
       </div>
       <div style={{
         flex: 1, maxWidth: 380,
@@ -69,7 +69,7 @@ function Topbar() {
       }}>
         <span style={{ color: P.textTer, fontSize: 12 }}>🔍</span>
         <span style={{ color: P.textTer, fontFamily: F, fontSize: 12, flex: 1 }}>
-          Search templates, specialists, tasks…
+          Search agents or tasks...
         </span>
         <span style={{
           fontSize: 9.5, color: P.textTer,
@@ -84,13 +84,19 @@ function Topbar() {
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer", fontSize: 13,
         }}>🔔</div>
-        <a href="/today" style={{
-          background: P.lime, color: "#0b0b0e",
-          fontSize: 11, fontWeight: 700,
-          padding: "7px 15px", borderRadius: 8,
-          cursor: "pointer", border: "none", fontFamily: F,
-          textDecoration: "none",
-        }}>+ New Job</a>
+        <div style={{
+          width: 31, height: 31, borderRadius: 7,
+          border: `1px solid ${P.border}`, background: P.bg3,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", fontSize: 13,
+        }}>⚙️</div>
+        <div style={{
+          width: 32, height: 32, borderRadius: "50%",
+          background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff", fontSize: 13, fontWeight: 700,
+          border: `2px solid ${P.border}`,
+        }}>A</div>
       </div>
     </div>
   );
@@ -120,12 +126,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
         @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
         @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
         @keyframes progress { 0%{transform:scaleX(0) translateX(0)} 50%{transform:scaleX(0.7) translateX(30%)} 100%{transform:scaleX(0) translateX(200%)} }
+        @keyframes confettiFall { 0%{opacity:1;transform:translateY(0) rotate(0deg)} 100%{opacity:0;transform:translateY(200px) rotate(720deg)} }
         .agent-card { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1); }
         .agent-card:hover { transform: translateY(-3px) !important; }
         .agent-card:active { transform: scale(0.97) !important; transition-duration: 0.1s; }
         * { box-sizing:border-box }
-        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:3px}
-        ::selection{background:rgba(197,241,53,0.15)}
+        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:3px}
+        ::selection{background:rgba(30,142,62,0.15)}
 
         /* Mobile bottom nav */
         .mobile-nav { display: none; }

@@ -10,7 +10,7 @@ export function Confetti({ show }: ConfettiProps) {
   const particles = Array.from({ length: 20 }, (_, i) => ({
     x: Math.random() * 100,
     delay: Math.random() * 0.3,
-    color: ["#6366F1", "#EC4899", "#10B981", "#F59E0B", "#F97066"][i % 5],
+    color: ["#1e8e3e", "#15e11e", "#423ff7", "#f5a623", "#ffffff"][i % 5],
     size: 4 + Math.random() * 4,
     isRound: Math.random() > 0.5,
   }));

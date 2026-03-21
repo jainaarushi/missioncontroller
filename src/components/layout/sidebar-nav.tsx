@@ -60,7 +60,7 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
                 padding: "8px 10px", borderRadius: 8,
                 cursor: "pointer", fontSize: 12, fontFamily: F,
                 position: "relative", textDecoration: "none",
-                background: isActive ? "rgba(197,241,53,0.10)" : "transparent",
+                background: isActive ? "rgba(30,142,62,0.10)" : "transparent",
                 color: isActive ? P.lime : P.textSec,
                 transition: "all 0.15s",
               }}
