@@ -15,7 +15,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "https://mcp.github.com/sse",
     authPlaceholder: "GitHub personal access token (ghp_...)",
     authRequired: true,
-    recommendedAgents: ["code-reviewer", "debugger", "sprint-planner", "project-planner", "fullstack-developer", "resume-optimizer", "portfolio-builder"],
+    recommendedAgents: ["code-reviewer", "debugger", "sprint-planner", "project-planner", "fullstack-developer", "resume-optimizer"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
   },
   {
@@ -51,7 +51,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3003/sse",
     authPlaceholder: "Google service account JSON key",
     authRequired: true,
-    recommendedAgents: ["data-analyst", "project-planner", "recruitment-agent", "budget-builder", "retirement-planner", "debt-snowball", "invoice-generator", "grocery-optimizer", "college-savings", "client-proposal", "rate-calculator", "meal-prep-planner", "renovation-planner", "moving-coordinator", "wedding-planner", "scholarship-hunter", "college-advisor"],
+    recommendedAgents: ["data-analyst", "project-planner", "recruitment-agent", "budget-builder"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/google-sheets",
   },
   {
@@ -87,7 +87,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3006/sse",
     authPlaceholder: "Notion integration token (secret_...)",
     authRequired: true,
-    recommendedAgents: ["meeting-notes", "project-planner", "technical-writer", "contract-reviewer"],
+    recommendedAgents: ["meeting-notes", "project-planner", "technical-writer"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/notion",
   },
   {
@@ -111,7 +111,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3008/sse",
     authPlaceholder: "Browserbase API key",
     authRequired: true,
-    recommendedAgents: ["web-intel", "competitor-intel", "sales-rep", "job-hunter", "auto-applier", "deal-spotter", "tech-buyer", "flight-deal-hunter", "car-buy-negotiator", "school-chooser", "linkedin-optimizer", "apartment-scout", "scholarship-hunter", "college-advisor"],
+    recommendedAgents: ["web-intel", "competitor-intel", "sales-rep", "job-hunter"],
     docsUrl: "https://github.com/browserbase/mcp-server-browserbase",
   },
   {
@@ -123,7 +123,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3009/sse",
     authPlaceholder: "Google OAuth token or service account key",
     authRequired: true,
-    recommendedAgents: ["email-drafter", "customer-support", "sales-rep", "outbound-strategist", "job-hunter", "auto-applier", "bill-negotiator", "subscription-killer", "invoice-generator", "freelance-bid-writer", "client-proposal", "dispute-fighter", "tenant-rights", "flight-deal-hunter", "networking-coach"],
+    recommendedAgents: ["email-drafter", "customer-support", "sales-rep", "outbound-strategist", "job-hunter", "bill-negotiator", "subscription-killer"],
     docsUrl: "https://github.com/modelcontextprotocol/servers",
   },
   {
@@ -135,7 +135,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3010/sse",
     authPlaceholder: "Google OAuth token or service account key",
     authRequired: true,
-    recommendedAgents: ["meeting-notes", "project-planner", "sprint-planner", "wedding-planner", "road-trip-planner", "moving-coordinator"],
+    recommendedAgents: ["meeting-notes", "project-planner", "sprint-planner"],
     docsUrl: "https://github.com/modelcontextprotocol/servers",
   },
   {
@@ -147,7 +147,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3011/sse",
     authPlaceholder: "Stripe secret key (sk_...)",
     authRequired: true,
-    recommendedAgents: ["data-analyst", "personal-finance", "invoice-generator", "subscription-killer", "budget-builder"],
+    recommendedAgents: ["data-analyst", "personal-finance", "subscription-killer", "budget-builder"],
     docsUrl: "https://github.com/stripe/agent-toolkit",
   },
   {
@@ -195,7 +195,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3015/sse",
     authPlaceholder: "Figma personal access token",
     authRequired: true,
-    recommendedAgents: ["ui-designer", "ux-designer", "frontend-developer", "portfolio-builder"],
+    recommendedAgents: ["ui-designer", "ux-designer", "frontend-developer"],
     docsUrl: "https://github.com/nicholasgriffintn/mcp-figma",
   },
   {
@@ -231,7 +231,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3018/sse",
     authPlaceholder: "Calendly personal access token",
     authRequired: true,
-    recommendedAgents: ["meeting-notes", "sales-rep", "recruitment-agent", "networking-coach"],
+    recommendedAgents: ["meeting-notes", "sales-rep", "recruitment-agent"],
     docsUrl: "https://github.com/modelcontextprotocol/servers",
   },
   {
@@ -315,7 +315,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "http://localhost:3025/sse",
     authPlaceholder: "Shopify Admin API access token",
     authRequired: true,
-    recommendedAgents: ["data-analyst", "deal-spotter", "growth-hacker"],
+    recommendedAgents: ["data-analyst", "growth-hacker"],
     docsUrl: "https://github.com/modelcontextprotocol/servers",
   },
   {
@@ -387,7 +387,7 @@ export const MCP_SERVER_SUGGESTIONS: MCPServerSuggestion[] = [
     urlPlaceholder: "https://backend.composio.dev/v3/mcp/...",
     authPlaceholder: "Composio API key",
     authRequired: true,
-    recommendedAgents: ["job-hunter", "auto-applier", "linkedin-optimizer", "email-drafter", "networking-coach", "resume-optimizer", "interview-coach", "salary-negotiator", "career-pivoter", "remote-job-finder"],
+    recommendedAgents: ["job-hunter", "email-drafter", "resume-optimizer", "interview-coach", "salary-negotiator"],
     docsUrl: "https://docs.composio.dev/mcp/overview",
   },
   {
@@ -589,31 +589,11 @@ const AGENT_MCP_RECOMMENDATIONS: Record<string, MCPRecommendation> = {
     settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
   },
 
-  // ── E-commerce ──
-  "deal-spotter": {
-    serverTypes: ["browserbase", "shopify"],
-    serverNames: ["Browserbase", "Shopify"],
-    message: "Connect Browserbase to scrape live prices, or Shopify to analyze your store data.",
-    settingsHint: "Add Browserbase or Shopify MCP servers in Settings → Integrations.",
-  },
-  "tech-buyer": {
-    serverTypes: ["browserbase"],
-    serverNames: ["Browserbase"],
-    message: "Connect Browserbase to extract specs and prices from review sites and retailers.",
-    settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
-  },
-
   // ── Template pipeline agents ──
   "job-hunter": {
     serverTypes: ["browserbase", "gmail"],
     serverNames: ["Browserbase", "Gmail"],
     message: "Connect Browserbase to scrape JS-heavy job boards, or Gmail to send applications directly.",
-    settingsHint: "Add Browserbase or Gmail MCP servers in Settings → Integrations.",
-  },
-  "auto-applier": {
-    serverTypes: ["browserbase", "gmail"],
-    serverNames: ["Browserbase", "Gmail"],
-    message: "Connect Browserbase to fill out applications, or Gmail to send cover letters.",
     settingsHint: "Add Browserbase or Gmail MCP servers in Settings → Integrations.",
   },
   "resume-optimizer": {
@@ -622,25 +602,6 @@ const AGENT_MCP_RECOMMENDATIONS: Record<string, MCPRecommendation> = {
     message: "Connect GitHub to pull your actual repos and contributions for a more accurate resume.",
     settingsHint: "Add a GitHub MCP server in Settings → Integrations.",
   },
-  "portfolio-builder": {
-    serverTypes: ["github", "figma"],
-    serverNames: ["GitHub", "Figma"],
-    message: "Connect GitHub for repos or Figma for design work to showcase in your portfolio.",
-    settingsHint: "Add GitHub or Figma MCP servers in Settings → Integrations.",
-  },
-  "linkedin-optimizer": {
-    serverTypes: ["browserbase"],
-    serverNames: ["Browserbase"],
-    message: "Connect Browserbase to analyze your current LinkedIn profile and competitor profiles.",
-    settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
-  },
-  "networking-coach": {
-    serverTypes: ["gmail", "calendly"],
-    serverNames: ["Gmail", "Calendly"],
-    message: "Connect Gmail for outreach drafts or Calendly to schedule networking meetings.",
-    settingsHint: "Add Gmail or Calendly MCP servers in Settings → Integrations.",
-  },
-
   // Finance templates
   "subscription-killer": {
     serverTypes: ["stripe", "gmail"],
@@ -659,152 +620,6 @@ const AGENT_MCP_RECOMMENDATIONS: Record<string, MCPRecommendation> = {
     serverNames: ["Google Sheets", "Stripe"],
     message: "Connect Google Sheets to export your budget, or Stripe to analyze real spending.",
     settingsHint: "Add Google Sheets or Stripe MCP servers in Settings → Integrations.",
-  },
-  "retirement-planner": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to create a live retirement projection spreadsheet.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-  "invoice-generator": {
-    serverTypes: ["stripe", "gmail", "google-sheets"],
-    serverNames: ["Stripe", "Gmail", "Google Sheets"],
-    message: "Connect Stripe for payment data, Gmail to send invoices, or Sheets to track them.",
-    settingsHint: "Add Stripe, Gmail, or Google Sheets MCP servers in Settings → Integrations.",
-  },
-  "debt-snowball": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to create a live debt payoff tracker spreadsheet.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-
-  // Shopping templates
-  "car-buy-negotiator": {
-    serverTypes: ["browserbase"],
-    serverNames: ["Browserbase"],
-    message: "Connect Browserbase to pull real dealer inventory and pricing data.",
-    settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
-  },
-  "grocery-optimizer": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to export your optimized shopping list to a shareable spreadsheet.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-  // Travel templates
-  "flight-deal-hunter": {
-    serverTypes: ["browserbase", "gmail"],
-    serverNames: ["Browserbase", "Gmail"],
-    message: "Connect Browserbase to scrape live flight prices, or Gmail to set up deal alerts.",
-    settingsHint: "Add Browserbase or Gmail MCP servers in Settings → Integrations.",
-  },
-  "wedding-planner": {
-    serverTypes: ["google-sheets", "google-calendar"],
-    serverNames: ["Google Sheets", "Google Calendar"],
-    message: "Connect Google Sheets for budget tracking or Calendar for timeline management.",
-    settingsHint: "Add Google Sheets or Calendar MCP servers in Settings → Integrations.",
-  },
-  "road-trip-planner": {
-    serverTypes: ["google-calendar"],
-    serverNames: ["Google Calendar"],
-    message: "Connect Google Calendar to block out your road trip dates automatically.",
-    settingsHint: "Add a Google Calendar MCP server in Settings → Integrations.",
-  },
-
-  // Parenting templates
-  "school-chooser": {
-    serverTypes: ["browserbase"],
-    serverNames: ["Browserbase"],
-    message: "Connect Browserbase to scrape school ratings from GreatSchools and Niche.",
-    settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
-  },
-  "college-savings": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to create a live college savings projection tracker.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-  // Freelance templates
-  "freelance-bid-writer": {
-    serverTypes: ["gmail"],
-    serverNames: ["Gmail"],
-    message: "Connect Gmail to send your bid proposal directly to the client.",
-    settingsHint: "Add a Gmail MCP server in Settings → Integrations.",
-  },
-  "client-proposal": {
-    serverTypes: ["gmail", "google-sheets"],
-    serverNames: ["Gmail", "Google Sheets"],
-    message: "Connect Gmail to send proposals, or Sheets to track your pipeline.",
-    settingsHint: "Add Gmail or Google Sheets MCP servers in Settings → Integrations.",
-  },
-  "contract-reviewer": {
-    serverTypes: ["notion", "google-sheets"],
-    serverNames: ["Notion", "Google Sheets"],
-    message: "Connect Notion to store contract notes, or Sheets to track contract terms.",
-    settingsHint: "Add Notion or Google Sheets MCP servers in Settings → Integrations.",
-  },
-  "rate-calculator": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to export your rate calculations to a trackable spreadsheet.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-
-  // Legal templates
-  "dispute-fighter": {
-    serverTypes: ["gmail"],
-    serverNames: ["Gmail"],
-    message: "Connect Gmail to send dispute letters directly.",
-    settingsHint: "Add a Gmail MCP server in Settings → Integrations.",
-  },
-  "tenant-rights": {
-    serverTypes: ["gmail"],
-    serverNames: ["Gmail"],
-    message: "Connect Gmail to send demand letters to your landlord directly.",
-    settingsHint: "Add a Gmail MCP server in Settings → Integrations.",
-  },
-
-  // Education templates
-  "college-advisor": {
-    serverTypes: ["google-sheets", "browserbase"],
-    serverNames: ["Google Sheets", "Browserbase"],
-    message: "Connect Sheets to track applications, or Browserbase to scrape admission data.",
-    settingsHint: "Add Google Sheets or Browserbase MCP servers in Settings → Integrations.",
-  },
-  "scholarship-hunter": {
-    serverTypes: ["browserbase", "google-sheets"],
-    serverNames: ["Browserbase", "Google Sheets"],
-    message: "Connect Browserbase to scrape scholarship databases, or Sheets to track applications.",
-    settingsHint: "Add Browserbase or Google Sheets MCP servers in Settings → Integrations.",
-  },
-
-  // Health templates
-  "meal-prep-planner": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to export your meal plan and grocery list.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-
-  // Housing templates
-  "apartment-scout": {
-    serverTypes: ["browserbase"],
-    serverNames: ["Browserbase"],
-    message: "Connect Browserbase to scrape real listings from apartment sites.",
-    settingsHint: "Add a Browserbase MCP server in Settings → Integrations.",
-  },
-  "renovation-planner": {
-    serverTypes: ["google-sheets"],
-    serverNames: ["Google Sheets"],
-    message: "Connect Google Sheets to create a live renovation budget tracker.",
-    settingsHint: "Add a Google Sheets MCP server in Settings → Integrations.",
-  },
-  "moving-coordinator": {
-    serverTypes: ["google-sheets", "google-calendar"],
-    serverNames: ["Google Sheets", "Google Calendar"],
-    message: "Connect Sheets for the moving checklist, or Calendar to schedule moving tasks.",
-    settingsHint: "Add Google Sheets or Calendar MCP servers in Settings → Integrations.",
   },
 };
 

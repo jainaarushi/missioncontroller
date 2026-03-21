@@ -286,17 +286,6 @@ export const AGENT_INPUT_CONFIGS: Record<string, AgentInputConfig> = {
       { id: "preferences", type: "textarea", label: "Preferences & Requirements", placeholder: "e.g., Remote-friendly, startup culture, $150K+ salary, visa sponsorship", fullWidth: true },
     ],
   },
-  "auto-applier": {
-    fields: [
-      { id: "job_posting", type: "textarea", label: "Job Posting", placeholder: "Paste the full job posting here", required: true, fullWidth: true },
-      { id: "resume", type: "textarea", label: "Your Resume / Background", placeholder: "Paste your resume or describe your experience", required: true, fullWidth: true },
-      { id: "tone", type: "select", label: "Tone", options: [
-        { value: "professional", label: "Professional" },
-        { value: "conversational", label: "Conversational" },
-        { value: "enthusiastic", label: "Enthusiastic" },
-      ], defaultValue: "professional" },
-    ],
-  },
   "resume-optimizer": {
     fields: [
       { id: "resume", type: "textarea", label: "Your Resume", placeholder: "Paste your full resume here", required: true, fullWidth: true },
@@ -362,129 +351,12 @@ export const AGENT_INPUT_CONFIGS: Record<string, AgentInputConfig> = {
       { id: "state", type: "text", label: "State", placeholder: "e.g., California" },
     ],
   },
-  "credit-score-coach": {
-    fields: [
-      { id: "score_range", type: "select", label: "Current Score Range", required: true, options: [
-        { value: "300-579", label: "Poor (300-579)" },
-        { value: "580-669", label: "Fair (580-669)" },
-        { value: "670-739", label: "Good (670-739)" },
-        { value: "740-799", label: "Very Good (740-799)" },
-        { value: "800-850", label: "Excellent (800-850)" },
-      ] },
-      { id: "situation", type: "textarea", label: "Credit Situation", placeholder: "Describe your credit situation: any late payments? collections? credit card balances? how many accounts?", required: true, fullWidth: true },
-      { id: "goal", type: "select", label: "Goal", options: [
-        { value: "mortgage", label: "Qualify for a mortgage" },
-        { value: "auto-loan", label: "Get a better auto loan rate" },
-        { value: "credit-card", label: "Get approved for a credit card" },
-        { value: "general", label: "General improvement" },
-      ], defaultValue: "general" },
-    ],
-  },
-  "deal-spotter": {
-    fields: [
-      { id: "item", type: "text", label: "What are you looking for?", placeholder: "e.g., Sony WH-1000XM5 headphones", required: true },
-      { id: "budget", type: "text", label: "Budget", placeholder: "e.g., Under $300" },
-      { id: "urgency", type: "select", label: "How soon do you need it?", options: [
-        { value: "now", label: "ASAP" },
-        { value: "week", label: "Within a week" },
-        { value: "flexible", label: "Can wait for a deal" },
-      ], defaultValue: "flexible" },
-    ],
-  },
-
   // ── Legal & Rights ──────────────────────────────────
-  "dispute-fighter": {
-    fields: [
-      { id: "dispute_type", type: "select", label: "Dispute Type", required: true, options: [
-        { value: "billing", label: "Billing Error" },
-        { value: "credit-report", label: "Credit Report Error" },
-        { value: "warranty", label: "Warranty Claim" },
-        { value: "service", label: "Poor Service / Breach" },
-        { value: "insurance", label: "Insurance Claim Denial" },
-        { value: "other", label: "Other" },
-      ] },
-      { id: "details", type: "textarea", label: "Dispute Details", placeholder: "Describe what happened, when, and what you've tried so far", required: true, fullWidth: true },
-      { id: "company", type: "text", label: "Company / Organization", placeholder: "e.g., Chase Bank, Verizon", required: true },
-    ],
-  },
-  "benefits-finder": {
-    fields: [
-      { id: "situation", type: "textarea", label: "Your Situation", placeholder: "Describe your situation: employment status, family size, income range, any disabilities, veteran status, etc.", required: true, fullWidth: true },
-      { id: "categories", type: "text", label: "Benefit Categories (optional)", placeholder: "e.g., healthcare, food assistance, housing, education" },
-    ],
-  },
   "lease-reviewer": {
     fields: [
       { id: "lease_text", type: "textarea", label: "Lease Text", placeholder: "Paste your lease agreement text here", required: true, fullWidth: true },
       { id: "state", type: "text", label: "State", placeholder: "e.g., New York" },
       { id: "concerns", type: "textarea", label: "Specific Concerns", placeholder: "Any specific clauses or terms you're worried about?" },
-    ],
-  },
-  "immigration-helper": {
-    fields: [
-      { id: "current_country", type: "text", label: "Current Country", placeholder: "e.g., India", required: true },
-      { id: "destination", type: "text", label: "Destination Country", placeholder: "e.g., United States", required: true },
-      { id: "purpose", type: "select", label: "Purpose", required: true, options: [
-        { value: "work", label: "Work" },
-        { value: "study", label: "Study" },
-        { value: "family", label: "Family Reunification" },
-        { value: "business", label: "Business / Investment" },
-        { value: "permanent", label: "Permanent Residency" },
-        { value: "tourist", label: "Tourism / Visit" },
-      ] },
-      { id: "details", type: "textarea", label: "Additional Details", placeholder: "Education, work experience, any existing applications or status", fullWidth: true },
-    ],
-  },
-  "small-claims-advisor": {
-    fields: [
-      { id: "dispute", type: "textarea", label: "Dispute Description", placeholder: "Describe what happened and why you're considering small claims court", required: true, fullWidth: true },
-      { id: "amount", type: "text", label: "Amount in Dispute", placeholder: "e.g., $3,500", required: true },
-      { id: "state", type: "text", label: "State", placeholder: "e.g., California", required: true },
-    ],
-  },
-
-  // ── Housing & Moving ──────────────────────────────────
-  "apartment-scout": {
-    fields: [
-      { id: "city", type: "text", label: "City / Area", placeholder: "e.g., Austin, TX", required: true },
-      { id: "budget", type: "text", label: "Monthly Budget", placeholder: "e.g., $1,500-$2,000", required: true },
-      { id: "bedrooms", type: "select", label: "Bedrooms", options: [
-        { value: "studio", label: "Studio" },
-        { value: "1", label: "1 Bedroom" },
-        { value: "2", label: "2 Bedrooms" },
-        { value: "3+", label: "3+ Bedrooms" },
-      ], defaultValue: "1" },
-      { id: "priorities", type: "text", label: "Top Priorities", placeholder: "e.g., near transit, pet-friendly, in-unit laundry, safe neighborhood" },
-    ],
-  },
-  "moving-coordinator": {
-    fields: [
-      { id: "from_to", type: "text", label: "Moving From → To", placeholder: "e.g., NYC to Austin, TX", required: true },
-      { id: "move_date", type: "text", label: "Target Move Date", placeholder: "e.g., June 1, 2025", required: true },
-      { id: "home_size", type: "select", label: "Home Size", options: [
-        { value: "studio", label: "Studio / 1BR" },
-        { value: "2br", label: "2-3 Bedroom" },
-        { value: "house", label: "House / 4+ BR" },
-      ], defaultValue: "studio" },
-      { id: "budget", type: "select", label: "Moving Budget", options: [
-        { value: "diy", label: "DIY / Minimal" },
-        { value: "moderate", label: "Moderate ($1K-$5K)" },
-        { value: "full-service", label: "Full Service ($5K+)" },
-      ], defaultValue: "moderate" },
-    ],
-  },
-  "utility-optimizer": {
-    fields: [
-      { id: "utility_type", type: "select", label: "Utility Type", required: true, options: [
-        { value: "internet", label: "Internet" },
-        { value: "electric", label: "Electricity" },
-        { value: "gas", label: "Gas" },
-        { value: "phone", label: "Phone / Mobile" },
-        { value: "bundle", label: "Internet + TV Bundle" },
-      ] },
-      { id: "zip", type: "text", label: "ZIP Code", placeholder: "e.g., 78701", required: true },
-      { id: "current_plan", type: "text", label: "Current Plan & Price", placeholder: "e.g., AT&T 300Mbps $65/mo" },
-      { id: "needs", type: "textarea", label: "Your Needs", placeholder: "e.g., work from home, need 500+ Mbps, 2 people streaming" },
     ],
   },
   // ── Health & Medical ──────────────────────────────────
@@ -497,137 +369,6 @@ export const AGENT_INPUT_CONFIGS: Record<string, AgentInputConfig> = {
         { value: "denied", label: "Claim Denied" },
       ], defaultValue: "insured" },
       { id: "total_amount", type: "text", label: "Total Amount", placeholder: "e.g., $4,350", required: true },
-    ],
-  },
-  "insurance-comparer": {
-    fields: [
-      { id: "insurance_type", type: "select", label: "Insurance Type", required: true, options: [
-        { value: "health", label: "Health Insurance" },
-        { value: "auto", label: "Auto Insurance" },
-        { value: "home", label: "Home / Renters Insurance" },
-        { value: "life", label: "Life Insurance" },
-        { value: "pet", label: "Pet Insurance" },
-      ] },
-      { id: "location", type: "text", label: "Location", placeholder: "e.g., Chicago, IL", required: true },
-      { id: "situation", type: "textarea", label: "Your Situation", placeholder: "Describe what you need: family size, health conditions, vehicle details, home value, etc.", required: true, fullWidth: true },
-    ],
-  },
-  "symptom-researcher": {
-    fields: [
-      { id: "symptoms", type: "textarea", label: "Symptoms", placeholder: "Describe your symptoms: what, where, when they started, severity, what makes it better/worse", required: true, fullWidth: true },
-      { id: "age_gender", type: "text", label: "Age & Gender (optional)", placeholder: "e.g., 35, Female" },
-      { id: "history", type: "textarea", label: "Relevant Medical History", placeholder: "Any existing conditions, medications, recent changes" },
-    ],
-  },
-  "prescription-saver": {
-    fields: [
-      { id: "medications", type: "textarea", label: "Medications", placeholder: "List each medication with dosage\ne.g., Lisinopril 10mg, Atorvastatin 20mg", required: true, fullWidth: true },
-      { id: "zip", type: "text", label: "ZIP Code", placeholder: "e.g., 60601" },
-      { id: "insurance", type: "select", label: "Insurance Status", options: [
-        { value: "insured", label: "Have Insurance" },
-        { value: "uninsured", label: "No Insurance" },
-        { value: "medicare", label: "Medicare" },
-        { value: "medicaid", label: "Medicaid" },
-      ], defaultValue: "insured" },
-    ],
-  },
-
-  // ── Education ──────────────────────────────────
-  "scholarship-hunter": {
-    fields: [
-      { id: "profile", type: "textarea", label: "Your Profile", placeholder: "GPA, major, extracurriculars, background, financial need, etc.", required: true, fullWidth: true },
-      { id: "education_level", type: "select", label: "Education Level", required: true, options: [
-        { value: "high-school", label: "High School Senior" },
-        { value: "undergrad", label: "Undergraduate" },
-        { value: "graduate", label: "Graduate / Masters" },
-        { value: "phd", label: "PhD / Doctoral" },
-      ] },
-      { id: "field", type: "text", label: "Field of Study", placeholder: "e.g., Computer Science, Nursing" },
-    ],
-  },
-  "college-advisor": {
-    fields: [
-      { id: "major", type: "text", label: "Major / Field", placeholder: "e.g., Computer Science, Pre-Med", required: true },
-      { id: "degree_level", type: "select", label: "Degree Level", required: true, options: [
-        { value: "bachelors", label: "Bachelor's" },
-        { value: "masters", label: "Master's" },
-        { value: "phd", label: "PhD" },
-        { value: "associate", label: "Associate's" },
-      ] },
-      { id: "preferences", type: "textarea", label: "Preferences", placeholder: "Location, campus size, budget, public vs private, etc." },
-      { id: "profile", type: "textarea", label: "Your Profile", placeholder: "GPA, test scores, activities, work experience", fullWidth: true },
-    ],
-  },
-
-  // ── Smart Shopping ──────────────────────────────────
-  "return-assistant": {
-    fields: [
-      { id: "store", type: "text", label: "Store / Retailer", placeholder: "e.g., Amazon, Best Buy, Zara", required: true },
-      { id: "product", type: "text", label: "Product", placeholder: "e.g., Wireless earbuds, Winter jacket", required: true },
-      { id: "issue", type: "textarea", label: "Issue / Reason for Return", placeholder: "Describe what's wrong or why you want to return it", required: true, fullWidth: true },
-    ],
-  },
-  "car-buy-negotiator": {
-    fields: [
-      { id: "car", type: "text", label: "Car Make & Model", placeholder: "e.g., 2024 Toyota RAV4 XLE", required: true },
-      { id: "zip", type: "text", label: "ZIP Code", placeholder: "e.g., 90210" },
-      { id: "buying_type", type: "select", label: "Buying Type", options: [
-        { value: "new", label: "New" },
-        { value: "used", label: "Used" },
-        { value: "lease", label: "Lease" },
-        { value: "cpo", label: "Certified Pre-Owned" },
-      ], defaultValue: "new" },
-      { id: "budget", type: "text", label: "Budget", placeholder: "e.g., Under $35,000" },
-    ],
-  },
-
-  // ── Freelance & Side Income ──────────────────────────────────
-  "freelance-bid-writer": {
-    fields: [
-      { id: "project_listing", type: "textarea", label: "Project Listing", placeholder: "Paste the project description / job listing", required: true, fullWidth: true },
-      { id: "your_skills", type: "textarea", label: "Your Skills & Experience", placeholder: "Describe your relevant skills, past projects, and expertise", required: true, fullWidth: true },
-      { id: "rate", type: "text", label: "Your Rate", placeholder: "e.g., $75/hour or $2,000 fixed" },
-    ],
-  },
-  "side-hustle-matcher": {
-    fields: [
-      { id: "skills", type: "textarea", label: "Your Skills & Interests", placeholder: "What are you good at? What do you enjoy? Include both professional and personal skills.", required: true, fullWidth: true },
-      { id: "hours", type: "select", label: "Available Hours/Week", options: [
-        { value: "5", label: "Under 5 hours" },
-        { value: "10", label: "5-10 hours" },
-        { value: "20", label: "10-20 hours" },
-        { value: "30+", label: "20+ hours" },
-      ], defaultValue: "10" },
-      { id: "capital", type: "select", label: "Startup Capital", options: [
-        { value: "0", label: "$0 (No investment)" },
-        { value: "500", label: "Under $500" },
-        { value: "2000", label: "$500-$2,000" },
-        { value: "5000+", label: "$2,000+" },
-      ], defaultValue: "0" },
-      { id: "income_goal", type: "select", label: "Monthly Income Goal", options: [
-        { value: "500", label: "$500/month" },
-        { value: "1000", label: "$1,000/month" },
-        { value: "3000", label: "$3,000/month" },
-        { value: "5000+", label: "$5,000+/month" },
-      ], defaultValue: "1000" },
-    ],
-  },
-  "contract-reviewer": {
-    fields: [
-      { id: "contract_text", type: "textarea", label: "Contract Text", placeholder: "Paste the contract text here", required: true, fullWidth: true },
-      { id: "contract_type", type: "select", label: "Contract Type", options: [
-        { value: "freelance", label: "Freelance / Service Agreement" },
-        { value: "employment", label: "Employment Contract" },
-        { value: "nda", label: "NDA / Confidentiality" },
-        { value: "partnership", label: "Partnership Agreement" },
-        { value: "saas", label: "SaaS / Software License" },
-        { value: "other", label: "Other" },
-      ] },
-      { id: "your_role", type: "select", label: "Your Role", options: [
-        { value: "signing", label: "I'm signing this" },
-        { value: "drafting", label: "I drafted this" },
-        { value: "reviewing", label: "Reviewing for someone else" },
-      ], defaultValue: "signing" },
     ],
   },
 };
@@ -684,8 +425,6 @@ export function generateTaskTitle(slug: string, values: Record<string, unknown>)
     // ── Life Utility Agents ──────────────────────────────────
     case "job-hunter":
       return `Job search: ${values.job_title || "open roles"}`;
-    case "auto-applier":
-      return ((values.job_posting as string) || "Job application").slice(0, 60);
     case "resume-optimizer":
       return `Resume for ${values.target_role || "target role"}`;
     case "interview-coach":
@@ -698,48 +437,10 @@ export function generateTaskTitle(slug: string, values: Record<string, unknown>)
       return `Negotiate ${values.bill_type || "bill"}: ${values.provider || "provider"}`;
     case "tax-deduction-finder":
       return `Tax deductions: ${values.employment_type || "review"}`;
-    case "credit-score-coach":
-      return `Credit improvement plan (${values.score_range || "current score"})`;
-    case "deal-spotter":
-      return `Find best price: ${values.item || "item"}`;
-    case "dispute-fighter":
-      return `Dispute: ${values.company || "company"} — ${values.dispute_type || "issue"}`;
-    case "benefits-finder":
-      return "Benefits eligibility search";
     case "lease-reviewer":
       return "Lease agreement review";
-    case "immigration-helper":
-      return `Visa research: ${values.current_country || ""} → ${values.destination || "destination"}`;
-    case "small-claims-advisor":
-      return `Small claims assessment: $${values.amount || "amount"}`;
-    case "apartment-scout":
-      return `Apartment search: ${values.city || "city"}`;
-    case "moving-coordinator":
-      return `Moving plan: ${values.from_to || "move"}`;
-    case "utility-optimizer":
-      return `Compare ${values.utility_type || "utility"} plans`;
     case "medical-bill-auditor":
       return `Medical bill audit: $${values.total_amount || "amount"}`;
-    case "insurance-comparer":
-      return `Compare ${values.insurance_type || "insurance"} plans`;
-    case "symptom-researcher":
-      return ((values.symptoms as string) || "Symptom research").slice(0, 60);
-    case "prescription-saver":
-      return "Prescription savings search";
-    case "scholarship-hunter":
-      return `Scholarship search: ${values.field || "all fields"}`;
-    case "college-advisor":
-      return `College research: ${values.major || "programs"}`;
-    case "return-assistant":
-      return `Return: ${values.product || "product"} at ${values.store || "store"}`;
-    case "car-buy-negotiator":
-      return `Car pricing: ${values.car || "vehicle"}`;
-    case "freelance-bid-writer":
-      return ((values.project_listing as string) || "Freelance proposal").slice(0, 60);
-    case "side-hustle-matcher":
-      return "Side income opportunities";
-    case "contract-reviewer":
-      return `Contract review: ${values.contract_type || "agreement"}`;
     default:
       return (values.topic || values.question || values.story || "New task") as string;
   }

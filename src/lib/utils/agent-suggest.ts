@@ -78,7 +78,6 @@ const KEYWORD_MAP: { keywords: string[]; slugs: string[]; weight: number }[] = [
   // ── Life Utility Agents ──────────────────────────────────
   // Career
   { keywords: ["job", "jobs", "job search", "hiring", "career", "employment", "openings", "positions"], slugs: ["job-hunter"], weight: 4 },
-  { keywords: ["apply", "application", "cover letter", "job application", "apply for job"], slugs: ["auto-applier"], weight: 4 },
   { keywords: ["resume", "cv", "ats", "optimize resume", "resume review"], slugs: ["resume-optimizer"], weight: 4 },
   { keywords: ["interview", "interview prep", "mock interview", "interview questions", "behavioral interview"], slugs: ["interview-coach"], weight: 4 },
   { keywords: ["salary", "negotiate salary", "compensation", "pay raise", "counter offer", "job offer"], slugs: ["salary-negotiator"], weight: 4 },
@@ -87,38 +86,11 @@ const KEYWORD_MAP: { keywords: string[]; slugs: string[]; weight: number }[] = [
   { keywords: ["subscription", "cancel subscription", "unsubscribe", "recurring charges", "monthly bills"], slugs: ["subscription-killer"], weight: 4 },
   { keywords: ["negotiate bill", "lower bill", "reduce bill", "cable bill", "phone bill", "internet bill"], slugs: ["bill-negotiator"], weight: 4 },
   { keywords: ["tax deduction", "tax credit", "tax savings", "write off", "deductions", "taxes"], slugs: ["tax-deduction-finder"], weight: 4 },
-  { keywords: ["credit score", "credit report", "improve credit", "credit repair", "fico"], slugs: ["credit-score-coach"], weight: 4 },
-  { keywords: ["deal", "coupon", "discount", "best price", "price comparison", "cheapest", "sale"], slugs: ["deal-spotter"], weight: 4 },
-
   // Legal & Rights
-  { keywords: ["dispute", "dispute letter", "complaint letter", "billing error", "overcharge", "fight charge"], slugs: ["dispute-fighter"], weight: 4 },
-  { keywords: ["benefits", "government benefits", "assistance", "food stamps", "medicaid", "snap", "welfare", "unemployment"], slugs: ["benefits-finder"], weight: 4 },
   { keywords: ["lease", "lease review", "rental agreement", "tenant rights", "landlord"], slugs: ["lease-reviewer"], weight: 4 },
-  { keywords: ["visa", "immigration", "green card", "work permit", "h1b", "citizenship", "passport"], slugs: ["immigration-helper"], weight: 4 },
-  { keywords: ["small claims", "sue", "small claims court", "file claim", "court"], slugs: ["small-claims-advisor"], weight: 4 },
 
-  // Housing & Moving
-  { keywords: ["apartment", "rent apartment", "apartment search", "find apartment", "neighborhood"], slugs: ["apartment-scout"], weight: 4 },
-  { keywords: ["moving", "relocate", "relocation", "move to", "packing", "movers"], slugs: ["moving-coordinator"], weight: 4 },
-  { keywords: ["utility", "internet plan", "electric plan", "energy plan", "internet provider", "compare plans"], slugs: ["utility-optimizer"], weight: 4 },
   // Health & Medical
   { keywords: ["medical bill", "hospital bill", "healthcare cost", "billing error medical", "medical debt"], slugs: ["medical-bill-auditor"], weight: 4 },
-  { keywords: ["insurance", "health insurance", "auto insurance", "home insurance", "compare insurance", "insurance plan"], slugs: ["insurance-comparer"], weight: 4 },
-  { keywords: ["symptom", "symptoms", "feeling sick", "health concern", "doctor visit", "diagnosis"], slugs: ["symptom-researcher"], weight: 4 },
-  { keywords: ["prescription", "medication", "drug price", "pharmacy", "generic", "rx savings", "goodrx"], slugs: ["prescription-saver"], weight: 4 },
-
-  // Education
-  { keywords: ["scholarship", "financial aid", "tuition", "college money", "grants", "education funding"], slugs: ["scholarship-hunter"], weight: 4 },
-  { keywords: ["college", "university", "school", "program", "admissions", "which college", "grad school"], slugs: ["college-advisor"], weight: 4 },
-
-  // Shopping
-  { keywords: ["return", "refund", "return policy", "exchange", "return item", "get money back"], slugs: ["return-assistant"], weight: 4 },
-  { keywords: ["car", "buy car", "car price", "dealer", "car negotiation", "auto", "vehicle"], slugs: ["car-buy-negotiator"], weight: 4 },
-
-  // Freelance & Side Income
-  { keywords: ["freelance", "upwork", "fiverr", "proposal", "freelance bid", "client proposal", "gig"], slugs: ["freelance-bid-writer"], weight: 4 },
-  { keywords: ["side hustle", "side income", "extra money", "passive income", "make money", "earn extra", "monetize"], slugs: ["side-hustle-matcher"], weight: 4 },
-  { keywords: ["contract", "contract review", "nda", "agreement", "terms", "sign contract"], slugs: ["contract-reviewer"], weight: 4 },
 ];
 
 export interface AgentSuggestion {
@@ -217,34 +189,14 @@ function getReasonForSlug(slug: string, matchedKeyword: string): string {
     "cover-letter": `Can write standout ${matchedKeyword}`,
     "linkedin-post": `Can write viral ${matchedKeyword}`,
     "job-hunter": `Can find "${matchedKeyword}" opportunities`,
-    "auto-applier": `Can draft ${matchedKeyword} materials`,
     "resume-optimizer": `Can optimize your ${matchedKeyword}`,
     "interview-coach": `Can prepare you for ${matchedKeyword}`,
     "salary-negotiator": `Can research ${matchedKeyword} data`,
     "subscription-killer": `Can audit ${matchedKeyword} for savings`,
     "bill-negotiator": `Can ${matchedKeyword} with scripts`,
     "tax-deduction-finder": `Can find ${matchedKeyword} you're missing`,
-    "credit-score-coach": `Can improve your ${matchedKeyword}`,
-    "deal-spotter": `Can find the best ${matchedKeyword}`,
-    "dispute-fighter": `Can draft a ${matchedKeyword} letter`,
-    "benefits-finder": `Can find ${matchedKeyword} you qualify for`,
     "lease-reviewer": `Can review your ${matchedKeyword}`,
-    "immigration-helper": `Can research ${matchedKeyword} requirements`,
-    "small-claims-advisor": `Can guide you through ${matchedKeyword}`,
-    "apartment-scout": `Can research ${matchedKeyword} options`,
-    "moving-coordinator": `Can plan your ${matchedKeyword}`,
-    "utility-optimizer": `Can compare ${matchedKeyword} plans`,
     "medical-bill-auditor": `Can audit your ${matchedKeyword}`,
-    "insurance-comparer": `Can compare ${matchedKeyword} plans`,
-    "symptom-researcher": `Can research ${matchedKeyword} from trusted sources`,
-    "prescription-saver": `Can find ${matchedKeyword} savings`,
-    "scholarship-hunter": `Can find ${matchedKeyword} matches`,
-    "college-advisor": `Can research ${matchedKeyword} programs`,
-    "return-assistant": `Can help with your ${matchedKeyword}`,
-    "car-buy-negotiator": `Can negotiate ${matchedKeyword} pricing`,
-    "freelance-bid-writer": `Can write a winning ${matchedKeyword}`,
-    "side-hustle-matcher": `Can match ${matchedKeyword} opportunities`,
-    "contract-reviewer": `Can review your ${matchedKeyword}`,
   };
   return reasons[slug] || `Best match for "${matchedKeyword}"`;
 }

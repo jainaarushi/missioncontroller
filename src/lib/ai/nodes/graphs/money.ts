@@ -37,61 +37,11 @@ export const MONEY_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "credit-score-coach": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Credit Info", description: "Reviewing your credit situation", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_tips", type: "search", label: "Research Strategies", description: "Finding latest credit improvement strategies", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`improve credit score fast tips ${ctx.today.split(",").pop()?.trim()}`, `credit score factors ${ctx.latestText.slice(0, 40)}`], maxResults: 5 } },
-      { id: "plan", type: "ai", label: "Build Credit Plan", description: "Creating your personalized credit improvement plan", icon: "📈", color: "#4ade80", inputs: ["input", "search_tips"], config: { type: "ai", specialistSlug: "personal-finance", userPromptTemplate: "Create a credit score improvement plan for: {{input}}\n\nStrategies:\n{{search_tips}}\n\nProvide:\n1. Current Score Assessment\n2. Factor-by-Factor Analysis (Payment History, Utilization, Age, Mix, Inquiries)\n3. Quick wins (30 days)\n4. Medium-term strategy (90 days)\n5. Long-term plan (12 months)\n6. Credit card recommendations (if applicable)\n7. Disputes to file (if applicable)\n8. Score projection timeline\n9. Monthly action checklist", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "deal-spotter": {
-    nodes: [
-      { id: "input", type: "input", label: "What to Find", description: "Understanding what you're looking for", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_products", type: "search", label: "Search Products", description: "Searching for products and reviews", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`best ${ctx.latestText} deals ${ctx.today.split(",").pop()?.trim()}`, `${ctx.latestText} review comparison`, `${ctx.latestText} coupon discount code`], maxResults: 8 } },
-      { id: "scrape", type: "scrape", label: "Get Price Details", description: "Extracting prices from retailer sites", icon: "🌐", color: "#10b981", inputs: ["search_products"], config: { type: "scrape", urlsFrom: "search_products", maxUrls: 5 } },
-      { id: "analyze", type: "ai", label: "Compare & Recommend", description: "Comparing prices and finding the best deal", icon: "🤖", color: "#f59e0b", inputs: ["search_products", "scrape"], config: { type: "ai", specialistSlug: "data-analyst", userPromptTemplate: "Find the best deals for: {{input}}\n\nSearch results:\n{{search_products}}\n\nPrice details:\n{{scrape}}\n\nProvide:\n1. Deal Comparison Table (Product | Store | Price | Rating | Shipping | Total Cost)\n2. Best Overall Pick (and why)\n3. Best Budget Pick\n4. Active coupon codes found\n5. Price history insights (if available)\n6. When to buy (seasonal pricing tips)\n7. Hidden costs to watch for\n8. Return policy comparison", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "Web Scrape", icon: "🌐", color: "#10b981" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "debt-snowball": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Debts", description: "Listing all your debts", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_rates", type: "search", label: "Research Rates", description: "Finding current refinancing and consolidation options", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`debt consolidation rates ${ctx.today.split(",").pop()?.trim()}`, `balance transfer credit card 0 APR`, `debt payoff strategies snowball avalanche`], maxResults: 5 } },
-      { id: "plan", type: "ai", label: "Build Payoff Plan", description: "Creating your optimized debt payoff plan", icon: "📊", color: "#4ade80", inputs: ["input", "search_rates"], config: { type: "ai", specialistSlug: "personal-finance", userPromptTemplate: "Create a debt payoff plan for: {{input}}\n\nCurrent rates/options:\n{{search_rates}}\n\nProvide:\n1. Debt Summary Table (Creditor | Balance | APR | Min Payment | Payoff Order)\n2. Snowball vs Avalanche comparison (total interest saved)\n3. Recommended strategy with monthly payment schedule\n4. Consolidation/refinancing opportunities\n5. Monthly budget allocation\n6. Milestone celebrations along the way\n7. Debt-free date projection\n8. Total interest savings vs minimum payments", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
   "budget-builder": {
     nodes: [
       { id: "input", type: "input", label: "Your Finances", description: "Understanding your income and expenses", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
       { id: "search_tips", type: "search", label: "Research Budgeting Methods", description: "Finding best budgeting strategies", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`best budgeting method ${ctx.today.split(",").pop()?.trim()}`, `50 30 20 budget rule tips`, `budgeting apps free ${ctx.latestText.slice(0, 30)}`], maxResults: 5 } },
       { id: "build", type: "ai", label: "Build Budget", description: "Creating your personalized budget", icon: "📊", color: "#4ade80", inputs: ["input", "search_tips"], config: { type: "ai", specialistSlug: "personal-finance", userPromptTemplate: "Create a personalized budget for: {{input}}\n\nResearch:\n{{search_tips}}\n\nProvide:\n1. Income Summary\n2. Budget Allocation Table (Category | Budgeted | Recommended % | Notes)\n3. Recommended budgeting method and why\n4. Savings goals and timeline\n5. Emergency fund strategy\n6. Areas to cut spending\n7. App recommendations\n8. Monthly review checklist\n9. Quarterly adjustment plan", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "retirement-planner": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Retirement Info", description: "Understanding your retirement goals", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_options", type: "search", label: "Research Options", description: "Finding retirement account options and strategies", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`retirement planning strategies ${ctx.today.split(",").pop()?.trim()}`, `401k IRA Roth contribution limits`, `retirement savings calculator`], maxResults: 5 } },
-      { id: "plan", type: "ai", label: "Build Retirement Plan", description: "Creating your personalized retirement roadmap", icon: "📈", color: "#4ade80", inputs: ["input", "search_options"], config: { type: "ai", specialistSlug: "investment-analyst", userPromptTemplate: "Create a retirement plan for: {{input}}\n\nOptions research:\n{{search_options}}\n\nProvide:\n1. Current retirement readiness score\n2. Account recommendations (401k, IRA, Roth, HSA) with contribution strategy\n3. Investment allocation by age\n4. Savings trajectory table (Year | Balance | Contribution | Growth)\n5. Gap analysis (current pace vs goal)\n6. Social Security optimization strategy\n7. Retirement income plan\n8. Key milestones and action items", tools: ["web-search", "calculator"] } },
     ],
     pieces: [
       { name: "Web Search", icon: "🔍", color: "#3b82f6" },

@@ -28,19 +28,6 @@ export const CAREER_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "auto-applier": {
-    nodes: [
-      { id: "input", type: "input", label: "Job Details", description: "Parsing your resume and target job", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search", type: "search", label: "Research Company", description: "Researching the target company", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => { const q = toSearchQuery(ctx.latestText); return [`${q} company culture values`, `${q} interview process hiring`]; }, maxResults: 5 } },
-      { id: "tailor_resume", type: "ai", label: "Tailor Resume", description: "Customizing resume for the target role", icon: "📄", color: "#f472b6", inputs: ["input", "search"], config: { type: "ai", specialistSlug: "recruitment-agent", userPromptTemplate: "The user wants to apply for this role: \"{{input}}\"\n\nCompany research:\n{{search}}\n\nCreate a tailored resume optimization plan:\n1. Key skills to emphasize from the job description\n2. Resume bullet points rewritten for ATS optimization\n3. Keywords to include\n4. Sections to prioritize\n5. Quantified achievements suggestions", tools: ["web-search", "calculator"] } },
-      { id: "cover_letter", type: "ai", label: "Write Cover Letter", description: "Crafting a personalized cover letter", icon: "✍️", color: "#c5f135", inputs: ["tailor_resume", "search"], config: { type: "ai", specialistSlug: "cover-letter", userPromptTemplate: "Write a compelling cover letter for this application.\n\nRole details: {{input}}\n\nCompany research:\n{{search}}\n\nResume highlights:\n{{tailor_resume}}\n\nWrite a cover letter that:\n- Opens with a hook specific to the company\n- Connects the candidate's experience to key requirements\n- Shows knowledge of the company culture and mission\n- Closes with confidence and a call to action\n- Keeps it under 400 words", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
   "resume-optimizer": {
     nodes: [
       { id: "input", type: "input", label: "Your Resume", description: "Analyzing your current resume", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
@@ -82,65 +69,4 @@ export const CAREER_GRAPHS: Record<string, PipelineGraph> = {
     ],
   },
 
-  "linkedin-optimizer": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Profile", description: "Reviewing your LinkedIn profile", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_tips", type: "search", label: "Research Best Practices", description: "Finding latest LinkedIn optimization strategies", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`LinkedIn profile optimization tips ${ctx.today.split(",").pop()?.trim()}`, `LinkedIn SEO keywords ${toSearchQuery(ctx.latestText, 40)}`], maxResults: 5 } },
-      { id: "optimize", type: "ai", label: "Optimize Profile", description: "Rewriting your profile for maximum visibility", icon: "✍️", color: "#22d3ee", inputs: ["input", "search_tips"], config: { type: "ai", specialistSlug: "seo-agent", userPromptTemplate: "Optimize this LinkedIn profile: {{input}}\n\nBest practices:\n{{search_tips}}\n\nIMPORTANT: If LinkedIn tools are available (e.g., composio_linkedin_get_profile), USE THEM to fetch the user's actual LinkedIn profile data for personalized optimization. If not available, work with the information provided.\n\nProvide:\n1. Optimized Headline (3 options, keyword-rich)\n2. About Section (compelling story format, 2000 chars max)\n3. Experience bullet points (achievement-focused)\n4. Skills to add (top 15)\n5. Featured section suggestions\n6. Content strategy (5 post ideas)\n7. Connection/networking strategy\n8. SSI (Social Selling Index) optimization tips", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "career-pivoter": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Background", description: "Understanding your current career and goals", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_paths", type: "search", label: "Research Career Paths", description: "Exploring transition opportunities", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`career transition from ${toSearchQuery(ctx.latestText, 50)} skills transfer`, `career pivot success stories ${toSearchQuery(ctx.latestText, 30)}`], maxResults: 6 } },
-      { id: "analyze", type: "ai", label: "Map Skills & Gaps", description: "Analyzing transferable skills and gaps", icon: "🧠", color: "#7c6fef", inputs: ["input", "search_paths"], config: { type: "ai", specialistSlug: "strategy-advisor", userPromptTemplate: "Analyze this career pivot request: {{input}}\n\nResearch:\n{{search_paths}}\n\nProvide:\n1. Transferable Skills Map (current skills → target role application)\n2. Skills Gap Analysis (what's missing + how to acquire)\n3. Top 5 realistic career paths ranked by feasibility\n4. 90-day transition plan\n5. Courses/certifications to prioritize\n6. Networking strategy for the new industry\n7. Resume repositioning guide\n8. Risk assessment and mitigation plan", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "remote-job-finder": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Preferences", description: "Understanding your remote work preferences", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_remote", type: "search", label: "Search Remote Boards", description: "Scanning remote job boards", icon: "🌐", color: "#22d3ee", inputs: ["input"], config: { type: "search", queries: (ctx) => { const q = toSearchQuery(ctx.latestText); return [`${q} remote job`, `${q} work from home hiring site:remoteok.com OR site:weworkremotely.com`, `${q} fully remote position`]; }, maxResults: 8 } },
-      { id: "scrape", type: "scrape", label: "Extract Listings", description: "Getting detailed job information", icon: "🌐", color: "#10b981", inputs: ["search_remote"], config: { type: "scrape", urlsFrom: "search_remote", maxUrls: 5 } },
-      { id: "analyze", type: "ai", label: "Rank & Report", description: "Ranking opportunities by your fit", icon: "📊", color: "#4ade80", inputs: ["search_remote", "scrape"], config: { type: "ai", specialistSlug: "recruitment-agent", userPromptTemplate: "Analyze remote job opportunities for: {{input}}\n\nSearch results:\n{{search_remote}}\n\nScraped details:\n{{scrape}}\n\nIMPORTANT: If the search/scrape data above is empty, says \"No search results\", or \"No URLs found\", you MUST use your web_search tool to find remote job listings yourself. Also use any MCP tools available to find real listings.\n\nProvide:\n1. Top 10 Remote Opportunities Table (Company | Role | Salary | Timezone | Benefits)\n2. Remote-specific perks comparison\n3. Company remote culture ratings\n4. Time zone compatibility analysis\n5. Application priority order\n6. Remote work setup recommendations", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "Web Scrape", icon: "🌐", color: "#10b981" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "portfolio-builder": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Work", description: "Understanding your experience and projects", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_trends", type: "search", label: "Research Portfolio Trends", description: "Finding what top portfolios look like", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`best ${toSearchQuery(ctx.latestText, 30)} portfolio examples ${ctx.today.split(",").pop()?.trim()}`, `portfolio website tips ${toSearchQuery(ctx.latestText, 30)}`], maxResults: 5 } },
-      { id: "build", type: "ai", label: "Design Portfolio", description: "Creating your portfolio structure and content", icon: "🎨", color: "#f472b6", inputs: ["input", "search_trends"], config: { type: "ai", specialistSlug: "content-creator", userPromptTemplate: "Design a professional portfolio for: {{input}}\n\nTrends:\n{{search_trends}}\n\nProvide:\n1. Portfolio structure (pages and sections)\n2. Hero section copy\n3. About Me section (compelling narrative)\n4. Project showcase descriptions (3-5 projects with STAR format)\n5. Skills section organization\n6. Testimonial prompts\n7. CTA strategy\n8. SEO optimization\n9. Platform recommendation (personal site, Notion, GitHub Pages, etc.)\n10. Content calendar for updates", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
-
-  "networking-coach": {
-    nodes: [
-      { id: "input", type: "input", label: "Your Goals", description: "Understanding your networking objectives", icon: "📝", color: "#8b5cf6", config: { type: "input" } },
-      { id: "search_events", type: "search", label: "Find Opportunities", description: "Searching for networking events and communities", icon: "🔍", color: "#3b82f6", inputs: ["input"], config: { type: "search", queries: (ctx) => [`${toSearchQuery(ctx.latestText, 40)} networking events conferences ${ctx.today.split(",").pop()?.trim()}`, `${toSearchQuery(ctx.latestText, 40)} professional communities online`], maxResults: 6 } },
-      { id: "strategy", type: "ai", label: "Build Strategy", description: "Creating your personalized networking plan", icon: "🤝", color: "#4ade80", inputs: ["input", "search_events"], config: { type: "ai", specialistSlug: "strategy-advisor", userPromptTemplate: "Create a networking strategy for: {{input}}\n\nOpportunities found:\n{{search_events}}\n\nIMPORTANT: If LinkedIn tools are available (e.g., composio_linkedin_search_people), USE THEM to find real connection opportunities. If not available, use the search results above.\n\nProvide:\n1. Networking Goals (SMART format)\n2. Target connections profile (who to connect with)\n3. Outreach templates (LinkedIn, email, cold intro - 3 each)\n4. Events/communities to join (from research + recommendations)\n5. Weekly networking schedule\n6. Conversation starters and follow-up scripts\n7. Personal brand statement\n8. 30-60-90 day networking plan\n9. Metrics to track progress", tools: ["web-search", "calculator"] } },
-    ],
-    pieces: [
-      { name: "Web Search", icon: "🔍", color: "#3b82f6" },
-      { name: "AI Agent", icon: "🤖", color: "#f59e0b" },
-    ],
-  },
 };
