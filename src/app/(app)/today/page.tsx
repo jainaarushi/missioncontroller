@@ -13,7 +13,7 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P, F, FS, FM } from "@/lib/palette";
 import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
-import { Search, Code2, Palette, BarChart3, PenTool, TrendingUp, ShieldCheck, BrainCircuit } from "lucide-react";
+import { Search, Code2, Palette, BarChart3, PenTool, TrendingUp, ShieldCheck, BrainCircuit, ChevronLeft, ChevronRight, Plus, ArrowRight, ArrowUpRight, AtSign, LineChart, Wrench } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
 import { CATEGORY_META, TEMPLATE_PIPELINES, TEMPLATE_RATINGS, TEMPLATE_RUNS } from "@/lib/template-agents";
@@ -24,214 +24,28 @@ const RECOMMENDED_SLUGS = [
   "study-plan-maker",
 ];
 
-// Specialist agents displayed in the "Hire a Specialist" section
+// Specialist agents displayed in the "Specialist Agents" section
 const SPECIALIST_PERSONAS: {
-  slug: string; emoji: string; role: string; xp: string;
-  skills: string[]; stats: { tasks: string; rating: string; speed: string };
-  color1: string; color2: string; badge: string; specialty: string;
+  slug: string; icon: React.ReactNode; role: string;
+  desc: string; skills: string[];
+  bgColor: string; textColor: string; status: "active" | "idle";
 }[] = [
-  { slug: "deep-research", emoji: "🧠", role: "Research Strategist", xp: "8 yrs", skills: ["Deep Research", "Data Analysis", "Competitive Intel"], stats: { tasks: "1.2k", rating: "5.0", speed: "Fast" }, color1: "#7c6fef", color2: "#a99cf5", badge: "Top Rated", specialty: "Multi-source" },
-  { slug: "fullstack-developer", emoji: "💻", role: "Full-Stack AI Dev", xp: "6 yrs", skills: ["React / Next.js", "Node & APIs", "AI Integration"], stats: { tasks: "980", rating: "4.9", speed: "Fast" }, color1: "#2dd4bf", color2: "#5eead4", badge: "Expert", specialty: "SaaS Products" },
-  { slug: "ux-designer", emoji: "🎨", role: "UX/UI Designer", xp: "5 yrs", skills: ["Figma", "User Research", "Design Systems"], stats: { tasks: "750", rating: "4.8", speed: "Medium" }, color1: "#f472b6", color2: "#f9a8d4", badge: "Creative", specialty: "Consumer Apps" },
-  { slug: "data-analyst", emoji: "📊", role: "Data Scientist", xp: "7 yrs", skills: ["Python & Pandas", "ML Models", "Dashboards"], stats: { tasks: "860", rating: "5.0", speed: "Thorough" }, color1: "#f5a623", color2: "#fcd34d", badge: "Top Rated", specialty: "Analytics" },
-  { slug: "content-creator", emoji: "✍️", role: "Content Strategist", xp: "4 yrs", skills: ["Long-form Writing", "SEO", "Brand Voice"], stats: { tasks: "2.1k", rating: "4.7", speed: "Fast" }, color1: "#60a5fa", color2: "#93c5fd", badge: "Prolific", specialty: "B2C Brands" },
-  { slug: "strategy-advisor", emoji: "📈", role: "Growth Hacker", xp: "5 yrs", skills: ["A/B Testing", "Funnel Optimization", "Viral Loops"], stats: { tasks: "640", rating: "4.8", speed: "Fast" }, color1: "#fb923c", color2: "#fdba74", badge: "Results-driven", specialty: "Early Stage" },
-  { slug: "code-reviewer", emoji: "🔒", role: "Security Auditor", xp: "9 yrs", skills: ["Pen Testing", "Code Review", "OWASP"], stats: { tasks: "430", rating: "5.0", speed: "Thorough" }, color1: "#ef4444", color2: "#f87171", badge: "Certified", specialty: "SaaS & APIs" },
-  { slug: "sales-coach", emoji: "🤖", role: "AI Prompt Engineer", xp: "3 yrs", skills: ["Chain-of-thought", "RAG Systems", "Agent Design"], stats: { tasks: "1.5k", rating: "4.9", speed: "Fast" }, color1: "#22d3ee", color2: "#67e8f9", badge: "Specialist", specialty: "LLM Products" },
+  { slug: "deep-research", icon: <Search size={24} />, role: "Research Strategist", desc: "Specializes in deep market analysis and lead generation via web scraping.", skills: ["Market Analysis", "Data Scraping"], bgColor: "bg-blue-50", textColor: "text-blue-600", status: "active" },
+  { slug: "fullstack-developer", icon: <Code2 size={24} />, role: "Full-Stack AI Dev", desc: "Handles automated PR reviews, refactoring, and integration testing.", skills: ["CI/CD", "Node.js", "Python"], bgColor: "bg-purple-50", textColor: "text-purple-600", status: "active" },
+  { slug: "content-creator", icon: <PenTool size={24} />, role: "Content Specialist", desc: "Generates high-quality newsletters, social posts, and blog content.", skills: ["Copywriting", "Social Media"], bgColor: "bg-amber-50", textColor: "text-amber-600", status: "idle" },
+  { slug: "code-reviewer", icon: <ShieldCheck size={24} />, role: "Security Analyst", desc: "Monitors system vulnerabilities and enforces swarm-wide protocols.", skills: ["Compliance", "Audit Log"], bgColor: "bg-rose-50", textColor: "text-rose-600", status: "active" },
+  { slug: "ux-designer", icon: <Palette size={24} />, role: "UX/UI Designer", desc: "Creates wireframes, prototypes, and design systems for products.", skills: ["Figma", "User Research"], bgColor: "bg-green-50", textColor: "text-green-600", status: "idle" },
+  { slug: "data-analyst", icon: <BarChart3 size={24} />, role: "Data Scientist", desc: "Builds dashboards, runs ML models, and extracts actionable insights.", skills: ["Python", "ML Models"], bgColor: "bg-blue-50", textColor: "text-blue-600", status: "active" },
+  { slug: "strategy-advisor", icon: <TrendingUp size={24} />, role: "Growth Hacker", desc: "Optimizes funnels, runs A/B tests, and designs viral loops.", skills: ["A/B Testing", "Funnels"], bgColor: "bg-amber-50", textColor: "text-amber-600", status: "idle" },
+  { slug: "sales-coach", icon: <BrainCircuit size={24} />, role: "AI Prompt Engineer", desc: "Designs chain-of-thought prompts, RAG systems, and agent architectures.", skills: ["RAG", "Agent Design"], bgColor: "bg-purple-50", textColor: "text-purple-600", status: "active" },
 ];
 
-/* ─── Pill component ─── */
-function Pill({ children, color = P.lime, bg = "rgba(197,241,53,0.13)", size = 10 }: {
-  children: React.ReactNode; color?: string; bg?: string; size?: number;
-}) {
-  return (
-    <span style={{
-      fontSize: size, fontWeight: 700, padding: "3px 10px", borderRadius: 100,
-      background: bg, color, letterSpacing: "0.04em", whiteSpace: "nowrap",
-    }}>{children}</span>
-  );
-}
-
-const SPECIALIST_ICONS: Record<string, React.ReactNode> = {
-  "deep-research": <Search size={22} strokeWidth={2.2} />,
-  "fullstack-developer": <Code2 size={22} strokeWidth={2.2} />,
-  "ux-designer": <Palette size={22} strokeWidth={2.2} />,
-  "data-analyst": <BarChart3 size={22} strokeWidth={2.2} />,
-  "content-creator": <PenTool size={22} strokeWidth={2.2} />,
-  "strategy-advisor": <TrendingUp size={22} strokeWidth={2.2} />,
-  "code-reviewer": <ShieldCheck size={22} strokeWidth={2.2} />,
-  "sales-coach": <BrainCircuit size={22} strokeWidth={2.2} />,
-};
-
-/* ─── Specialist Card with 3D tilt ─── */
-function SpecialistCardH({ s, onClick }: {
-  s: typeof SPECIALIST_PERSONAS[0];
-  onClick: () => void;
-}) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [rot, setRot] = useState({ x: 0, y: 0 });
-  const [hov, setHov] = useState(false);
-
-  const handleMove = useCallback((e: React.MouseEvent) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setRot({
-      x: ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -7,
-      y: ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * 10,
-    });
-  }, []);
-
-  const handleLeave = useCallback(() => {
-    setRot({ x: 0, y: 0 });
-    setHov(false);
-  }, []);
-
-  const gx = 50 + rot.y * 3;
-  const gy = 50 + rot.x * 3;
-
-  return (
-    <div ref={cardRef} onMouseMove={handleMove} onMouseEnter={() => setHov(true)} onMouseLeave={handleLeave}
-      onClick={onClick}
-      style={{ perspective: 800, cursor: "pointer", flexShrink: 0, width: 220 }}>
-      <div style={{
-        background: `linear-gradient(150deg, ${P.bg3}, ${P.bg2})`,
-        border: `1px solid ${hov ? P.border2 : P.border}`,
-        borderRadius: 16, padding: "0 0 14px", overflow: "hidden", position: "relative",
-        transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) scale(${hov ? 1.03 : 1})`,
-        transition: hov ? "transform 0.08s" : "transform 0.5s",
-        boxShadow: hov ? "0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)" : "0 3px 14px rgba(0,0,0,0.3)",
-        transformStyle: "preserve-3d" as const,
-      }}>
-        {/* Specular highlight */}
-        <div style={{
-          position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none", zIndex: 10,
-          background: `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.07) 0%, transparent 55%)`,
-          transition: "background 0.08s",
-        }} />
-
-        {/* Header strip */}
-        <div style={{
-          height: 52, background: `linear-gradient(135deg, ${s.color1}22, ${s.color2}38)`,
-          borderBottom: `1px solid ${P.border}`, position: "relative",
-        }}>
-          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 75% 35%, ${s.color1}25 0%, transparent 65%)` }} />
-          <div style={{ position: "absolute", top: 9, right: 11, zIndex: 2 }}>
-            <Pill color={s.color1} bg={`${s.color1}30`} size={9}>{s.badge}</Pill>
-          </div>
-          <div style={{
-            width: 42, height: 42, borderRadius: 12,
-            background: `linear-gradient(135deg, ${s.color1}, ${s.color2})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", border: `2.5px solid ${P.bg3}`,
-            position: "absolute", bottom: -16, left: 14,
-            boxShadow: `0 5px 18px ${s.color1}44`, zIndex: 2,
-          }}>
-            {SPECIALIST_ICONS[s.slug] || <span style={{ fontSize: 20 }}>{s.emoji}</span>}
-          </div>
-        </div>
-
-        <div style={{ padding: "24px 14px 0", position: "relative", zIndex: 1 }}>
-          <div style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: F, color: P.text, marginBottom: 2 }}>{s.role}</div>
-            <div style={{ fontSize: 10.5, color: P.textSec }}>
-              {s.xp} · <span style={{ color: s.color1 }}>{s.specialty}</span>
-            </div>
-          </div>
-          <div style={{ height: 1, background: `linear-gradient(90deg, ${s.color1}44, transparent)`, margin: "8px 0" }} />
-
-          {/* Skills */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 9 }}>
-            {s.skills.slice(0, 3).map((sk) => (
-              <span key={sk} style={{
-                fontSize: 9.5, padding: "3px 8px", borderRadius: 5,
-                background: P.bg5, border: `1px solid ${P.border2}`,
-                color: P.text, fontFamily: F, fontWeight: 500,
-              }}>{sk}</span>
-            ))}
-          </div>
-
-          {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5, marginBottom: 10 }}>
-            {Object.entries(s.stats).map(([k, v]) => (
-              <div key={k} style={{
-                background: P.bg4, borderRadius: 7, padding: "6px 5px",
-                textAlign: "center", border: `1px solid ${P.border}`,
-              }}>
-                <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: s.color1, lineHeight: 1 }}>{v}</div>
-                <div style={{ fontSize: 8.5, color: P.textSec, marginTop: 2, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{k}</div>
-              </div>
-            ))}
-          </div>
-
-          <button style={{
-            width: "100%", padding: "8px", borderRadius: 8,
-            border: `1px solid ${s.color1}`,
-            background: `${s.color1}14`,
-            color: s.color1, fontWeight: 700, fontSize: 10.5,
-            cursor: "pointer", fontFamily: F, transition: "all 0.2s",
-          }}>
-            Hire →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Job Row ─── */
-function JobRow({ task, onClick }: { task: TaskWithAgent; onClick: () => void }) {
-  const [hov, setHov] = useState(false);
-  const progress = task.progress || 0;
-  const statusColor = task.status === "review" ? P.amber : task.status === "working" ? P.teal : task.status === "done" ? P.lime : P.textTer;
-  const statusBg = `${statusColor}15`;
-  const statusLabel = task.status === "review" ? "Review Ready" : task.status === "working" ? "Running" : task.status === "done" ? "Done" : "Queued";
-  const cost = Number(task.cost_usd) || 0;
-
-  return (
-    <div onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "11px 15px",
-        background: hov ? P.bg3 : P.bg2,
-        border: `1px solid ${hov ? P.border2 : P.border}`,
-        borderRadius: 11, cursor: "pointer",
-        transition: "all 0.15s",
-      }}>
-      <div style={{
-        width: 31, height: 31, borderRadius: 9,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 14, flexShrink: 0, background: statusBg,
-      }}>
-        {task.agent?.icon || "📋"}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13, fontWeight: 600, fontFamily: F, color: P.text,
-          marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}>{task.title}</div>
-        <div style={{ fontSize: 11, color: P.textSec }}>
-          {task.agent?.name || "Unassigned"} {task.current_step ? `· ${task.current_step}` : ""}
-        </div>
-      </div>
-      <div style={{
-        width: 68, background: P.bg4, borderRadius: 100,
-        height: 3.5, overflow: "hidden", flexShrink: 0,
-      }}>
-        <div style={{
-          height: "100%", borderRadius: 100,
-          width: `${progress}%`,
-          background: task.status === "review" ? P.amber : P.lime,
-        }} />
-      </div>
-      <Pill color={statusColor} bg={statusBg} size={9.5}>{statusLabel}</Pill>
-      <div style={{ fontSize: 10.5, color: P.textSec, flexShrink: 0 }}>
-        ${cost < 0.01 ? cost.toFixed(4) : cost.toFixed(2)}
-      </div>
-    </div>
-  );
-}
-
+// Featured templates with gradient colors
+const FEATURED_TEMPLATES: { slug: string; icon: React.ReactNode; title: string; desc: string; agents: number; category: string; gradient: string }[] = [
+  { slug: "resume-optimizer", icon: <AtSign size={28} />, title: "LinkedIn Cold Outreach", desc: "Full-cycle research, personalized drafting, and automated scheduling.", agents: 2, category: "SALES", gradient: "from-[#4b30a1] to-[#6344d4]" },
+  { slug: "budget-builder", icon: <LineChart size={28} />, title: "Market Analysis", desc: "Real-time competitor monitoring, price tracking, and sentiment reports.", agents: 3, category: "STRATEGY", gradient: "from-[#006064] to-[#0097a7]" },
+  { slug: "lease-reviewer", icon: <Wrench size={28} />, title: "Technical Debt Cleanup", desc: "Automated linting, refactoring suggestions, and dependency updates.", agents: 1, category: "DEVOPS", gradient: "from-[#0d47a1] to-[#1976d2]" },
+];
 
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
@@ -247,11 +61,12 @@ export default function TodayPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [authPrompt, setAuthPrompt] = useState<"login" | "key" | null>(null);
   const [authCountdown, setAuthCountdown] = useState(10);
+  const specialistScrollRef = useRef<HTMLDivElement>(null);
+  const templateScrollRef = useRef<HTMLDivElement>(null);
 
   useRealtimeTasks(mutate);
   const searchParams = useSearchParams();
 
-  // Open create modal with pre-selected agent from URL param (from agents page)
   useEffect(() => {
     const agentId = searchParams.get("agent");
     if (agentId && agents.length > 0) {
@@ -330,7 +145,6 @@ export default function TodayPage() {
     setBulkLoading(false);
   }
 
-  // Cmd+N opens the create modal
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
@@ -359,7 +173,6 @@ export default function TodayPage() {
     mutate();
   }
 
-  // Countdown timer for auth prompt
   useEffect(() => {
     if (!authPrompt) return;
     if (authCountdown <= 0) {
@@ -458,224 +271,344 @@ export default function TodayPage() {
     await mutate();
   }
 
+  function scrollSpecialists(dir: "left" | "right") {
+    specialistScrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+  }
+
+  function scrollTemplates(dir: "left" | "right") {
+    templateScrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+  }
+
   return (
     <>
       <Confetti show={showConfetti} />
 
-      <div style={{ padding: "20px 26px", display: "flex", flexDirection: "column", gap: 26 }}>
+      <div className="p-8 min-h-screen" style={{ fontFamily: "'Inter', sans-serif", backgroundColor: "#f9f9f9", color: "#1b1b1b" }}>
 
-        {/* Compact greeting banner */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "13px 18px", background: P.bg2,
-          border: `1px solid ${P.border}`, borderRadius: 12,
-          position: "relative", overflow: "hidden",
-          animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1)",
-        }}>
-          <div style={{
-            position: "absolute", right: -40, top: -40, width: 180, height: 180,
-            background: `radial-gradient(circle, ${P.violet}18 0%, transparent 70%)`,
-            pointerEvents: "none",
-          }} />
+        {/* Header */}
+        <header className="mb-8 flex justify-between items-end">
           <div>
-            <div style={{ fontFamily: FS, fontSize: 18, fontWeight: 500, lineHeight: 1.2, color: P.text }}>
-              Good morning. <span style={{ fontStyle: "italic", color: P.lime2 }}>What are we shipping?</span>
-            </div>
-            <div style={{ fontSize: 12, color: P.textSec, marginTop: 4 }}>
-              50+ specialist agents · pre-built pipelines · results in seconds.
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "#1b1b1b" }}>System Overview</h1>
+            <p className="text-sm font-medium mt-1" style={{ color: "#44474e" }}>Real-time status of your autonomous agent swarm.</p>
           </div>
-          <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
-            {[
-              { num: String(tasks.length), label: "Jobs today", c: P.lime },
-              { num: `$${totalCost < 0.01 ? totalCost.toFixed(4) : totalCost.toFixed(2)}`, label: "Cost", c: P.amber },
-              { num: String(workingTasks.length), label: "Running", c: P.teal },
-            ].map((s) => (
-              <div key={s.label} style={{
-                textAlign: "center", padding: "8px 14px",
-                background: P.bg3, border: `1px solid ${P.border}`, borderRadius: 9,
-              }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: s.c, lineHeight: 1, fontFamily: F }}>{s.num}</div>
-                <div style={{ fontSize: 9.5, color: P.textSec, marginTop: 3, textTransform: "uppercase" as const, letterSpacing: "0.07em", fontWeight: 600 }}>{s.label}</div>
+          <button
+            onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
+            className="px-5 py-2.5 font-bold rounded-lg flex items-center gap-2 transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#1978e5", color: "#fff" }}
+          >
+            <Plus size={18} />
+            <span>Deploy Specialist</span>
+          </button>
+        </header>
+
+        {/* Create New Initiative CTA */}
+        <section className="mb-8">
+          <button
+            onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
+            className="w-full p-8 rounded-2xl shadow-lg flex items-center justify-between group overflow-hidden relative text-left transition-all duration-300"
+            style={{ backgroundColor: "#1e8e3e", border: "2px solid #156d2e" }}
+          >
+            <div className="absolute right-0 top-0 -mr-12 -mt-12 w-64 h-64 rounded-full group-hover:scale-110 transition-transform duration-500" style={{ backgroundColor: "rgba(255,255,255,0.05)" }} />
+            <div className="flex items-center gap-6 relative z-10">
+              <div className="h-20 w-20 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                <Plus size={48} color="#fff" strokeWidth={1.5} />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Ready-to-run Templates */}
-        <div style={{
-          background: P.bg2, border: `1px solid ${P.border}`, borderRadius: 16,
-          padding: "18px 20px 20px", position: "relative", overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute", left: -60, bottom: -60, width: 200, height: 200,
-            background: `radial-gradient(circle, ${P.lime}08 0%, transparent 70%)`,
-            pointerEvents: "none",
-          }} />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 15 }}>
-            <div>
-              <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: F, marginBottom: 3, margin: 0, color: P.text }}>
-                🗂️ Ready-to-run Templates
-              </h2>
-              <div style={{ fontSize: 11.5, color: P.textSec }}>Click Use to start a new job with this pipeline</div>
+              <div>
+                <h2 className="text-3xl font-black text-white tracking-tight">Create New Initiative</h2>
+                <p className="text-lg font-medium mt-1" style={{ color: "rgba(255,255,255,0.8)" }}>Launch a new autonomous task and assign specialist agents instantly.</p>
+              </div>
             </div>
-            <a href="/templates" style={{ fontSize: 11.5, color: P.lime2, textDecoration: "none", fontFamily: F, fontWeight: 600 }}>Browse all →</a>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-            {RECOMMENDED_SLUGS.map((slug) => {
-              const agent = agents.find((a) => a.slug === slug);
-              if (!agent) return null;
-              const catId = AGENT_CATEGORY_MAP[slug] || "career";
-              const cat = CATEGORY_META[catId] || CATEGORY_META.career;
-              const rating = TEMPLATE_RATINGS[slug] || 4.7;
-
-              const pipeline = TEMPLATE_PIPELINES[slug] || [];
-              const runs = TEMPLATE_RUNS[slug] || "1.0k";
-
-              return (
-                <TemplateCard
-                  key={slug}
-                  agent={agent}
-                  cat={cat}
-                  rating={rating}
-                  runs={runs}
-                  pipeline={pipeline}
-                  onUse={() => {
-                    router.push(`/templates/${slug}`);
-                  }}
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Hire a Specialist */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
-            <div>
-              <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: F, marginBottom: 3, margin: 0, color: P.text }}>
-                🤝 Hire a Specialist
-              </h2>
-              <div style={{ fontSize: 11.5, color: P.textSec }}>Expert agents — hover any card for full profile</div>
+            <div className="flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all relative z-10 text-white" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <span>Start Building</span>
+              <ArrowRight size={18} />
             </div>
-            <a href="/agents" style={{ fontSize: 11.5, color: P.lime2, textDecoration: "none", fontFamily: F, fontWeight: 600 }}>Meet all →</a>
+          </button>
+        </section>
+
+        {/* Specialist Agents */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Specialist Agents</h2>
+            <div className="flex gap-2">
+              <button onClick={() => scrollSpecialists("left")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                <ChevronLeft size={20} />
+              </button>
+              <button onClick={() => scrollSpecialists("right")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
-          <div style={{
-            display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8,
-            scrollbarWidth: "thin" as const, scrollbarColor: `${P.border2} transparent`,
-          }}>
+          <div ref={specialistScrollRef} className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
             {SPECIALIST_PERSONAS.map((s) => {
               const agent = agents.find((a) => a.slug === s.slug);
               return (
-                <SpecialistCardH
+                <div
                   key={s.slug}
-                  s={s}
                   onClick={() => agent && setPreviewAgent(agent)}
-                />
+                  className="min-w-[300px] bg-white rounded-2xl border shadow-sm hover:shadow-md transition-shadow p-5 cursor-pointer snap-start"
+                  style={{ borderColor: "#e5e7eb" }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-12 h-12 rounded-xl ${s.bgColor} ${s.textColor} flex items-center justify-center`}>
+                      {s.icon}
+                    </div>
+                    {s.status === "active" ? (
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-[10px] font-bold border border-green-100">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        ACTIVE
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-bold border border-gray-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                        IDLE
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-bold" style={{ color: "#1b1b1b" }}>{s.role}</h3>
+                  <p className="text-xs mt-1 leading-relaxed" style={{ color: "#44474e" }}>{s.desc}</p>
+                  <div className="mt-4 pt-4 border-t flex flex-wrap gap-1.5" style={{ borderColor: "#f9fafb" }}>
+                    {s.skills.map((sk) => (
+                      <span key={sk} className="px-2 py-0.5 bg-gray-100 text-[10px] font-semibold text-gray-600 rounded">{sk}</span>
+                    ))}
+                  </div>
+                </div>
               );
             })}
           </div>
-        </div>
+        </section>
 
-        {/* Running Jobs */}
-        {runningJobs.length > 0 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: F, margin: 0, color: P.text }}>🟢 Running Jobs</h2>
-              <a href="/analytics" style={{ fontSize: 11.5, color: P.lime2, textDecoration: "none", fontFamily: F, fontWeight: 600 }}>View all →</a>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {runningJobs.slice(0, 3).map((t) => (
-                <JobRow key={t.id} task={t} onClick={() => setSelectedTask(t)} />
-              ))}
+        {/* Featured Templates */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Featured Templates</h2>
+            <div className="flex gap-2">
+              <button onClick={() => scrollTemplates("left")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                <ChevronLeft size={20} />
+              </button>
+              <button onClick={() => scrollTemplates("right")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                <ChevronRight size={20} />
+              </button>
             </div>
           </div>
-        )}
+          <div ref={templateScrollRef} className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
+            {FEATURED_TEMPLATES.map((t) => (
+              <div
+                key={t.slug}
+                onClick={() => router.push(`/templates/${t.slug}`)}
+                className={`min-w-[300px] bg-gradient-to-br ${t.gradient} rounded-2xl shadow-sm hover:shadow-lg transition-all p-6 snap-start group cursor-pointer relative overflow-hidden`}
+              >
+                <div className="absolute right-0 top-0 -mr-8 -mt-8 w-32 h-32 rounded-full group-hover:scale-125 transition-transform duration-500" style={{ backgroundColor: "rgba(255,255,255,0.05)" }} />
+                <div className="flex items-start justify-between mb-6 relative z-10">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                    {t.icon}
+                  </div>
+                  <ArrowUpRight size={20} className="transition-colors" style={{ color: "rgba(255,255,255,0.4)" }} />
+                </div>
+                <h3 className="text-lg font-bold text-white relative z-10">{t.title}</h3>
+                <p className="text-sm mt-2 leading-relaxed relative z-10" style={{ color: "rgba(255,255,255,0.7)" }}>{t.desc}</p>
+                <div className="mt-6 flex gap-2 relative z-10">
+                  <span className="px-2 py-0.5 text-[10px] font-bold text-white rounded uppercase" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)" }}>{t.agents} Agent{t.agents > 1 ? "s" : ""}</span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold text-white rounded uppercase" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)" }}>{t.category}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-        {/* Usage panel */}
-        <UsagePanel tasks={tasks} />
-
-        {/* Tasks header — status + select */}
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-        }}>
-          <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
-            {tasks.length > 0 ? (
-              <>
-                {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
-                {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
-                {workingTasks.length > 0 && <>{workingTasks.length} working</>}
-                {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
-                {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
-              </>
-            ) : (
-              "Create a task to get started"
-            )}
-          </p>
-          {tasks.length > 0 && (
-            <button
-              onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
-              style={{
-                padding: "6px 14px", borderRadius: 8,
-                border: `1.5px solid ${bulkMode ? P.violet + "50" : P.border}`,
-                backgroundColor: bulkMode ? P.indigoLight : P.bg2,
-                color: bulkMode ? P.violet : P.textSec,
-                fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-                fontFamily: F, transition: "all 0.15s",
-              }}
-            >
-              {bulkMode ? "Cancel" : "Select"}
-            </button>
-          )}
+        {/* Metrics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-xl border shadow-sm flex flex-col" style={{ borderColor: "#e5e7eb" }}>
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(25,120,229,0.1)" }}>
+                <BrainCircuit size={20} style={{ color: "#1978e5" }} />
+              </div>
+              <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ color: "#1978e5", backgroundColor: "rgba(25,120,229,0.1)" }}>LIVE</span>
+            </div>
+            <span className="text-sm font-semibold mb-1" style={{ color: "#44474e" }}>Active Agents</span>
+            <div className="text-4xl font-black" style={{ color: "#1b1b1b" }}>{workingTasks.length}</div>
+            <div className="mt-4 flex items-center gap-1 text-xs font-bold" style={{ color: "#1978e5" }}>
+              <TrendingUp size={14} />
+              <span>{tasks.length} tasks today</span>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-xl border shadow-sm flex flex-col" style={{ borderColor: "#e5e7eb" }}>
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(99,91,83,0.1)" }}>
+                <ShieldCheck size={20} style={{ color: "#635b53" }} />
+              </div>
+            </div>
+            <span className="text-sm font-semibold mb-1" style={{ color: "#44474e" }}>Total Successful Tasks</span>
+            <div className="text-4xl font-black" style={{ color: "#1b1b1b" }}>{reviewTasks.length + tasks.filter(t => t.status === "done").length}</div>
+            <div className="mt-4 flex items-center gap-1 text-xs font-bold" style={{ color: "#44474e" }}>
+              <span>${totalCost < 0.01 ? totalCost.toFixed(4) : totalCost.toFixed(2)} spent</span>
+            </div>
+          </div>
         </div>
 
-        {/* Task sections */}
-        <TaskSection
-          label="AWAITING DEBRIEF"
-          sectionId="review"
-          tasks={reviewTasks}
-          onTaskClick={bulkMode ? () => {} : setSelectedTask}
-          accentColor={P.coral}
-          dot
-          selectable={bulkMode}
-          selectedIds={selectedIds}
-          onSelect={handleToggleSelect}
-        />
-        <TaskSection
-          label="ON MISSION"
-          sectionId="working"
-          tasks={workingTasks}
-          onTaskClick={bulkMode ? () => {} : setSelectedTask}
-          onDropTask={handleDropTask}
-          accentColor={P.amber}
-          selectable={bulkMode}
-          selectedIds={selectedIds}
-          onSelect={handleToggleSelect}
-        />
-        <TaskSection
-          label="READY TO DEPLOY"
-          sectionId="todo"
-          tasks={todoTasks}
-          onTaskClick={bulkMode ? () => {} : setSelectedTask}
-          onRunTask={handleRunTask}
-          accentColor={P.textGhost}
-          selectable={bulkMode}
-          selectedIds={selectedIds}
-          onSelect={handleToggleSelect}
-          draggable={!bulkMode}
-          onReorder={(dragId, dropId) => {
-            const dragIdx = todoTasks.findIndex((t) => t.id === dragId);
-            const dropIdx = todoTasks.findIndex((t) => t.id === dropId);
-            if (dragIdx !== -1 && dropIdx !== -1) {
-              const reordered = [...tasks];
-              const allDragIdx = reordered.findIndex((t) => t.id === dragId);
-              const allDropIdx = reordered.findIndex((t) => t.id === dropId);
-              const [moved] = reordered.splice(allDragIdx, 1);
-              reordered.splice(allDropIdx, 0, moved);
-              mutate(reordered, false);
-            }
-          }}
-        />
+        {/* Active Workflows + Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Active Workflows */}
+          <div className="lg:col-span-2 space-y-8">
+            {runningJobs.length > 0 && (
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: "#e5e7eb" }}>
+                <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "#f3f4f6" }}>
+                  <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Active Workflows</h2>
+                  <a href="/analytics" className="text-sm font-bold flex items-center gap-1" style={{ color: "#1978e5" }}>
+                    <span>View All</span>
+                    <ArrowRight size={16} />
+                  </a>
+                </div>
+                <div className="divide-y" style={{ borderColor: "#f3f4f6" }}>
+                  {runningJobs.slice(0, 4).map((t) => {
+                    const progress = t.progress || 0;
+                    return (
+                      <div key={t.id} onClick={() => setSelectedTask(t)} className="p-5 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(25,120,229,0.1)", color: "#1978e5" }}>
+                            <span className="text-lg">{t.agent?.icon || "📋"}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-sm" style={{ color: "#1b1b1b" }}>{t.title}</h4>
+                            <p className="text-xs" style={{ color: "#44474e" }}>{t.agent?.name || "Unassigned"} {t.current_step ? `· ${t.current_step}` : ""}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: t.status === "review" ? "#22c55e" : "#1978e5" }} />
+                          </div>
+                          <span className="text-xs font-bold" style={{ color: t.status === "review" ? "#16a34a" : "#1978e5" }}>{progress}%</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Task Sections */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Tasks</h2>
+                {tasks.length > 0 && (
+                  <button
+                    onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold border transition-all"
+                    style={{
+                      borderColor: bulkMode ? "#1978e5" : "#e5e7eb",
+                      backgroundColor: bulkMode ? "rgba(25,120,229,0.1)" : "#fff",
+                      color: bulkMode ? "#1978e5" : "#6b7280",
+                    }}
+                  >
+                    {bulkMode ? "Cancel" : "Select"}
+                  </button>
+                )}
+              </div>
+              <TaskSection
+                label="AWAITING DEBRIEF"
+                sectionId="review"
+                tasks={reviewTasks}
+                onTaskClick={bulkMode ? () => {} : setSelectedTask}
+                accentColor={P.coral}
+                dot
+                selectable={bulkMode}
+                selectedIds={selectedIds}
+                onSelect={handleToggleSelect}
+              />
+              <TaskSection
+                label="ON MISSION"
+                sectionId="working"
+                tasks={workingTasks}
+                onTaskClick={bulkMode ? () => {} : setSelectedTask}
+                onDropTask={handleDropTask}
+                accentColor={P.amber}
+                selectable={bulkMode}
+                selectedIds={selectedIds}
+                onSelect={handleToggleSelect}
+              />
+              <TaskSection
+                label="READY TO DEPLOY"
+                sectionId="todo"
+                tasks={todoTasks}
+                onTaskClick={bulkMode ? () => {} : setSelectedTask}
+                onRunTask={handleRunTask}
+                accentColor={P.textGhost}
+                selectable={bulkMode}
+                selectedIds={selectedIds}
+                onSelect={handleToggleSelect}
+                draggable={!bulkMode}
+                onReorder={(dragId, dropId) => {
+                  const dragIdx = todoTasks.findIndex((t) => t.id === dragId);
+                  const dropIdx = todoTasks.findIndex((t) => t.id === dropId);
+                  if (dragIdx !== -1 && dropIdx !== -1) {
+                    const reordered = [...tasks];
+                    const allDragIdx = reordered.findIndex((t) => t.id === dragId);
+                    const allDropIdx = reordered.findIndex((t) => t.id === dropId);
+                    const [moved] = reordered.splice(allDragIdx, 1);
+                    reordered.splice(allDropIdx, 0, moved);
+                    mutate(reordered, false);
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-xl border shadow-sm h-full flex flex-col" style={{ borderColor: "#e5e7eb" }}>
+              <h2 className="text-xl font-bold tracking-tight mb-6" style={{ color: "#1b1b1b" }}>Recent Activity</h2>
+              <div className="flex-1 space-y-6 overflow-y-auto">
+                {tasks.slice(0, 4).map((t, i) => (
+                  <div key={t.id} className="flex gap-4 relative">
+                    {i < 3 && (
+                      <div className="absolute w-[2px] bg-gray-100" style={{ left: 15, top: 32, bottom: -24 }} />
+                    )}
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10" style={{ backgroundColor: "rgba(25,120,229,0.1)" }}>
+                      <span className="text-sm">{t.agent?.icon || "📋"}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold" style={{ color: "#1b1b1b" }}>{t.agent?.name || "Unassigned"}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#44474e" }}>{t.title}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-wider mt-2 block" style={{ color: "#9ca3af" }}>
+                        {t.status === "working" ? "In progress" : t.status === "review" ? "Ready for review" : t.status === "done" ? "Completed" : "Queued"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {tasks.length === 0 && (
+                  <p className="text-sm" style={{ color: "#9ca3af" }}>No recent activity. Create a task to get started.</p>
+                )}
+              </div>
+              <a href="/analytics" className="mt-8 py-3 w-full bg-gray-50 font-bold text-xs rounded-lg border text-center block uppercase tracking-widest hover:bg-gray-100 transition-colors" style={{ borderColor: "#e5e7eb", color: "#1b1b1b", textDecoration: "none" }}>
+                View Full Log
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* System Status Footer */}
+        <div className="p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6" style={{ backgroundColor: "#303030", color: "#fff" }}>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full flex items-center justify-center animate-pulse" style={{ border: "4px solid rgba(25,120,229,0.3)" }}>
+              <div className="h-4 w-4 rounded-full" style={{ backgroundColor: "#1978e5" }} />
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">Swarm Sync Active</h4>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>All specialists are synchronized with the central neural core.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
+              className="px-6 py-2 font-bold rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#1978e5", color: "#fff" }}
+            >
+              Launch New Agent
+            </button>
+            <button className="px-6 py-2 font-bold rounded-lg transition-colors" style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "#fff" }}>
+              Emergency Stop
+            </button>
+          </div>
+        </div>
 
         <BulkActionsBar
           selectedCount={selectedIds.size}
@@ -698,78 +631,35 @@ export default function TodayPage() {
         >
           <div style={{
             position: "absolute", inset: 0,
-            backgroundColor: "rgba(0,0,0,0.7)",
+            backgroundColor: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(6px)",
-            animation: "fadeIn 0.2s ease",
           }} />
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "min(440px, 92vw)", backgroundColor: P.bg2,
-              border: `1px solid ${P.border2}`,
-              borderRadius: 20, boxShadow: P.shadowFloat,
-              position: "relative",
-              animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
-              overflow: "hidden",
-            }}
+            className="bg-white rounded-2xl shadow-xl overflow-hidden relative"
+            style={{ width: "min(440px, 92vw)" }}
           >
-            {/* Gradient header */}
-            <div style={{
-              height: 80, background: previewAgent.gradient,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 36,
-            }}>
+            <div className="h-20 flex items-center justify-center text-4xl" style={{ background: previewAgent.gradient }}>
               {previewAgent.icon}
             </div>
-
-            <div style={{ padding: "20px 24px 24px" }}>
-              <h3 style={{
-                fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 4px",
-                letterSpacing: "-0.02em", fontFamily: F,
-              }}>
-                {previewAgent.name}
-              </h3>
-              <p style={{ fontSize: 13, color: previewAgent.color, fontWeight: 600, margin: "0 0 12px" }}>
-                {previewAgent.description}
-              </p>
-              <p style={{
-                fontSize: 14, color: P.textSec, lineHeight: 1.6, margin: "0 0 20px",
-              }}>
+            <div className="p-6">
+              <h3 className="text-xl font-extrabold mb-1" style={{ color: "#1b1b1b" }}>{previewAgent.name}</h3>
+              <p className="text-sm font-semibold mb-3" style={{ color: previewAgent.color }}>{previewAgent.description}</p>
+              <p className="text-sm leading-relaxed mb-5" style={{ color: "#44474e" }}>
                 {previewAgent.long_description || previewAgent.description}
               </p>
-
-              {/* Model badge */}
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "4px 10px", borderRadius: 6,
-                backgroundColor: `${P.violet}18`, fontSize: 11, color: P.violet2,
-                fontFamily: FM, marginBottom: 20,
-              }}>
-                {previewAgent.model.includes("claude") ? "Anthropic Claude" : previewAgent.model.includes("gemini") ? "Google Gemini" : previewAgent.model.includes("gpt") ? "OpenAI GPT" : "AI-Powered"}
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 10 }}>
+              <div className="flex gap-3">
                 <button
                   onClick={() => { setCreateAgentId(previewAgent?.id || null); setPreviewAgent(null); setShowCreateModal(true); }}
-                  style={{
-                    flex: 1, padding: "12px 0", borderRadius: 12, border: "none",
-                    background: P.lime, color: "#0b0b0e",
-                    fontSize: 14, fontWeight: 700, cursor: "pointer",
-                    fontFamily: F, transition: "all 0.2s",
-                  }}
+                  className="flex-1 py-3 rounded-xl font-bold text-sm transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "#1978e5", color: "#fff" }}
                 >
                   Hire this specialist
                 </button>
                 <button
                   onClick={() => setPreviewAgent(null)}
-                  style={{
-                    padding: "12px 20px", borderRadius: 12,
-                    border: `1px solid ${P.border2}`,
-                    backgroundColor: P.bg3, color: P.textSec,
-                    fontSize: 14, fontWeight: 600, cursor: "pointer",
-                    fontFamily: F, transition: "all 0.15s",
-                  }}
+                  className="px-5 py-3 rounded-xl font-semibold text-sm border transition-colors hover:bg-gray-50"
+                  style={{ borderColor: "#e5e7eb", color: "#6b7280" }}
                 >
                   Close
                 </button>
@@ -805,197 +695,58 @@ export default function TodayPage() {
         }}>
           <div style={{
             position: "absolute", inset: 0,
-            backgroundColor: "rgba(0,0,0,0.7)",
+            backgroundColor: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(8px)",
-            animation: "fadeIn 0.3s ease",
           }} />
-          <div style={{
-            position: "relative", width: "min(480px, 90vw)", padding: "48px 28px",
-            backgroundColor: P.bg2, borderRadius: 24,
-            border: `1px solid ${P.border2}`,
-            boxShadow: P.shadowFloat,
-            textAlign: "center",
-            animation: "modalIn 0.4s cubic-bezier(0.16,1,0.3,1)",
-          }}>
-            {/* Top gradient accent */}
-            <div style={{
-              position: "absolute", top: 0, left: 0, right: 0, height: 4,
+          <div className="bg-white rounded-3xl shadow-xl relative text-center" style={{ width: "min(480px, 90vw)", padding: "48px 28px" }}>
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style={{
               background: authPrompt === "login"
-                ? `linear-gradient(90deg, ${P.violet}, ${P.rose})`
-                : `linear-gradient(90deg, ${P.amber}, ${P.orange})`,
-              borderRadius: "24px 24px 0 0",
+                ? "linear-gradient(90deg, #1978e5, #e91e63)"
+                : "linear-gradient(90deg, #f5a623, #fb923c)",
             }} />
-
-            {/* Icon */}
-            <div style={{
-              width: 72, height: 72, borderRadius: 20, margin: "0 auto 20px",
+            <div className="w-[72px] h-[72px] rounded-2xl mx-auto mb-5 flex items-center justify-center text-3xl" style={{
               background: authPrompt === "login"
-                ? `linear-gradient(135deg, ${P.violet}, ${P.rose})`
-                : `linear-gradient(135deg, ${P.amber}, ${P.orange})`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 32,
-              boxShadow: authPrompt === "login"
-                ? `0 8px 24px ${P.violet}4D`
-                : `0 8px 24px ${P.amber}4D`,
+                ? "linear-gradient(135deg, #1978e5, #e91e63)"
+                : "linear-gradient(135deg, #f5a623, #fb923c)",
             }}>
               {authPrompt === "login" ? "🔐" : "🔑"}
             </div>
-
-            <h2 style={{
-              fontSize: 24, fontWeight: 900, color: P.text,
-              letterSpacing: "-0.03em", margin: "0 0 8px", fontFamily: F,
-            }}>
+            <h2 className="text-2xl font-black mb-2" style={{ color: "#1b1b1b", letterSpacing: "-0.03em" }}>
               {authPrompt === "login" ? "Oh snap! You need to sign in" : "Almost there! Add your API key"}
             </h2>
-
-            <p style={{
-              fontSize: 15, color: P.textSec, lineHeight: 1.6,
-              margin: "0 0 28px", maxWidth: 340, marginLeft: "auto", marginRight: "auto",
-            }}>
+            <p className="text-sm leading-relaxed mb-7 mx-auto" style={{ color: "#44474e", maxWidth: 340 }}>
               {authPrompt === "login"
                 ? "Create a free account to run AI agents and unlock the full power of AgentStudio."
                 : "Add your OpenAI, Gemini, or Anthropic API key in Settings to start running agents."}
             </p>
-
             <a
               href={authPrompt === "login" ? "/login" : "/settings"}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "14px 32px", borderRadius: 14,
-                background: P.lime, color: "#0b0b0e",
-                fontSize: 16, fontWeight: 700, textDecoration: "none",
-                fontFamily: F, transition: "all 0.2s",
-              }}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#1978e5", color: "#fff", textDecoration: "none" }}
             >
               {authPrompt === "login" ? "Sign In Free" : "Go to Settings"}
             </a>
-
-            <p style={{
-              fontSize: 13, color: P.textTer, marginTop: 20, marginBottom: 0,
-            }}>
-              Redirecting in <span style={{
-                fontWeight: 700, color: P.lime,
-                fontFamily: FM,
-              }}>{authCountdown}s</span>
+            <p className="text-sm mt-5 mb-0" style={{ color: "#9ca3af" }}>
+              Redirecting in <span className="font-bold" style={{ color: "#1978e5", fontFamily: "monospace" }}>{authCountdown}s</span>
             </p>
-
-            <div style={{
-              marginTop: 12, height: 3, backgroundColor: P.bg4,
-              borderRadius: 2, overflow: "hidden",
-            }}>
-              <div style={{
-                height: "100%",
+            <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-1000" style={{
                 width: `${((10 - authCountdown) / 10) * 100}%`,
-                background: `linear-gradient(90deg, ${P.violet}, ${P.lime})`,
-                borderRadius: 2, transition: "width 1s linear",
+                background: "linear-gradient(90deg, #1978e5, #22c55e)",
               }} />
             </div>
           </div>
         </div>
       )}
+
+      {/* FAB */}
+      <button
+        onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
+        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"
+        style={{ backgroundColor: "#1978e5", color: "#fff" }}
+      >
+        <Plus size={24} />
+      </button>
     </>
-  );
-}
-
-
-/* ─── Template Card ─── */
-function TemplateCard({ agent, cat, rating, runs, pipeline, onUse }: {
-  agent: { id: string; icon: string; name: string; description: string | null; slug?: string };
-  cat: { label: string; color: string; catBg: string };
-  rating: number;
-  runs: string;
-  pipeline: { icon: string; label: string; color: string }[];
-  onUse: () => void;
-}) {
-  const [hov, setHov] = useState(false);
-
-  return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      onClick={onUse}
-      style={{
-        background: P.bg3, border: `1px solid ${hov ? P.border2 : P.border}`,
-        borderRadius: 15, overflow: "hidden", cursor: "pointer",
-        display: "flex", flexDirection: "column",
-        transform: hov ? "translateY(-3px)" : "none",
-        boxShadow: hov ? "0 12px 36px rgba(0,0,0,0.5)" : "0 2px 8px rgba(0,0,0,0.2)",
-        transition: "all 0.2s", minWidth: 0,
-      }}
-    >
-      {/* Gradient stripe */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}44)` }} />
-
-      <div style={{ padding: "13px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Header: icon + name + category pill + rating */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 9,
-              background: cat.catBg,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, flexShrink: 0,
-            }}>{agent.icon}</div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: F, marginBottom: 2, color: P.text }}>{agent.name}</div>
-              <Pill color={cat.color} bg={cat.catBg} size={9.5}>{cat.label}</Pill>
-            </div>
-          </div>
-          <span style={{ fontSize: 11, color: P.amber, fontWeight: 700 }}>★ {rating}</span>
-        </div>
-
-        {/* Description */}
-        <div style={{ fontSize: 11.5, color: P.textSec, lineHeight: 1.55, marginBottom: 10 }}>
-          {agent.description}
-        </div>
-
-        {/* Pipeline agent preview */}
-        {pipeline.length > 0 && (
-          <div style={{
-            padding: "9px 11px", background: P.bg4,
-            borderRadius: 8, border: `1px solid ${P.border}`, marginBottom: 10,
-          }}>
-            <div style={{
-              fontSize: 9.5, textTransform: "uppercase" as const,
-              letterSpacing: "0.08em", color: P.textSec, fontWeight: 600, marginBottom: 6,
-            }}>
-              {pipeline.length} agents
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-              {pipeline.map((step, i) => (
-                <span key={step.label}>
-                  <span style={{
-                    fontSize: 9.5, padding: "3px 7px", borderRadius: 5,
-                    background: `${step.color}15`, border: `1px solid ${step.color}33`,
-                    color: step.color, fontFamily: F, fontWeight: 600,
-                  }}>
-                    {step.icon} {step.label}
-                  </span>
-                  {i < pipeline.length - 1 && (
-                    <span style={{ color: P.textTer, fontSize: 9, margin: "0 1px" }}>›</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Footer: runs + Use Template button */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: "auto", paddingTop: 9,
-          borderTop: `1px solid ${P.border}`,
-        }}>
-          <span style={{ fontSize: 10.5, color: P.textSec, fontWeight: 500 }}>{runs} runs</span>
-          <button onClick={(e) => { e.stopPropagation(); onUse(); }} style={{
-            fontSize: 10.5, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
-            background: P.lime, color: "#0b0b0e", border: "none",
-            cursor: "pointer", fontFamily: F,
-          }}>
-            Use Template →
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
