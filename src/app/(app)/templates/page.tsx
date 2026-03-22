@@ -17,6 +17,7 @@ interface PipelineStep {
 }
 
 interface TemplateCard {
+  slug: string;
   icon: string;
   iconBg: string;
   iconColor: string;
@@ -29,6 +30,7 @@ interface TemplateCard {
 
 const TEMPLATES: TemplateCard[] = [
   {
+    slug: "linkedin-outreach",
     icon: "share",
     iconBg: "bg-[#4d4bff]/10",
     iconColor: "text-[#3028e9]",
@@ -44,6 +46,7 @@ const TEMPLATES: TemplateCard[] = [
     ],
   },
   {
+    slug: "market-analysis",
     icon: "analytics",
     iconBg: "bg-[#008808]/10",
     iconColor: "text-[#006c05]",
@@ -58,6 +61,7 @@ const TEMPLATES: TemplateCard[] = [
     ],
   },
   {
+    slug: "tech-debt-cleanup",
     icon: "terminal",
     iconBg: "bg-[#1b1b1b]/5",
     iconColor: "text-[#1b1b1b]",
@@ -72,6 +76,7 @@ const TEMPLATES: TemplateCard[] = [
     ],
   },
   {
+    slug: "blog-post-generator",
     icon: "edit_note",
     iconBg: "bg-[#7c736b]/10",
     iconColor: "text-[#635b53]",
@@ -177,7 +182,7 @@ export default function TemplatesPage() {
                 </div>
               </div>
               <div className="p-4 bg-gray-50 border-t border-gray-100">
-                <Link href="/today">
+                <Link href={`/templates/${template.slug}`}>
                   <button className="w-full py-2.5 bg-[#006c05] text-white rounded-lg font-bold text-sm active:scale-95 transition-transform cursor-pointer">
                     Use Template
                   </button>
@@ -220,7 +225,7 @@ export default function TemplatesPage() {
                   ))}
                 </div>
               </div>
-              <Link href="/today">
+              <Link href="/templates/unified-support">
                 <button className="px-8 py-3 bg-[#1b1b1b] text-white rounded-lg font-bold text-sm active:scale-95 transition-transform cursor-pointer">
                   Use Template
                 </button>
