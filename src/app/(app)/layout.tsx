@@ -64,7 +64,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               onKeyDown={handleSearch}
             />
           </div>
-          <button className="p-2 text-[#717785] hover:bg-gray-100 transition-colors cursor-pointer rounded-full">
+          <button
+            onClick={() => router.push("/tasks")}
+            className="p-2 text-[#717785] hover:bg-gray-100 transition-colors cursor-pointer rounded-full"
+            title="View tasks"
+          >
             <span className="material-symbols-outlined">notifications</span>
           </button>
           <Link href="/settings" className="p-2 text-[#717785] hover:bg-gray-100 transition-colors cursor-pointer rounded-full">

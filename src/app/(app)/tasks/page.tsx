@@ -160,6 +160,7 @@ function TaskCard({ task, onAction }: { task: Task; onAction: () => void }) {
 export default function TaskBoardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
   const loadTasks = useCallback(async () => {
     try {
@@ -196,9 +197,12 @@ export default function TaskBoardPage() {
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Agent Workflow</h2>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors">
+          <button
+            onClick={() => setFilterStatus(filterStatus ? null : "working")}
+            className={`px-4 py-2 text-sm font-medium border rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors ${filterStatus ? "border-[#4d4bff] text-[#4d4bff]" : "border-slate-200"}`}
+          >
             <span className="material-symbols-outlined text-lg">filter_list</span>
-            <span>Filter</span>
+            <span>{filterStatus ? `Showing: ${filterStatus}` : "Filter"}</span>
           </button>
           <button
             onClick={loadTasks}
@@ -237,7 +241,11 @@ export default function TaskBoardPage() {
                       {colTasks.length}
                     </span>
                   </div>
-                  <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <button
+                    onClick={loadTasks}
+                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                    title="Refresh"
+                  >
                     <span className="material-symbols-outlined">{col.trailingIcon}</span>
                   </button>
                 </div>

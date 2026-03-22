@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getTemplate } from "@/lib/template-data";
 import { api } from "@/lib/api";
 
-interface ComposioAppStatus {
-  app: string;
-  connected: boolean;
+interface ComposioStatusResponse {
+  enabled: boolean;
+  connections: Record<string, boolean>;
 }
 
 export default function TemplateConfigPage() {
@@ -20,18 +20,20 @@ export default function TemplateConfigPage() {
   const rangeField = template?.formFields.find((f) => f.type === "range");
   const [rangeValue, setRangeValue] = useState(rangeField?.defaultValue ?? 25);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
-  const [composioStatus, setComposioStatus] = useState<Record<string, boolean>>({});
+  const [composioConnections, setComposioConnections] = useState<Record<string, boolean>>({});
   const [connecting, setConnecting] = useState<string | null>(null);
 
-  useEffect(() => {
-    api.get<{ apps: ComposioAppStatus[] }>("/api/user/composio/status")
+  const loadComposioStatus = useCallback(() => {
+    api.get<ComposioStatusResponse>("/api/user/composio/status")
       .then((data) => {
-        const map: Record<string, boolean> = {};
-        data.apps?.forEach((a) => { map[a.app] = a.connected; });
-        setComposioStatus(map);
+        setComposioConnections(data.connections || {});
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    loadComposioStatus();
+  }, [loadComposioStatus]);
 
   if (!template) {
     return (
@@ -45,25 +47,43 @@ export default function TemplateConfigPage() {
     setFormValues((prev) => ({ ...prev, [label]: value }));
   };
 
+  // Map tool display names to Composio app keys
+  const TOOL_TO_APP: Record<string, string> = {
+    "LinkedIn": "linkedin",
+    "Gmail": "gmail",
+    "GitHub": "github",
+    "Google Search": "google_search",
+    "Google Sheets": "google_sheets",
+    "Google Calendar": "google_calendar",
+    "Yahoo Finance": "yahoo_finance",
+  };
+
   const connectTool = async (toolName: string) => {
-    const appKey = toolName.toLowerCase().replace(/\s+/g, "");
+    const appKey = TOOL_TO_APP[toolName] || toolName.toLowerCase().replace(/\s+/g, "");
     setConnecting(toolName);
     try {
-      const data = await api.post<{ url?: string }>("/api/user/composio/connect", { app: appKey });
-      if (data.url) {
-        window.open(data.url, "_blank", "width=600,height=700");
+      const data = await api.post<{ redirectUrl: string; app: string }>("/api/user/composio/connect", {
+        app: appKey,
+        returnTo: `/templates/${slug}`,
+      });
+      if (data.redirectUrl) {
+        window.open(data.redirectUrl, "_blank", "width=600,height=700");
+        // Poll for connection status after OAuth popup
+        const pollId = setInterval(() => loadComposioStatus(), 3000);
+        setTimeout(() => clearInterval(pollId), 120000);
       }
     } catch {
+      // If Composio not configured, redirect to settings
       router.push("/settings");
     } finally {
       setConnecting(null);
     }
   };
 
-  // Merge static tool connection status with live Composio status
+  // Check if a tool is connected via live Composio status, fallback to static
   const getToolConnected = (toolName: string): boolean => {
-    const appKey = toolName.toLowerCase().replace(/\s+/g, "");
-    if (composioStatus[appKey] !== undefined) return composioStatus[appKey];
+    const appKey = TOOL_TO_APP[toolName] || toolName.toLowerCase().replace(/\s+/g, "");
+    if (composioConnections[appKey] !== undefined) return composioConnections[appKey];
     const staticTool = template.toolConnections.find((t) => t.name === toolName);
     return staticTool?.connected || false;
   };

@@ -185,9 +185,9 @@ export default function AgentProfilePage() {
                 <p className="font-bold text-sm text-[#1b1b1b] mb-1">Need help with presets?</p>
                 <p className="text-xs text-[#717785] leading-relaxed">
                   View the{" "}
-                  <span className="text-[#006c05] font-semibold cursor-pointer hover:underline">
+                  <Link href="/templates" className="text-[#006c05] font-semibold hover:underline">
                     Directive Documentation
-                  </span>{" "}
+                  </Link>{" "}
                   to understand the output of each preset.
                 </p>
               </div>

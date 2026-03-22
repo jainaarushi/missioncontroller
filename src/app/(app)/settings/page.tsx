@@ -80,16 +80,17 @@ interface KeyStatus {
   provider: string;
 }
 
-interface ComposioAppStatus {
-  app: string;
-  connected: boolean;
-  runs_used?: number;
-  runs_limit?: number;
+interface ComposioStatusResponse {
+  enabled: boolean;
+  connections: Record<string, boolean>;
+  usage?: { used: number; limit: number; month: string };
 }
 
 export default function SettingsPage() {
   const [keyStatus, setKeyStatus] = useState<KeyStatus | null>(null);
-  const [composioStatus, setComposioStatus] = useState<Record<string, ComposioAppStatus>>({});
+  const [composioConnections, setComposioConnections] = useState<Record<string, boolean>>({});
+  const [composioEnabled, setComposioEnabled] = useState(false);
+  const [composioUsage, setComposioUsage] = useState<{ used: number; limit: number } | null>(null);
   const [providerInputs, setProviderInputs] = useState<Record<string, string>>({});
   const [toolInputs, setToolInputs] = useState<Record<string, string>>({});
   const [anthropicInput, setAnthropicInput] = useState("");
@@ -108,10 +109,10 @@ export default function SettingsPage() {
 
   const loadComposioStatus = useCallback(async () => {
     try {
-      const data = await api.get<{ apps: ComposioAppStatus[] }>("/api/user/composio/status");
-      const map: Record<string, ComposioAppStatus> = {};
-      data.apps?.forEach((a) => { map[a.app] = a; });
-      setComposioStatus(map);
+      const data = await api.get<ComposioStatusResponse>("/api/user/composio/status");
+      setComposioEnabled(data.enabled);
+      setComposioConnections(data.connections || {});
+      if (data.usage) setComposioUsage({ used: data.usage.used, limit: data.usage.limit });
     } catch {
       // Composio not configured — ignore
     }
@@ -159,18 +160,35 @@ export default function SettingsPage() {
     }
   };
 
-  const connectApp = async (appName: string) => {
+  const connectApp = async (appKey: string) => {
     try {
-      const data = await api.post<{ url: string }>("/api/user/composio/connect", { app: appName });
-      if (data.url) window.open(data.url, "_blank", "width=600,height=700");
-    } catch {
-      showMessage("Failed to start connection", "error");
+      const data = await api.post<{ redirectUrl: string; app: string }>("/api/user/composio/connect", {
+        app: appKey,
+        returnTo: "/settings",
+      });
+      if (data.redirectUrl) {
+        window.open(data.redirectUrl, "_blank", "width=600,height=700");
+        // Poll for status after user completes OAuth in popup
+        const pollId = setInterval(async () => {
+          await loadComposioStatus();
+        }, 3000);
+        setTimeout(() => clearInterval(pollId), 120000); // stop after 2 min
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to start connection";
+      if (msg.includes("not configured")) {
+        showMessage("Composio is not configured. Set COMPOSIO_API_KEY in your environment.", "error");
+      } else if (msg.includes("Sign in") || msg.includes("401")) {
+        showMessage("Sign in to connect apps", "error");
+      } else {
+        showMessage(msg, "error");
+      }
     }
   };
 
-  const disconnectApp = async (appName: string) => {
+  const disconnectApp = async (appKey: string, appName: string) => {
     try {
-      await api.post("/api/user/composio/disconnect", { app: appName });
+      await api.post("/api/user/composio/disconnect", { app: appKey });
       showMessage(`${appName} disconnected`, "success");
       loadComposioStatus();
     } catch {
@@ -399,7 +417,8 @@ export default function SettingsPage() {
                 {INTEGRATION_ICONS.map((icon) => (
                   <div
                     key={icon}
-                    className="aspect-square bg-white rounded-lg border border-[#e8e8e8] flex items-center justify-center group cursor-pointer hover:border-[#006c05] transition-colors"
+                    className="aspect-square bg-white rounded-lg border border-[#e8e8e8] flex items-center justify-center group hover:border-[#006c05] transition-colors"
+                    title="Coming soon"
                   >
                     <span className="material-symbols-outlined text-[#414753] group-hover:text-[#006c05] transition-colors">
                       {icon}
@@ -473,8 +492,7 @@ export default function SettingsPage() {
               <h2 className="text-lg font-bold">Connected Apps</h2>
               <div className="space-y-4">
                 {CONNECTED_APPS.map((app) => {
-                  const status = composioStatus[app.key];
-                  const connected = status?.connected || false;
+                  const connected = composioConnections[app.key] || false;
                   return (
                     <div key={app.key} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -484,14 +502,16 @@ export default function SettingsPage() {
                         <div>
                           <p className="text-xs font-bold">{app.name}</p>
                           <p className="text-[10px] text-[#414753]">
-                            {connected ? `${status?.runs_used || 0} / ${status?.runs_limit || 50} runs` : "Not connected"}
+                            {connected
+                              ? composioUsage ? `${composioUsage.used} / ${composioUsage.limit} runs` : "Connected"
+                              : composioEnabled ? "Not connected" : "Composio not configured"}
                           </p>
                         </div>
                       </div>
                       {connected ? (
                         <button
-                          className="text-[10px] font-bold px-3 py-1 bg-[#006c05] text-white rounded-full hover:bg-[#008808] transition-colors"
-                          onClick={() => disconnectApp(app.key)}
+                          className="text-[10px] font-bold px-3 py-1 bg-[#006c05] text-white rounded-full hover:bg-red-500 transition-colors"
+                          onClick={() => disconnectApp(app.key, app.name)}
                         >
                           Active
                         </button>
