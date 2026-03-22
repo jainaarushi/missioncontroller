@@ -9,10 +9,15 @@ export async function GET(request: NextRequest) {
   const user = await getAuthUser();
 
   const { searchParams } = request.nextUrl;
-  const status = searchParams.get("status");
+  // Composio sends back "status" param, but may not always — treat absence as success
+  // if we got redirected back at all (user completed OAuth)
+  const status = searchParams.get("status") || "success";
+  // "app" was included by us in the callback URL we gave to Composio
   const app = searchParams.get("app") as ComposioApp | null;
 
-  if (status === "success" && app && VALID_APPS.has(app) && !user.isDemo) {
+  const isSuccess = status === "success" || status === "1" || status === "true";
+
+  if (isSuccess && app && VALID_APPS.has(app) && !user.isDemo) {
     markAppConnected(user.id, app);
   }
 
@@ -20,7 +25,7 @@ export async function GET(request: NextRequest) {
   const returnTo = searchParams.get("returnTo");
   const basePath = returnTo && returnTo.startsWith("/") ? returnTo : "/settings";
   const redirectUrl = new URL(basePath, request.nextUrl.origin);
-  redirectUrl.searchParams.set("composio", status === "success" ? "connected" : "failed");
+  redirectUrl.searchParams.set("composio", isSuccess ? "connected" : "failed");
   if (app) redirectUrl.searchParams.set("app", app);
 
   return NextResponse.redirect(redirectUrl);

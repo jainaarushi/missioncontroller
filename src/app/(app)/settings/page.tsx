@@ -123,6 +123,26 @@ export default function SettingsPage() {
     loadComposioStatus();
   }, [loadKeyStatus, loadComposioStatus]);
 
+  // Detect return from Composio OAuth
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const composioResult = params.get("composio");
+    const appName = params.get("app");
+    if (composioResult) {
+      if (composioResult === "connected") {
+        setMessage({ text: `${appName || "App"} connected successfully!`, type: "success" });
+        loadComposioStatus();
+      } else {
+        setMessage({ text: `Failed to connect ${appName || "app"}. Please try again.`, type: "error" });
+      }
+      // Clean up URL params
+      setTimeout(() => {
+        window.history.replaceState({}, "", "/settings");
+        setMessage(null);
+      }, 3000);
+    }
+  }, [loadComposioStatus]);
+
   const showMessage = (text: string, type: "success" | "error") => {
     setMessage({ text, type });
     setTimeout(() => setMessage(null), 3000);
@@ -167,12 +187,8 @@ export default function SettingsPage() {
         returnTo: "/settings",
       });
       if (data.redirectUrl) {
-        window.open(data.redirectUrl, "_blank", "width=600,height=700");
-        // Poll for status after user completes OAuth in popup
-        const pollId = setInterval(async () => {
-          await loadComposioStatus();
-        }, 3000);
-        setTimeout(() => clearInterval(pollId), 120000); // stop after 2 min
+        // Navigate in the same window — OAuth callback will redirect back here
+        window.location.href = data.redirectUrl;
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to start connection";

@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
     const origin = request.nextUrl.origin;
     const returnTo = typeof body.returnTo === "string" ? body.returnTo : "";
     const callbackUrl = new URL(`${origin}/api/user/composio/callback`);
+    callbackUrl.searchParams.set("app", app);
     if (returnTo && returnTo.startsWith("/")) {
       callbackUrl.searchParams.set("returnTo", returnTo);
     }

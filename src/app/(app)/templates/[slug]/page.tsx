@@ -22,6 +22,7 @@ export default function TemplateConfigPage() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [composioConnections, setComposioConnections] = useState<Record<string, boolean>>({});
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [composioMessage, setComposioMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const loadComposioStatus = useCallback(() => {
     api.get<ComposioStatusResponse>("/api/user/composio/status")
@@ -34,6 +35,25 @@ export default function TemplateConfigPage() {
   useEffect(() => {
     loadComposioStatus();
   }, [loadComposioStatus]);
+
+  // Detect return from Composio OAuth
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const composioResult = params.get("composio");
+    const appName = params.get("app");
+    if (composioResult) {
+      if (composioResult === "connected") {
+        setComposioMessage({ text: `${appName || "App"} connected successfully!`, type: "success" });
+        loadComposioStatus();
+      } else {
+        setComposioMessage({ text: `Failed to connect ${appName || "app"}. Please try again.`, type: "error" });
+      }
+      setTimeout(() => {
+        window.history.replaceState({}, "", `/templates/${slug}`);
+        setComposioMessage(null);
+      }, 3000);
+    }
+  }, [loadComposioStatus, slug]);
 
   if (!template) {
     return (
@@ -67,15 +87,12 @@ export default function TemplateConfigPage() {
         returnTo: `/templates/${slug}`,
       });
       if (data.redirectUrl) {
-        window.open(data.redirectUrl, "_blank", "width=600,height=700");
-        // Poll for connection status after OAuth popup
-        const pollId = setInterval(() => loadComposioStatus(), 3000);
-        setTimeout(() => clearInterval(pollId), 120000);
+        // Navigate in same window — callback will redirect back here
+        window.location.href = data.redirectUrl;
       }
     } catch {
       // If Composio not configured, redirect to settings
       router.push("/settings");
-    } finally {
       setConnecting(null);
     }
   };
@@ -90,6 +107,12 @@ export default function TemplateConfigPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)]">
+      {/* Composio Toast */}
+      {composioMessage && (
+        <div className={`fixed top-20 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold ${composioMessage.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+          {composioMessage.text}
+        </div>
+      )}
       {/* Page Header */}
       <div className="flex items-center gap-4 px-8 pt-8 pb-4">
         <Link href="/templates">
