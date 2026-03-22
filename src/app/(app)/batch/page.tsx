@@ -7,6 +7,7 @@ const RECIPIENTS = [
     strategy: "Personalized Pitch",
     status: "delivered" as const,
     avatarColor: "#6366f1",
+    companyLogo: "https://img.logo.dev/stripe.com?token=pk_L7siVlltSTuo-xbA1lvUKA",
   },
   {
     name: "Michael Smith",
@@ -14,6 +15,7 @@ const RECIPIENTS = [
     strategy: "Project Connection",
     status: "delivered" as const,
     avatarColor: "#f59e0b",
+    companyLogo: "https://img.logo.dev/vercel.com?token=pk_L7siVlltSTuo-xbA1lvUKA",
   },
   {
     name: "Sarah Williams",
@@ -21,6 +23,7 @@ const RECIPIENTS = [
     strategy: "Quick Introduction",
     status: "sending" as const,
     avatarColor: "#ec4899",
+    companyLogo: "https://img.logo.dev/figma.com?token=pk_L7siVlltSTuo-xbA1lvUKA",
   },
   {
     name: "Kevin Brown",
@@ -28,6 +31,7 @@ const RECIPIENTS = [
     strategy: "Deep Research",
     status: "failed" as const,
     avatarColor: "#8b5cf6",
+    companyLogo: "https://img.logo.dev/linear.app?token=pk_L7siVlltSTuo-xbA1lvUKA",
   },
   {
     name: "Linda Ortega",
@@ -35,6 +39,7 @@ const RECIPIENTS = [
     strategy: "Standard Invite",
     status: "queued" as const,
     avatarColor: "#94a3b8",
+    companyLogo: "https://img.logo.dev/atlassian.com?token=pk_L7siVlltSTuo-xbA1lvUKA",
   },
 ];
 
@@ -43,12 +48,25 @@ function AvatarPlaceholder({
   name,
   dimmed,
   grayscale,
+  companyLogo,
 }: {
   color: string;
   name: string;
   dimmed?: boolean;
   grayscale?: boolean;
+  companyLogo?: string;
 }) {
+  if (companyLogo) {
+    return (
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden bg-white border border-gray-200 ${
+          dimmed ? "opacity-50" : ""
+        } ${grayscale ? "grayscale opacity-40" : ""}`}
+      >
+        <img alt={name} className="w-5 h-5 object-contain" src={companyLogo} />
+      </div>
+    );
+  }
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -323,6 +341,7 @@ export default function BatchPage() {
                           name={recipient.name}
                           dimmed={recipient.status === "failed"}
                           grayscale={recipient.status === "queued"}
+                          companyLogo={recipient.companyLogo}
                         />
                         <div>
                           <p

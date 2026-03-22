@@ -125,14 +125,9 @@ export default function AgentsPage() {
                     </span>
                   ))}
                 </div>
-                <button
-                  className="w-full bg-[#006c05] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#008808] transition-colors shadow-sm active:scale-95"
-                  onClick={(e) => {
-                    e.preventDefault();
-                  }}
-                >
+                <span className="w-full bg-[#006c05] text-white font-bold py-2.5 rounded-lg text-sm hover:bg-[#008808] transition-colors shadow-sm active:scale-95 text-center block">
                   Hire me
-                </button>
+                </span>
               </div>
             </Link>
           ))}

@@ -5,12 +5,9 @@ import Link from "next/link";
 
 const NAV_ITEMS = [
   { href: "/today", icon: "dashboard", label: "Dashboard" },
-  { href: "/agents", icon: "smart_toy", label: "Agent Builder" },
-  { href: "/chat", icon: "forum", label: "Chat Hub" },
+  { href: "/agents", icon: "group", label: "Specialists" },
   { href: "/templates", icon: "apps", label: "Templates" },
-  { href: "/tasks", icon: "assignment", label: "Task Board" },
-  { href: "/drafting", icon: "edit_note", label: "Drafting" },
-  { href: "/batch", icon: "send", label: "Batch Status" },
+  { href: "/analytics", icon: "analytics", label: "Analytics" },
   { href: "/settings", icon: "settings", label: "Settings" },
 ];
 

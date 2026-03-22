@@ -63,8 +63,8 @@ export default function TemplateConfigPage() {
             </div>
             {/* Tool 1 - LinkedIn Integration */}
             <div className="col-span-1 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-[#7c736b] text-[#fffbff] rounded-lg flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined">bolt</span>
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-3 overflow-hidden">
+                <img alt="LinkedIn" className="w-12 h-12" src="https://img.logo.dev/linkedin.com?token=pk_L7siVlltSTuo-xbA1lvUKA" />
               </div>
               <h3 className="font-bold text-sm">LinkedIn Integration</h3>
               <p className="text-xs text-[#414753] mt-1">
@@ -152,10 +152,8 @@ export default function TemplateConfigPage() {
                 <div className="p-4 rounded-lg bg-[#f3f3f3] border border-gray-100 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#0077b5] rounded-md flex items-center justify-center">
-                        <span className="material-symbols-outlined text-white">
-                          work
-                        </span>
+                      <div className="w-10 h-10 rounded-md flex items-center justify-center overflow-hidden">
+                        <img alt="LinkedIn" className="w-10 h-10" src="https://img.logo.dev/linkedin.com?token=pk_L7siVlltSTuo-xbA1lvUKA" />
                       </div>
                       <div>
                         <p className="text-sm font-bold">LinkedIn</p>
@@ -176,11 +174,11 @@ export default function TemplateConfigPage() {
                 <div className="p-4 rounded-lg bg-[#f3f3f3] border border-gray-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-white border border-gray-200 rounded-md flex items-center justify-center">
+                      <div className="w-10 h-10 bg-white border border-gray-200 rounded-md flex items-center justify-center overflow-hidden">
                         <img
-                          alt="Google Logo"
+                          alt="Google"
                           className="w-6 h-6"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeuvYx605Q8Or-NTBMKRK5vOxx0r19zD0Axa_8FIxzBWgwl9C-1WkUiROD75bs700lUXpaRsqbU7rmGUO1DgYY-ngypzvbp_j_RV-i7csnuApwYXn4OFRJ0gfIjr3YjVYfnxW_gXp_jYUiRorzCRxilJaCnQ6AkHujAw-dXfjw9UM9KO2g5gczJMdKaBgwMxFhneg2vLVAd8VkWE0_vFHPZ9MVuiHGImczFCIg1HC7wio07g4WqcfnAOzCCVOdBK2ZGA5PQfOghBU"
+                          src="https://img.logo.dev/google.com?token=pk_L7siVlltSTuo-xbA1lvUKA"
                         />
                       </div>
                       <div>
@@ -205,7 +203,7 @@ export default function TemplateConfigPage() {
                   <img
                     alt="Composio"
                     className="w-5 h-5 rounded shadow-sm"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdNDWUlLETRtCcy_8jWSDkwAz9Ngy-BLSbKwu13x8m71KUv2dmc3VAcw3BS96lcQ7HLnbz24VF0f0N2DAJaxZOeX-s2VDP62-9Pzh1GHxOZPVF1g5IedOXLz0uNOEm0Pq_DeNv-booPP9w6i3zMGa7-XUPbomTe1djHAYHxhUkTwGbBtdH5jIV3ogPFzbMQehmaLtgQsZYGwU9MRaJo5GWD4abvVOt-5NNUpvYBdTV0NqS9kE504X1Y0dX10D6P8pBEVKYBITP3R8"
+                    src="https://img.logo.dev/composio.dev?token=pk_L7siVlltSTuo-xbA1lvUKA"
                   />
                   <p className="text-[11px] font-medium">
                     Powered by Composio Secure Auth

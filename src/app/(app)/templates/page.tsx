@@ -24,6 +24,7 @@ interface TemplateCard {
   title: string;
   description: string;
   steps: PipelineStep[];
+  logo?: string;
 }
 
 const TEMPLATES: TemplateCard[] = [
@@ -31,6 +32,7 @@ const TEMPLATES: TemplateCard[] = [
     icon: "share",
     iconBg: "bg-[#4d4bff]/10",
     iconColor: "text-[#3028e9]",
+    logo: "https://img.logo.dev/linkedin.com?token=pk_L7siVlltSTuo-xbA1lvUKA",
     rating: "4.9",
     title: "LinkedIn Outreach",
     description:
@@ -127,12 +129,14 @@ export default function TemplatesPage() {
             >
               <div className="p-6 flex-1">
                 <div className="flex justify-between items-start mb-4">
-                  <div className={`p-2.5 ${template.iconBg} rounded-lg`}>
-                    <span
-                      className={`material-symbols-outlined ${template.iconColor}`}
-                    >
-                      {template.icon}
-                    </span>
+                  <div className={`p-2.5 ${template.iconBg} rounded-lg flex items-center justify-center`}>
+                    {template.logo ? (
+                      <img alt="" className="w-6 h-6" src={template.logo} />
+                    ) : (
+                      <span className={`material-symbols-outlined ${template.iconColor}`}>
+                        {template.icon}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1 bg-[#ece0d6] px-2 py-1 rounded text-xs font-bold text-[#201b15]">
                     <span
@@ -191,10 +195,16 @@ export default function TemplatesPage() {
               <h3 className="text-2xl font-bold mb-3 group-hover:text-[#006c05] transition-colors">
                 Unified Support Agent
               </h3>
-              <p className="text-[#414753] text-base mb-6">
+              <p className="text-[#414753] text-base mb-4">
                 A multi-modal pipeline that handles tickets across Discord,
                 Slack, and Email using a central knowledge base.
               </p>
+              <div className="flex items-center gap-3 mb-6">
+                <img alt="Discord" className="w-6 h-6 rounded" src="https://img.logo.dev/discord.com?token=pk_L7siVlltSTuo-xbA1lvUKA" />
+                <img alt="Slack" className="w-6 h-6 rounded" src="https://img.logo.dev/slack.com?token=pk_L7siVlltSTuo-xbA1lvUKA" />
+                <img alt="Gmail" className="w-6 h-6 rounded" src="https://img.logo.dev/gmail.com?token=pk_L7siVlltSTuo-xbA1lvUKA" />
+                <span className="text-xs text-[#414753] font-medium ml-1">Integrated channels</span>
+              </div>
               <div className="mb-6">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 block mb-3">
                   Orchestration Flow
