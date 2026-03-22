@@ -1,210 +1,137 @@
 "use client";
 
-import { useState } from "react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { CommandPalette } from "@/components/shared/command-palette";
-import { SWRProvider } from "@/components/providers/swr-provider";
-import { useAgents } from "@/lib/hooks/use-agents";
-import { useStats } from "@/lib/hooks/use-stats";
-import { useTasks } from "@/lib/hooks/use-tasks";
-import { P, F, FM } from "@/lib/palette";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
-function MobileNav({ reviewCount }: { reviewCount: number }) {
-  return (
-    <nav style={{
-      position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
-      backgroundColor: "#ffffff",
-      borderTop: `1px solid ${P.border}`,
-      display: "flex", justifyContent: "space-around", alignItems: "center",
-      padding: "6px 0",
-      paddingBottom: "max(6px, env(safe-area-inset-bottom))",
-      minHeight: 56,
-    }}>
-      {[
-        { href: "/today", icon: "\u25A6", label: "Dashboard" },
-        { href: "/agents", icon: "\u263A", label: "Agents" },
-        { href: "/templates", icon: "\uD83D\uDCC1", label: "Templates" },
-        { href: "/analytics", icon: "\uD83D\uDCCA", label: "Analytics" },
-        { href: "/settings", icon: "\u2699\uFE0F", label: "Settings" },
-      ].map((item) => (
-        <a key={item.href} href={item.href} style={{
-          display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-          textDecoration: "none", color: "#4b5563", fontSize: 10, fontWeight: 500,
-          fontFamily: F, position: "relative",
-        }}>
-          <span style={{ fontSize: 18 }}>{item.icon}</span>
-          <span>{item.label}</span>
-          {item.href === "/analytics" && reviewCount > 0 && (
-            <span style={{
-              position: "absolute", top: -2, right: -6,
-              width: 16, height: 16, borderRadius: "50%",
-              backgroundColor: "#1e8e3e", color: "#fff",
-              fontSize: 9, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>{reviewCount}</span>
-          )}
-        </a>
-      ))}
-    </nav>
-  );
-}
+const NAV_ITEMS = [
+  { href: "/today", icon: "dashboard", label: "Dashboard" },
+  { href: "/agents", icon: "smart_toy", label: "Agent Builder" },
+  { href: "/chat", icon: "forum", label: "Chat Hub" },
+  { href: "/templates", icon: "apps", label: "Templates" },
+  { href: "/tasks", icon: "assignment", label: "Task Board" },
+  { href: "/drafting", icon: "edit_note", label: "Drafting" },
+  { href: "/batch", icon: "send", label: "Batch Status" },
+  { href: "/settings", icon: "settings", label: "Settings" },
+];
 
-function Topbar() {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 12,
-      padding: "0 24px",
-      height: 64, minHeight: 64,
-      borderBottom: `1px solid ${P.border}`,
-      background: "#ffffff",
-      position: "sticky", top: 0, zIndex: 20,
-    }}>
-      {/* Brand text - mobile only (hidden on desktop via CSS class) */}
-      <div className="topbar-brand-mobile" style={{
-        fontSize: 18, fontWeight: 700, fontFamily: F, color: "#1e8e3e", flexShrink: 0,
-      }}>
-        Agent Studio
-      </div>
-
-      {/* Horizontal nav links */}
-      <div className="topbar-nav-links" style={{
-        display: "flex", alignItems: "center", gap: 4, marginLeft: 8,
-      }}>
-        {[
-          { href: "/today", label: "Dashboard" },
-          { href: "/agents", label: "Agents" },
-          { href: "/templates", label: "Templates" },
-          { href: "/settings", label: "Settings" },
-        ].map((item) => (
-          <a key={item.href} href={item.href} style={{
-            padding: "6px 12px",
-            fontSize: 13, fontWeight: 500, fontFamily: F,
-            color: "#4b5563", textDecoration: "none",
-            borderBottom: "2px solid transparent",
-            transition: "color 0.15s, border-color 0.15s",
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#1e8e3e"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "#4b5563"; }}
-          >
-            {item.label}
-          </a>
-        ))}
-      </div>
-
-      {/* Search bar */}
-      <div style={{
-        flex: 1, maxWidth: 400,
-        display: "flex", alignItems: "center", gap: 8,
-        background: "#f3f4f6", border: "none",
-        borderRadius: 12, padding: "8px 14px", marginLeft: 16,
-      }}>
-        <span style={{ color: "#9ca3af", fontSize: 14 }}>&#128269;</span>
-        <span style={{ color: "#9ca3af", fontFamily: F, fontSize: 13, flex: 1 }}>
-          Search...
-        </span>
-        <span style={{
-          fontSize: 10, color: "#9ca3af",
-          background: "#e5e7eb", padding: "2px 7px", borderRadius: 5,
-          fontWeight: 500, whiteSpace: "nowrap",
-        }}>&#8984;K</span>
-      </div>
-
-      {/* Right icons */}
-      <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 12,
-          border: `1px solid ${P.border}`, background: "#ffffff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", fontSize: 16,
-        }}>&#128276;</div>
-        <a href="/settings" style={{
-          width: 40, height: 40, borderRadius: 12,
-          border: `1px solid ${P.border}`, background: "#ffffff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", fontSize: 16, textDecoration: "none",
-        }}>&#9881;&#65039;</a>
-        <div style={{
-          width: 36, height: 36, borderRadius: "50%",
-          background: "linear-gradient(135deg, #1e8e3e, #15e11e)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: "#fff", fontSize: 14, fontWeight: 700,
-          border: "2px solid #ffffff", boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
-        }}>A</div>
-      </div>
-    </div>
-  );
-}
-
-function AppShell({ children }: { children: React.ReactNode }) {
-  const { agents } = useAgents();
-  const { stats } = useStats();
-  const { tasks } = useTasks();
-
-  const reviewCount = tasks.filter((t) => t.status === "review").length;
-
-  return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9f9f9", color: P.text, fontFamily: F, fontSize: 13, lineHeight: 1.5 }}>
-      <style>{`
-        @keyframes slideUp { from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes fadeIn { from{opacity:0}to{opacity:1} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
-        @keyframes modalIn { from{opacity:0;transform:scale(0.94) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)} }
-        @keyframes popIn { from{opacity:0;transform:scale(0.88) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)} }
-        @keyframes cardReveal { from{opacity:0;transform:translateY(20px) scale(0.92)}to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes scaleIn { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
-        @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
-        @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)} }
-        @keyframes pulseGlow { 0%,100%{box-shadow:0 0 4px currentColor;opacity:1}50%{box-shadow:0 0 14px currentColor;opacity:0.7} }
-        @keyframes glow { 0%,100%{opacity:1;box-shadow:0 0 4px currentColor}50%{opacity:0.6;box-shadow:0 0 12px currentColor} }
-        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
-        @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
-        @keyframes progress { 0%{transform:scaleX(0) translateX(0)} 50%{transform:scaleX(0.7) translateX(30%)} 100%{transform:scaleX(0) translateX(200%)} }
-        @keyframes confettiFall { 0%{opacity:1;transform:translateY(0) rotate(0deg)} 100%{opacity:0;transform:translateY(200px) rotate(720deg)} }
-        .agent-card { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1); }
-        .agent-card:hover { transform: translateY(-3px) !important; }
-        .agent-card:active { transform: scale(0.97) !important; transition-duration: 0.1s; }
-        * { box-sizing:border-box }
-        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:3px}
-        ::selection{background:rgba(30,142,62,0.15)}
-
-        /* Topbar brand: show only on mobile */
-        .topbar-brand-mobile { display: none; }
-
-        /* Mobile bottom nav */
-        .mobile-nav { display: none; }
-        @media (max-width: 768px) {
-          .desktop-sidebar { display: none !important; }
-          .mobile-nav { display: flex !important; }
-          .app-content-wrapper { padding: 0 !important; }
-          .topbar-brand-mobile { display: block !important; }
-          .topbar-nav-links { display: none !important; }
-        }
-      `}</style>
-      <div className="desktop-sidebar">
-        <Sidebar
-          stats={stats}
-          reviewCount={reviewCount}
-          tasks={tasks}
-        />
-      </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto", minWidth: 0 }}>
-        <Topbar />
-        <div className="app-content-wrapper" style={{ flex: 1, overflowY: "auto", background: "#f9f9f9" }}>
-          {children}
-        </div>
-      </div>
-      <div className="mobile-nav">
-        <MobileNav reviewCount={reviewCount} />
-      </div>
-      <CommandPalette tasks={tasks} agents={agents} />
-    </div>
-  );
-}
+const BOTTOM_ITEMS = [
+  { href: "#", icon: "help", label: "Help" },
+  { href: "#", icon: "logout", label: "Logout" },
+];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   return (
-    <SWRProvider>
-      <AppShell>{children}</AppShell>
-    </SWRProvider>
+    <div className="min-h-screen bg-[#f9f9f9] text-[#1b1b1b]">
+      {/* TopNavBar */}
+      <header className="fixed top-0 w-full z-50 bg-white border-b border-gray-200 flex items-center justify-between px-6 h-16 font-['Inter'] antialiased">
+        <div className="flex items-center gap-8">
+          <span className="text-xl font-bold text-black">Agent Studio</span>
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/today" className="text-gray-600 hover:text-black transition-colors">
+              Workspaces
+            </Link>
+            <Link href="/templates" className="text-gray-600 hover:text-black transition-colors">
+              Models
+            </Link>
+            <Link href="#" className="text-gray-600 hover:text-black transition-colors">
+              Logs
+            </Link>
+          </nav>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="relative hidden lg:block">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#717785] text-sm">
+              search
+            </span>
+            <input
+              className="pl-10 pr-4 py-1.5 bg-[#f3f3f3] border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-[#006c05] outline-none"
+              placeholder="Search logs..."
+              type="text"
+            />
+          </div>
+          <button className="p-2 text-[#717785] hover:bg-gray-100 transition-colors cursor-pointer rounded-full">
+            <span className="material-symbols-outlined">notifications</span>
+          </button>
+          <button className="p-2 text-[#717785] hover:bg-gray-100 transition-colors cursor-pointer rounded-full">
+            <span className="material-symbols-outlined">settings</span>
+          </button>
+          <div className="w-8 h-8 rounded-full bg-[#4d4bff] flex items-center justify-center text-white text-xs font-bold">
+            U
+          </div>
+        </div>
+      </header>
+
+      <div className="flex pt-16 min-h-screen">
+        {/* SideNavBar */}
+        <aside className="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-white border-r border-gray-200 flex flex-col p-4 space-y-2 font-['Inter'] text-sm font-medium z-40">
+          <div className="mb-6 px-2">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#006c05] rounded-lg flex items-center justify-center text-white">
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  smart_toy
+                </span>
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-black leading-tight">Orchestrator</h2>
+                <p className="text-[10px] text-[#717785] uppercase tracking-wider">v2.1.0</p>
+              </div>
+            </div>
+          </div>
+
+          <button className="w-full bg-[#006c05] text-white py-2.5 rounded-lg flex items-center justify-center gap-2 mb-4 hover:opacity-90 transition-opacity font-semibold">
+            <span className="material-symbols-outlined text-sm">add</span>
+            New Agent
+          </button>
+
+          <nav className="flex-1 space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? "bg-green-50 text-green-600 font-semibold"
+                      : "text-gray-600 hover:bg-gray-50 hover:translate-x-1"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                  >
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="pt-4 border-t border-gray-100 space-y-1">
+            {BOTTOM_ITEMS.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50"
+              >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="ml-64 flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

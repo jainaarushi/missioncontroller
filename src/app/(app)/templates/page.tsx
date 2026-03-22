@@ -1,278 +1,288 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useAgents } from "@/lib/hooks/use-agents";
-import { P, F } from "@/lib/palette";
-import {
-  CATEGORY_META,
-  TEMPLATE_CATEGORIES,
-  TEMPLATE_PIPELINES,
-  TEMPLATE_RATINGS,
-  TEMPLATE_RUNS,
-} from "@/lib/template-agents";
+import { useState } from "react";
+import Link from "next/link";
 
-/* ─── Step border colors by index ─── */
-const STEP_BORDER_COLORS = [P.lime, P.violet, "#7c736b"];
+const CATEGORIES = [
+  "All Templates",
+  "Marketing",
+  "Development",
+  "Sales",
+  "Research",
+];
 
-/* ─── TemplateCard ─── */
-function TemplateCard({ agent, rating, pipeline, onUse }: {
-  agent: { id: string; icon: string; name: string; description: string | null; slug?: string };
-  rating: number;
-  pipeline: { icon: string; label: string; color: string }[];
-  onUse: () => void;
-}) {
-  const [hov, setHov] = useState(false);
+interface PipelineStep {
+  label: string;
+  borderColor: string;
+}
+
+interface TemplateCard {
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  rating: string;
+  title: string;
+  description: string;
+  steps: PipelineStep[];
+}
+
+const TEMPLATES: TemplateCard[] = [
+  {
+    icon: "share",
+    iconBg: "bg-[#4d4bff]/10",
+    iconColor: "text-[#3028e9]",
+    rating: "4.9",
+    title: "LinkedIn Outreach",
+    description:
+      "Automate personalized connection requests and follow-ups based on prospect profile analysis.",
+    steps: [
+      { label: "Research", borderColor: "border-[#006c05]" },
+      { label: "Draft", borderColor: "border-[#3028e9]" },
+      { label: "Send", borderColor: "border-[#20e524]" },
+    ],
+  },
+  {
+    icon: "analytics",
+    iconBg: "bg-[#008808]/10",
+    iconColor: "text-[#006c05]",
+    rating: "4.7",
+    title: "Market Analysis",
+    description:
+      "Aggregates competitor data, pricing trends, and customer sentiment into a comprehensive report.",
+    steps: [
+      { label: "Scrape", borderColor: "border-[#3028e9]" },
+      { label: "Synthesize", borderColor: "border-[#006c05]" },
+      { label: "Chart", borderColor: "border-[#635b53]" },
+    ],
+  },
+  {
+    icon: "terminal",
+    iconBg: "bg-[#1b1b1b]/5",
+    iconColor: "text-[#1b1b1b]",
+    rating: "5.0",
+    title: "Technical Debt Cleanup",
+    description:
+      "Automatically identifies deprecated code patterns and proposes refactored solutions.",
+    steps: [
+      { label: "Scan", borderColor: "border-[#006c05]" },
+      { label: "Refactor", borderColor: "border-[#3028e9]" },
+      { label: "Review", borderColor: "border-[#006c05]" },
+    ],
+  },
+  {
+    icon: "edit_note",
+    iconBg: "bg-[#7c736b]/10",
+    iconColor: "text-[#635b53]",
+    rating: "4.8",
+    title: "Blog Post Generator",
+    description:
+      "Converts a single focus keyword into a SEO-optimized, 1000-word longform article with images.",
+    steps: [
+      { label: "Outline", borderColor: "border-[#3028e9]" },
+      { label: "Write", borderColor: "border-[#006c05]" },
+      { label: "SEO", borderColor: "border-[#635b53]" },
+    ],
+  },
+];
+
+export default function TemplatesPage() {
+  const [activeCategory, setActiveCategory] = useState("All Templates");
 
   return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      onClick={onUse}
-      style={{
-        background: P.bg2,
-        border: `1px solid ${hov ? P.border2 : "rgba(0,0,0,0.06)"}`,
-        borderRadius: 12,
-        overflow: "hidden",
-        cursor: "pointer",
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: hov ? "0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)" : "none",
-        transition: "all 0.2s",
-      }}
-    >
-      {/* Top section */}
-      <div style={{ padding: 24, flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Icon row + rating badge */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: P.bg3,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 24, flexShrink: 0,
-          }}>
-            {agent.icon}
-          </div>
-          <span style={{
-            background: "#ece0d6",
-            color: P.textSec,
-            fontSize: 12,
-            fontWeight: 700,
-            padding: "2px 8px",
-            borderRadius: 6,
-            fontFamily: F,
-          }}>
-            <span style={{ color: P.textSec }}>&#9733;</span> {rating.toFixed(1)}
-          </span>
-        </div>
-
-        {/* Title */}
-        <div style={{
-          fontSize: 20, fontWeight: 700, fontFamily: F,
-          marginTop: 16, color: hov ? "#1e8e3e" : P.text, lineHeight: 1.3,
-          transition: "color 0.2s",
-        }}>
-          {agent.name}
-        </div>
-
-        {/* Description */}
-        <div style={{
-          fontSize: 14, color: P.textSec, lineHeight: 1.6,
-          marginTop: 8,
-          display: "-webkit-box",
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: "vertical" as const,
-          overflow: "hidden",
-        }}>
-          {agent.description}
-        </div>
-      </div>
-
-      {/* Sequence / Pipeline section */}
-      {pipeline.length > 0 && (
-        <div style={{ padding: "0 24px 16px" }}>
-          <div style={{
-            fontSize: 10, textTransform: "uppercase",
-            letterSpacing: "0.1em", fontWeight: 700,
-            color: P.textTer, marginBottom: 8,
-          }}>
-            Sequence
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            {pipeline.map((step, i) => (
-              <span key={step.label} style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
-                <span style={{
-                  fontSize: 11, fontWeight: 600, fontFamily: F,
-                  padding: "6px 12px", borderRadius: 4,
-                  background: P.bg3,
-                  borderLeft: `4px solid ${STEP_BORDER_COLORS[i % STEP_BORDER_COLORS.length]}`,
-                  color: P.text,
-                  whiteSpace: "nowrap",
-                  flex: 1,
-                  textAlign: "center" as const,
-                }}>
-                  {step.icon} {step.label}
-                </span>
-                {i < pipeline.length - 1 && (
-                  <span style={{ color: P.textTer, fontSize: 12, fontWeight: 600 }}>&rarr;</span>
-                )}
-              </span>
+    <div className="bg-[#f9f9f9] p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header & Category Filter */}
+        <div className="mb-10">
+          <h1 className="text-4xl font-extrabold tracking-tight mb-2">
+            Template Library
+          </h1>
+          <p className="text-[#414753] max-w-2xl mb-8">
+            Discover and deploy ready-to-run AI agent pipelines designed for
+            modern operational excellence.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
+                  activeCategory === cat
+                    ? "bg-[#1b1b1b] text-white"
+                    : "bg-white border border-[#c1c6d5] text-[#414753] hover:border-[#006c05] hover:text-[#006c05]"
+                }`}
+              >
+                {cat}
+              </button>
             ))}
           </div>
         </div>
-      )}
 
-      {/* Footer */}
-      <div style={{
-        padding: 16, background: P.bg3, borderTop: `1px solid ${P.border}`,
-      }}>
-        <button
-          onClick={(e) => { e.stopPropagation(); onUse(); }}
-          style={{
-            width: "100%",
-            fontSize: 14,
-            fontWeight: 700,
-            padding: "10px 0",
-            borderRadius: 12,
-            background: P.lime,
-            color: "#ffffff",
-            border: "none",
-            cursor: "pointer",
-            fontFamily: F,
-            transition: "background 0.15s, transform 0.1s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#156d2e")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = P.lime)}
-          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
-          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-        >
-          Use Template
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Templates Page ─── */
-export default function TemplatesPage() {
-  const { agents } = useAgents();
-  const router = useRouter();
-  const [filter, setFilter] = useState("All");
-
-  // Build unique category labels for tabs
-  const categoryTabs = useMemo(() => {
-    return ["All", ...TEMPLATE_CATEGORIES.map(c => c.title)];
-  }, []);
-
-  // Filter categories by selected tab
-  const filteredCategories = useMemo(() => {
-    if (filter === "All") return TEMPLATE_CATEGORIES;
-    return TEMPLATE_CATEGORIES.filter(c => c.title === filter);
-  }, [filter]);
-
-  // Get all template agents in a flat list for the selected filter
-  const allFilteredAgents = useMemo(() => {
-    const result: { agent: typeof agents[0]; catId: string }[] = [];
-    for (const cat of filteredCategories) {
-      for (const slug of cat.slugs) {
-        const agent = agents.find(a => a.slug === slug);
-        if (agent) result.push({ agent, catId: cat.id });
-      }
-    }
-    return result;
-  }, [filteredCategories, agents]);
-
-  function handleUseTemplate(slug: string) {
-    router.push(`/templates/${slug}`);
-  }
-
-  return (
-    <div style={{ padding: "32px 36px", maxWidth: 1280, margin: "0 auto" }}>
-      <style>{`
-        .tmpl-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
-        @media (min-width: 768px) { .tmpl-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .tmpl-grid { grid-template-columns: repeat(3, 1fr); } }
-      `}</style>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{
-          fontFamily: F,
-          fontSize: 36,
-          fontWeight: 800,
-          letterSpacing: "-0.025em",
-          color: P.text,
-          lineHeight: 1.2,
-          margin: 0,
-        }}>
-          Template Library
-        </h1>
-        <p style={{
-          fontSize: 15,
-          color: P.textSec,
-          marginTop: 8,
-          lineHeight: 1.6,
-        }}>
-          Discover and deploy ready-to-run AI agent pipelines designed for modern operational excellence.
-        </p>
-      </div>
-
-      {/* Category Filter Pills */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
-        {categoryTabs.map((tab) => {
-          const isActive = filter === tab;
-          const label = tab === "All" ? "All Templates" : tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              style={{
-                padding: "8px 20px",
-                borderRadius: 100,
-                fontSize: 14,
-                fontWeight: isActive ? 600 : 500,
-                fontFamily: F,
-                cursor: "pointer",
-                border: isActive ? "1px solid #1b1b1b" : "1px solid rgba(0,0,0,0.12)",
-                background: isActive ? "#1b1b1b" : P.bg2,
-                color: isActive ? "#ffffff" : P.textSec,
-                transition: "all 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.borderColor = "rgba(0,0,0,0.3)";
-                  e.currentTarget.style.color = "#1e8e3e";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)";
-                  e.currentTarget.style.color = P.textSec;
-                }
-              }}
+        {/* Bento Grid Template Gallery */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Standard Template Cards (first 3) */}
+          {TEMPLATES.slice(0, 3).map((template) => (
+            <div
+              key={template.title}
+              className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all flex flex-col h-full"
             >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+              <div className="p-6 flex-1">
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-2.5 ${template.iconBg} rounded-lg`}>
+                    <span
+                      className={`material-symbols-outlined ${template.iconColor}`}
+                    >
+                      {template.icon}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-[#ece0d6] px-2 py-1 rounded text-xs font-bold text-[#201b15]">
+                    <span
+                      className="material-symbols-outlined text-[14px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      star
+                    </span>
+                    {template.rating}
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-2 group-hover:text-[#006c05] transition-colors">
+                  {template.title}
+                </h3>
+                <p className="text-[#414753] text-sm mb-6 leading-relaxed">
+                  {template.description}
+                </p>
+                <div className="space-y-3">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">
+                    Sequence
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {template.steps.map((step, i) => (
+                      <div key={step.label} className="contents">
+                        {i > 0 && (
+                          <span className="material-symbols-outlined text-gray-300 text-sm">
+                            arrow_forward
+                          </span>
+                        )}
+                        <div
+                          className={`flex-1 bg-[#eeeeee] rounded px-3 py-2 text-[11px] font-semibold text-center border-l-4 ${step.borderColor}`}
+                        >
+                          {step.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 border-t border-gray-100">
+                <Link href="/today">
+                  <button className="w-full py-2.5 bg-[#006c05] text-white rounded-lg font-bold text-sm active:scale-95 transition-transform cursor-pointer">
+                    Use Template
+                  </button>
+                </Link>
+              </div>
+            </div>
+          ))}
 
-      {/* Template Cards Grid */}
-      <div className="tmpl-grid">
-        {allFilteredAgents.map(({ agent, catId }) => {
-          const slug = agent.slug || "";
-          const pipeline = TEMPLATE_PIPELINES[slug] || [];
-          const rating = TEMPLATE_RATINGS[slug] || 4.5;
+          {/* Featured Large Card (Asymmetric Layout) */}
+          <div className="md:col-span-2 group bg-gradient-to-br from-white to-[#008808]/5 rounded-xl border border-[#008808]/20 overflow-hidden hover:shadow-2xl transition-all flex flex-col md:flex-row">
+            <div className="p-8 md:w-1/2">
+              <div className="inline-block px-3 py-1 rounded bg-[#006c05] text-white text-[10px] font-black uppercase tracking-widest mb-4">
+                Enterprise Choice
+              </div>
+              <h3 className="text-2xl font-bold mb-3 group-hover:text-[#006c05] transition-colors">
+                Unified Support Agent
+              </h3>
+              <p className="text-[#414753] text-base mb-6">
+                A multi-modal pipeline that handles tickets across Discord,
+                Slack, and Email using a central knowledge base.
+              </p>
+              <div className="mb-6">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 block mb-3">
+                  Orchestration Flow
+                </span>
+                <div className="flex items-center gap-2">
+                  {["Ingest", "Classify", "Resolve", "Notify"].map((step) => (
+                    <div
+                      key={step}
+                      className="flex-1 bg-white border border-gray-100 shadow-sm rounded px-3 py-3 text-[11px] font-semibold text-center"
+                    >
+                      {step}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <Link href="/today">
+                <button className="px-8 py-3 bg-[#1b1b1b] text-white rounded-lg font-bold text-sm active:scale-95 transition-transform cursor-pointer">
+                  Use Template
+                </button>
+              </Link>
+            </div>
+            <div className="hidden md:block md:w-1/2 relative min-h-[300px]">
+              <div className="absolute inset-0 bg-[#006c05]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#006c05] text-7xl absolute opacity-20">
+                  hub
+                </span>
+              </div>
+            </div>
+          </div>
 
-          return (
-            <TemplateCard
-              key={agent.id}
-              agent={agent}
-              rating={rating}
-              pipeline={pipeline}
-              onUse={() => handleUseTemplate(slug)}
-            />
-          );
-        })}
+          {/* Template Card 4 (Blog Post Generator) */}
+          <div className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all flex flex-col h-full">
+            <div className="p-6 flex-1">
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-2.5 ${TEMPLATES[3].iconBg} rounded-lg`}>
+                  <span
+                    className={`material-symbols-outlined ${TEMPLATES[3].iconColor}`}
+                  >
+                    {TEMPLATES[3].icon}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 bg-[#ece0d6] px-2 py-1 rounded text-xs font-bold text-[#201b15]">
+                  <span
+                    className="material-symbols-outlined text-[14px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    star
+                  </span>
+                  {TEMPLATES[3].rating}
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-2 group-hover:text-[#006c05] transition-colors">
+                {TEMPLATES[3].title}
+              </h3>
+              <p className="text-[#414753] text-sm mb-6 leading-relaxed">
+                {TEMPLATES[3].description}
+              </p>
+              <div className="space-y-3">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">
+                  Sequence
+                </span>
+                <div className="flex items-center gap-2">
+                  {TEMPLATES[3].steps.map((step, i) => (
+                    <div key={step.label} className="contents">
+                      {i > 0 && (
+                        <span className="material-symbols-outlined text-gray-300 text-sm">
+                          arrow_forward
+                        </span>
+                      )}
+                      <div
+                        className={`flex-1 bg-[#eeeeee] rounded px-3 py-2 text-[11px] font-semibold text-center border-l-4 ${step.borderColor}`}
+                      >
+                        {step.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100">
+              <Link href="/today">
+                <button className="w-full py-2.5 bg-[#006c05] text-white rounded-lg font-bold text-sm active:scale-95 transition-transform cursor-pointer">
+                  Use Template
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

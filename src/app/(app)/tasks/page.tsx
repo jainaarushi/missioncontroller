@@ -1,367 +1,432 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useTasks } from "@/lib/hooks/use-tasks";
-import { useAgents } from "@/lib/hooks/use-agents";
-import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
-import { CreateTaskModal } from "@/components/tasks/create-task-modal";
-import { P, F } from "@/lib/palette";
-import type { TaskWithAgent } from "@/lib/types/task";
+import { useState } from "react";
 
-export default function TaskBoardPage() {
-  const { tasks, mutate } = useTasks();
-  const { agents } = useAgents();
-  const [selectedTask, setSelectedTask] = useState<TaskWithAgent | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+/* ------------------------------------------------------------------ */
+/*  Static dummy data                                                  */
+/* ------------------------------------------------------------------ */
 
-  const todoTasks = tasks.filter(t => t.status === "todo" || t.status === "failed");
-  const runningTasks = tasks.filter(t => t.status === "working" || t.status === "review");
-  const doneTasks = tasks.filter(t => t.status === "done");
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  statusLabel: string;
+  statusBg: string;
+  statusText: string;
+  agentName: string;
+  agentColor: string;
+  agentInitial: string;
+  extra?: string;              // e.g. "Scheduled: 14:00"
+  progress?: number;           // percentage for running tasks
+  resultText?: string;         // e.g. "24 critical bugs fixed"
+  tools?: string[];            // e.g. ["API", "DB"]
+  trailingIcon?: string;       // material icon name
+}
 
-  const columns = [
-    { key: "todo" as const, title: "Queue / To Do", count: todoTasks.length, tasks: todoTasks, dotColor: "#9ca3af", addable: true },
-    { key: "running" as const, title: "Running / In Progress", count: runningTasks.length, tasks: runningTasks, dotColor: "#3b82f6" },
-    { key: "done" as const, title: "Completed / Done", count: doneTasks.length, tasks: doneTasks, dotColor: "#22c55e" },
-  ];
+const TODO_TASKS: Task[] = [
+  {
+    id: "#9922",
+    title: "LinkedIn Outreach - Batch #9922",
+    status: "todo",
+    statusLabel: "READY",
+    statusBg: "bg-slate-100",
+    statusText: "text-slate-600",
+    agentName: "Growth Agent",
+    agentColor: "bg-indigo-500",
+    agentInitial: "G",
+    extra: "Scheduled: 14:00",
+  },
+  {
+    id: "#9925",
+    title: "Competitor SEO Audit: FinTech Sector",
+    status: "todo",
+    statusLabel: "WAITING",
+    statusBg: "bg-amber-50",
+    statusText: "text-amber-600",
+    agentName: "SEO Analyst",
+    agentColor: "bg-teal-500",
+    agentInitial: "S",
+    trailingIcon: "schedule",
+  },
+  {
+    id: "#9930",
+    title: "Weekly Newsletter: AI Trends Digest",
+    status: "todo",
+    statusLabel: "READY",
+    statusBg: "bg-slate-100",
+    statusText: "text-slate-600",
+    agentName: "Content Bot",
+    agentColor: "bg-pink-500",
+    agentInitial: "C",
+    extra: "Scheduled: 09:00",
+  },
+  {
+    id: "#9933",
+    title: "Data Pipeline Health Check",
+    status: "todo",
+    statusLabel: "WAITING",
+    statusBg: "bg-amber-50",
+    statusText: "text-amber-600",
+    agentName: "DevOps Bot",
+    agentColor: "bg-orange-500",
+    agentInitial: "D",
+    trailingIcon: "schedule",
+  },
+];
 
-  async function handleCreateTask(title: string, agentIds?: string[]) {
-    const res = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, section: "today" }),
-    });
-    if (res.ok) {
-      const task = await res.json();
-      if (agentIds?.[0]) {
-        await fetch(`/api/tasks/${task.id}/assign`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ agent_id: agentIds[0] }),
-        });
-      }
-    }
-    await mutate();
-  }
+const IN_PROGRESS_TASKS: Task[] = [
+  {
+    id: "#9918",
+    title: "Research Phase - Market Landscape Analysis",
+    status: "running",
+    statusLabel: "RUNNING",
+    statusBg: "bg-blue-50",
+    statusText: "text-[#4d4bff]",
+    agentName: "Research Strategist",
+    agentColor: "bg-violet-500",
+    agentInitial: "R",
+    progress: 65,
+    tools: ["API", "DB"],
+  },
+  {
+    id: "#9920",
+    title: "Content Generation: Q3 Social Media Pack",
+    status: "running",
+    statusLabel: "RUNNING",
+    statusBg: "bg-blue-50",
+    statusText: "text-[#4d4bff]",
+    agentName: "Creative Copywriter",
+    agentColor: "bg-rose-500",
+    agentInitial: "C",
+    progress: 22,
+    trailingIcon: "image",
+  },
+];
 
+const IN_REVIEW_TASKS: Task[] = [
+  {
+    id: "#9910",
+    title: "Brand Voice Guidelines Document",
+    status: "review",
+    statusLabel: "REVIEW",
+    statusBg: "bg-purple-50",
+    statusText: "text-purple-600",
+    agentName: "Brand Strategist",
+    agentColor: "bg-purple-500",
+    agentInitial: "B",
+    extra: "Awaiting approval",
+  },
+  {
+    id: "#9912",
+    title: "Customer Sentiment Report - March",
+    status: "review",
+    statusLabel: "REVIEW",
+    statusBg: "bg-purple-50",
+    statusText: "text-purple-600",
+    agentName: "Analytics Agent",
+    agentColor: "bg-cyan-500",
+    agentInitial: "A",
+    extra: "1 comment",
+  },
+  {
+    id: "#9914",
+    title: "API Documentation Update v2.1",
+    status: "review",
+    statusLabel: "CHANGES",
+    statusBg: "bg-amber-50",
+    statusText: "text-amber-600",
+    agentName: "Tech Writer",
+    agentColor: "bg-emerald-500",
+    agentInitial: "T",
+    extra: "Revision requested",
+  },
+];
+
+const DONE_TASKS: Task[] = [
+  {
+    id: "#8810",
+    title: "Technical Debt Cleanup",
+    status: "done",
+    statusLabel: "SUCCESS",
+    statusBg: "bg-green-50",
+    statusText: "text-[#006c05]",
+    agentName: "DevOps Bot",
+    agentColor: "bg-orange-500",
+    agentInitial: "D",
+    resultText: "24 critical bugs fixed",
+    extra: "2h ago",
+  },
+  {
+    id: "#8808",
+    title: "Email Campaign: Launch Announcement",
+    status: "done",
+    statusLabel: "SUCCESS",
+    statusBg: "bg-green-50",
+    statusText: "text-[#006c05]",
+    agentName: "Growth Agent",
+    agentColor: "bg-indigo-500",
+    agentInitial: "G",
+    resultText: "1.2k emails dispatched",
+    extra: "Yesterday",
+  },
+  {
+    id: "#8805",
+    title: "Competitor Pricing Matrix",
+    status: "done",
+    statusLabel: "SUCCESS",
+    statusBg: "bg-green-50",
+    statusText: "text-[#006c05]",
+    agentName: "Research Strategist",
+    agentColor: "bg-violet-500",
+    agentInitial: "R",
+    resultText: "12 competitors analyzed",
+    extra: "2 days ago",
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Column component                                                   */
+/* ------------------------------------------------------------------ */
+
+interface ColumnDef {
+  label: string;
+  dotColor: string;
+  countBg: string;
+  countText: string;
+  tasks: Task[];
+  trailingIcon: string;
+  highlighted?: boolean;
+}
+
+function KanbanColumn({ col }: { col: ColumnDef }) {
   return (
-    <div style={{ padding: "32px", fontFamily: F, minHeight: "100vh" }}>
-      {/* Pulse animation for running badge */}
-      <style>{`
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
-
-      {/* Breadcrumb */}
-      <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>
-        AI Studio / Task Board
+    <div
+      className={`flex flex-col h-full ${
+        col.highlighted
+          ? "bg-slate-50/50 rounded-2xl p-3 border border-slate-100"
+          : ""
+      }`}
+    >
+      {/* Column header */}
+      <div className="flex items-center justify-between mb-4 px-2">
+        <div className="flex items-center gap-2">
+          <span
+            className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`}
+          />
+          <h3 className="font-bold text-slate-700">{col.label}</h3>
+          <span
+            className={`text-xs font-medium ${col.countBg} ${col.countText} px-2 py-0.5 rounded-full`}
+          >
+            {col.tasks.length}
+          </span>
+        </div>
+        <button className="text-slate-400 hover:text-slate-600 transition-colors">
+          <span className="material-symbols-outlined">
+            {col.trailingIcon}
+          </span>
+        </button>
       </div>
 
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1b1b1b", letterSpacing: "-0.02em" }}>
-          Agent Workflow
-        </h1>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button style={{
-            padding: "10px 20px", borderRadius: 10,
-            border: "1px solid #e5e7eb", background: "#fff",
-            fontSize: 13, fontWeight: 600, color: "#4b5563",
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-            fontFamily: F,
-          }}>
-            Filter
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            style={{
-              padding: "10px 20px", borderRadius: 10,
-              background: "#3028e9", color: "#fff",
-              fontSize: 13, fontWeight: 700, border: "none",
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-              fontFamily: F,
-            }}
+      {/* Cards */}
+      <div className="space-y-4 overflow-y-auto pr-2 flex-1">
+        {col.tasks.map((task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Task card                                                          */
+/* ------------------------------------------------------------------ */
+
+function TaskCard({ task }: { task: Task }) {
+  const isRunning = task.status === "running";
+  const isDone = task.status === "done";
+
+  return (
+    <div
+      className={`bg-white p-4 rounded-xl border border-slate-200 transition-all group cursor-pointer ${
+        isRunning
+          ? "shadow-md border-l-4 border-l-[#4d4bff]"
+          : isDone
+          ? "shadow-sm opacity-90 hover:opacity-100"
+          : "shadow-sm hover:border-blue-200 hover:shadow-md"
+      }`}
+    >
+      {/* Top row — ID / status */}
+      <div className="flex justify-between items-start mb-3">
+        {isRunning ? (
+          <span
+            className={`px-2 py-0.5 rounded text-[10px] font-bold ${task.statusBg} ${task.statusText} flex items-center gap-1`}
           >
-            + Automate Board
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4d4bff] animate-pulse" />
+            {task.statusLabel}
+          </span>
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            {task.id}
+          </span>
+        )}
+        {isRunning && task.progress !== undefined ? (
+          <span className="text-xs font-bold text-[#4d4bff]">
+            {task.progress}%
+          </span>
+        ) : (
+          <span
+            className={`px-2 py-0.5 rounded text-[10px] font-bold ${task.statusBg} ${task.statusText}`}
+          >
+            {task.statusLabel}
+          </span>
+        )}
+      </div>
+
+      {/* Title */}
+      <h4
+        className={`font-semibold leading-tight ${
+          isRunning ? "text-slate-900 mb-3" : "text-slate-800 mb-4 group-hover:text-[#4d4bff]"
+        }${isDone ? " mb-3" : ""}`}
+      >
+        {task.title}
+      </h4>
+
+      {/* Progress bar (running only) */}
+      {isRunning && task.progress !== undefined && (
+        <div className="w-full bg-slate-100 h-1.5 rounded-full mb-4 overflow-hidden">
+          <div
+            className="bg-[#4d4bff] h-full rounded-full"
+            style={{ width: `${task.progress}%` }}
+          />
+        </div>
+      )}
+
+      {/* Result pill (done only) */}
+      {isDone && task.resultText && (
+        <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 mb-4 flex items-center gap-2">
+          <span className="material-symbols-outlined text-[#006c05] text-sm">
+            check_circle
+          </span>
+          <span className="text-[11px] text-slate-600 font-medium">
+            {task.resultText}
+          </span>
+        </div>
+      )}
+
+      {/* Bottom row — agent + meta */}
+      <div className="flex items-center justify-between mt-auto">
+        <div className="flex items-center gap-2">
+          <div
+            className={`w-6 h-6 rounded-full ${task.agentColor} ring-2 ring-white flex items-center justify-center text-white text-[9px] font-bold`}
+          >
+            {task.agentInitial}
+          </div>
+          <span className="text-xs text-slate-500 font-medium">
+            {task.agentName}
+          </span>
+        </div>
+
+        {/* Trailing: tools, icon, or timestamp */}
+        {task.tools && task.tools.length > 0 ? (
+          <div className="flex -space-x-2">
+            {task.tools.map((t) => (
+              <div
+                key={t}
+                className="w-5 h-5 rounded-full bg-slate-200 border border-white text-[8px] flex items-center justify-center font-bold"
+              >
+                {t}
+              </div>
+            ))}
+          </div>
+        ) : task.trailingIcon ? (
+          <span className="material-symbols-outlined text-slate-300 text-lg">
+            {task.trailingIcon}
+          </span>
+        ) : task.extra ? (
+          <span className="text-[10px] text-slate-400">{task.extra}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
+
+const COLUMNS: ColumnDef[] = [
+  {
+    label: "Queue / To Do",
+    dotColor: "bg-slate-300",
+    countBg: "bg-slate-100",
+    countText: "text-slate-500",
+    tasks: TODO_TASKS,
+    trailingIcon: "add",
+  },
+  {
+    label: "Running / In Progress",
+    dotColor: "bg-blue-500",
+    countBg: "bg-blue-100",
+    countText: "text-blue-600",
+    tasks: IN_PROGRESS_TASKS,
+    trailingIcon: "more_horiz",
+    highlighted: true,
+  },
+  {
+    label: "In Review",
+    dotColor: "bg-purple-500",
+    countBg: "bg-purple-100",
+    countText: "text-purple-600",
+    tasks: IN_REVIEW_TASKS,
+    trailingIcon: "rate_review",
+  },
+  {
+    label: "Completed / Done",
+    dotColor: "bg-[#006c05]",
+    countBg: "bg-green-100",
+    countText: "text-[#006c05]",
+    tasks: DONE_TASKS,
+    trailingIcon: "checklist",
+  },
+];
+
+export default function TaskBoardPage() {
+  const [search, setSearch] = useState("");
+
+  return (
+    <div className="min-h-[calc(100vh-64px)]">
+      {/* Board Header */}
+      <div className="pt-8 px-8 pb-6 flex justify-between items-end">
+        <div>
+          <nav className="flex text-xs text-slate-400 gap-2 mb-1">
+            <span>AI Studio</span>
+            <span>/</span>
+            <span className="text-slate-600">Task Board</span>
+          </nav>
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            Agent Workflow
+          </h2>
+        </div>
+        <div className="flex gap-2">
+          <button className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors">
+            <span className="material-symbols-outlined text-lg">
+              filter_list
+            </span>
+            <span>Filter</span>
+          </button>
+          <button className="px-4 py-2 text-sm font-medium bg-[#4d4bff] text-white rounded-lg flex items-center gap-2 hover:opacity-90 transition-all">
+            <span className="material-symbols-outlined text-lg">bolt</span>
+            <span>Automate Board</span>
           </button>
         </div>
       </div>
 
-      {/* Kanban Columns */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, alignItems: "flex-start" }}>
-        {columns.map((col) => {
-          const isRunningCol = col.key === "running";
-          const isDoneCol = col.key === "done";
-
-          return (
-            <div
-              key={col.title}
-              style={isRunningCol ? {
-                background: "rgba(248,250,252,0.5)",
-                borderRadius: 16,
-                padding: 12,
-                border: "1px solid #f1f5f9",
-              } : undefined}
-            >
-              {/* Column header */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8,
-                marginBottom: 16, paddingBottom: 12,
-                borderBottom: "2px solid #e5e7eb",
-              }}>
-                <div style={{
-                  width: 10, height: 10, borderRadius: "50%",
-                  backgroundColor: col.dotColor,
-                }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#1b1b1b" }}>
-                  {col.title}
-                </span>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, color: "#6b7280",
-                  background: "#f3f4f6", padding: "2px 8px", borderRadius: 10,
-                }}>
-                  {col.count}
-                </span>
-                {col.addable && (
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    style={{
-                      marginLeft: "auto", width: 28, height: 28,
-                      borderRadius: 8, border: "1px solid #e5e7eb",
-                      background: "#fff", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 16, color: "#9ca3af",
-                      fontFamily: F,
-                    }}
-                  >+</button>
-                )}
-                {isRunningCol && (
-                  <button
-                    style={{
-                      marginLeft: col.addable ? undefined : "auto",
-                      width: 28, height: 28,
-                      borderRadius: 8, border: "1px solid #e5e7eb",
-                      background: "#fff", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 18, color: "#9ca3af", lineHeight: 1,
-                      fontFamily: F,
-                    }}
-                    title="More options"
-                  >&#8943;</button>
-                )}
-                {isDoneCol && (
-                  <button
-                    style={{
-                      marginLeft: "auto",
-                      width: 28, height: 28,
-                      borderRadius: 8, border: "1px solid #e5e7eb",
-                      background: "#fff", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 16, color: "#9ca3af", lineHeight: 1,
-                      fontFamily: F,
-                    }}
-                    title="Checklist"
-                  >&#9745;</button>
-                )}
-              </div>
-
-              {/* Task cards */}
-              <div style={{
-                display: "flex", flexDirection: "column", gap: 12,
-                maxHeight: "calc(100vh - 220px)", overflowY: "auto",
-              }}>
-                {col.tasks.map((task) => {
-                  const isRunning = task.status === "working";
-                  const isReview = task.status === "review";
-                  const isDone = task.status === "done";
-                  const isHovered = hoveredCardId === task.id;
-                  const isInRunningCol = isRunning || isReview;
-
-                  return (
-                    <div
-                      key={task.id}
-                      onClick={() => setSelectedTask(task)}
-                      onMouseEnter={(e) => {
-                        setHoveredCardId(task.id);
-                        e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)";
-                        e.currentTarget.style.transform = "translateY(-1px)";
-                        e.currentTarget.style.borderColor = "#bfdbfe";
-                        if (isDone) e.currentTarget.style.opacity = "1";
-                      }}
-                      onMouseLeave={(e) => {
-                        setHoveredCardId(null);
-                        e.currentTarget.style.boxShadow = isInRunningCol ? "0 2px 12px rgba(59,130,246,0.06)" : "0 1px 3px rgba(0,0,0,0.04)";
-                        e.currentTarget.style.transform = "none";
-                        e.currentTarget.style.borderColor = isInRunningCol ? "#e5e7eb" : "#e5e7eb";
-                        if (isDone) e.currentTarget.style.opacity = "0.9";
-                      }}
-                      style={{
-                        background: "#ffffff",
-                        border: "1px solid #e5e7eb",
-                        ...(isInRunningCol ? { borderLeft: "4px solid #4d4bff" } : {}),
-                        borderRadius: 12,
-                        padding: "16px",
-                        cursor: "pointer",
-                        opacity: isDone ? 0.9 : 1,
-                        boxShadow: isInRunningCol ? "0 2px 12px rgba(59,130,246,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      {/* Top row: ID + status */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <span style={{ fontSize: 11, color: "#9ca3af", fontFamily: "'JetBrains Mono', monospace" }}>
-                          #{task.id.slice(-4)}
-                        </span>
-                        {isRunning && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, color: "#3028e9",
-                            background: "rgba(59,130,246,0.08)", padding: "3px 8px",
-                            borderRadius: 6, display: "flex", alignItems: "center", gap: 4,
-                          }}>
-                            <span style={{
-                              width: 6, height: 6, borderRadius: "50%",
-                              background: "#3028e9", display: "inline-block",
-                              animation: "pulse-dot 2s infinite",
-                            }} />
-                            RUNNING {task.progress > 0 && `${task.progress}%`}
-                          </span>
-                        )}
-                        {isReview && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, color: "#f59e0b",
-                            background: "rgba(245,158,11,0.08)", padding: "3px 8px",
-                            borderRadius: 6,
-                          }}>
-                            REVIEW
-                          </span>
-                        )}
-                        {task.status === "todo" && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, color: "#6b7280",
-                            background: "#f3f4f6", padding: "3px 8px", borderRadius: 6,
-                          }}>
-                            READY
-                          </span>
-                        )}
-                        {isDone && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, color: "#16a34a",
-                            background: "rgba(22,163,106,0.08)", padding: "3px 8px",
-                            borderRadius: 6,
-                          }}>
-                            SUCCESS
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Title */}
-                      <div style={{
-                        fontSize: 14, fontWeight: 600, color: "#1b1b1b",
-                        marginBottom: 10, lineHeight: 1.4,
-                      }}>
-                        {task.title}
-                      </div>
-
-                      {/* Progress bar for running tasks */}
-                      {isRunning && task.progress > 0 && (
-                        <div style={{
-                          width: "100%", height: 4, background: "#e5e7eb",
-                          borderRadius: 2, overflow: "hidden", marginBottom: 10,
-                        }}>
-                          <div style={{
-                            height: "100%", width: `${task.progress}%`,
-                            background: "#3b82f6", borderRadius: 2,
-                            transition: "width 1s ease",
-                          }} />
-                        </div>
-                      )}
-
-                      {/* Current step for running */}
-                      {isRunning && task.current_step && (
-                        <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 10 }}>
-                          {task.current_step}
-                        </div>
-                      )}
-
-                      {/* Done task result preview */}
-                      {isDone && task.output && (
-                        <div style={{
-                          background: "#f8fafc",
-                          border: "1px solid #f1f5f9",
-                          borderRadius: 8,
-                          padding: "8px 12px",
-                          marginBottom: 10,
-                        }}>
-                          <div style={{
-                            fontSize: 12, color: "#16a34a",
-                            display: "flex", alignItems: "center", gap: 6,
-                          }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                            <span>{task.output.slice(0, 40)}...</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Agent footer */}
-                      {task.agent && (
-                        <div style={{
-                          display: "flex", alignItems: "center", justifyContent: "space-between",
-                          paddingTop: 10, borderTop: "1px solid #f3f4f6",
-                        }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div style={{
-                              width: 24, height: 24, borderRadius: 6,
-                              background: task.agent.gradient || task.agent.color + "20",
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              fontSize: 12,
-                            }}>
-                              {task.agent.icon}
-                            </div>
-                            <span style={{ fontSize: 12, fontWeight: 500, color: "#4b5563" }}>
-                              {task.agent.name}
-                            </span>
-                          </div>
-                          {task.cost_usd > 0 && (
-                            <span style={{ fontSize: 11, color: "#9ca3af", fontFamily: "'JetBrains Mono', monospace" }}>
-                              ${task.cost_usd.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {col.tasks.length === 0 && (
-                  <div style={{
-                    padding: "24px 16px", textAlign: "center",
-                    border: "2px dashed #e5e7eb", borderRadius: 12,
-                    color: "#9ca3af", fontSize: 13,
-                  }}>
-                    No tasks
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      {/* Kanban Board */}
+      <div className="px-8 pb-12 grid grid-cols-1 md:grid-cols-4 gap-6 h-[calc(100vh-244px)] overflow-hidden">
+        {COLUMNS.map((col) => (
+          <KanbanColumn key={col.label} col={col} />
+        ))}
       </div>
-
-      <CreateTaskModal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreateTask}
-        agents={agents}
-      />
-
-      <TaskDetailModal
-        task={selectedTask}
-        open={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        onUpdate={() => mutate()}
-      />
     </div>
   );
 }
