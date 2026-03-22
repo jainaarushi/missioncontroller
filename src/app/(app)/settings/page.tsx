@@ -59,7 +59,7 @@ const INTEGRATION_ICONS = [
 ];
 
 const CONNECTED_APPS = [
-  { key: "linkedin", name: "LinkedIn", logo: `https://img.logo.dev/linkedin.com?token=${LOGO_TOKEN}` },
+  { key: "linkedin", name: "LinkedIn", logo: `https://img.logo.dev/linkedin.com?token=${LOGO_TOKEN}`, hint: "LinkedIn OAuth requires your LinkedIn email & password. If you sign in to LinkedIn with Google, you'll need to set a LinkedIn password first at linkedin.com/psettings/change-password" },
   { key: "gmail", name: "Gmail", logo: `https://img.logo.dev/gmail.com?token=${LOGO_TOKEN}` },
   { key: "github", name: "GitHub", logo: `https://img.logo.dev/github.com?token=${LOGO_TOKEN}` },
 ];
@@ -490,38 +490,53 @@ export default function SettingsPage() {
             {/* Connected Apps */}
             <section className="bg-white border border-[#e8e8e8] p-6 rounded-2xl space-y-4">
               <h2 className="text-lg font-bold">Connected Apps</h2>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {CONNECTED_APPS.map((app) => {
                   const connected = composioConnections[app.key] || false;
                   return (
-                    <div key={app.key} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center bg-white border border-gray-100">
-                          <img alt={app.name} className="w-7 h-7 object-contain" src={app.logo} />
+                    <div key={app.key} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                            <img alt={app.name} className="w-7 h-7 object-contain" src={app.logo} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold">{app.name}</p>
+                            <p className="text-[10px] text-[#414753]">
+                              {connected
+                                ? composioUsage ? `${composioUsage.used} / ${composioUsage.limit} runs` : "Connected"
+                                : composioEnabled ? "Not connected" : "Composio not configured"}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold">{app.name}</p>
-                          <p className="text-[10px] text-[#414753]">
-                            {connected
-                              ? composioUsage ? `${composioUsage.used} / ${composioUsage.limit} runs` : "Connected"
-                              : composioEnabled ? "Not connected" : "Composio not configured"}
-                          </p>
-                        </div>
+                        {connected ? (
+                          <button
+                            className="text-[10px] font-bold px-3 py-1 bg-[#006c05] text-white rounded-full hover:bg-red-500 transition-colors"
+                            onClick={() => disconnectApp(app.key, app.name)}
+                          >
+                            Active
+                          </button>
+                        ) : (
+                          <button
+                            className="text-[10px] font-bold px-3 py-1 border border-[#717785] rounded-full hover:bg-[#eeeeee] transition-colors"
+                            onClick={() => connectApp(app.key)}
+                          >
+                            Connect
+                          </button>
+                        )}
                       </div>
-                      {connected ? (
-                        <button
-                          className="text-[10px] font-bold px-3 py-1 bg-[#006c05] text-white rounded-full hover:bg-red-500 transition-colors"
-                          onClick={() => disconnectApp(app.key, app.name)}
-                        >
-                          Active
-                        </button>
-                      ) : (
-                        <button
-                          className="text-[10px] font-bold px-3 py-1 border border-[#717785] rounded-full hover:bg-[#eeeeee] transition-colors"
-                          onClick={() => connectApp(app.key)}
-                        >
-                          Connect
-                        </button>
+                      {!connected && app.hint && (
+                        <p className="text-[10px] text-[#717785] leading-relaxed pl-11">
+                          {app.hint.split("linkedin.com/psettings/change-password")[0]}
+                          <a
+                            href="https://www.linkedin.com/psettings/change-password"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#006c05] font-semibold hover:underline"
+                          >
+                            Set a LinkedIn password
+                          </a>
+                        </p>
                       )}
                     </div>
                   );

@@ -235,13 +235,28 @@ export default function TemplateConfigPage() {
                         )}
                       </div>
                       {!isConnected && (
-                        <button
-                          onClick={() => connectTool(tool.name)}
-                          disabled={connecting === tool.name}
-                          className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-                        >
-                          {connecting === tool.name ? "Connecting..." : "Connect Account"}
-                        </button>
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => connectTool(tool.name)}
+                            disabled={connecting === tool.name}
+                            className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                          >
+                            {connecting === tool.name ? "Connecting..." : "Connect Account"}
+                          </button>
+                          {tool.name === "LinkedIn" && (
+                            <p className="text-[10px] text-[#717785] leading-relaxed">
+                              LinkedIn OAuth requires email &amp; password login. If you use Google to sign in,{" "}
+                              <a
+                                href="https://www.linkedin.com/psettings/change-password"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#006c05] font-semibold hover:underline"
+                              >
+                                set a LinkedIn password first
+                              </a>.
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                   );
