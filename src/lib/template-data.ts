@@ -225,6 +225,158 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
       },
     ],
   },
+  "market-analysis": {
+    slug: "market-analysis",
+    title: "Market Analysis",
+    configTitle: "Configure Market Analysis Pipeline",
+    pipelineNodes: [
+      {
+        name: "Research Agent",
+        description: "Gathers industry data & trends",
+        icon: "query_stats",
+        bgColor: "bg-[#6366F1]",
+        textColor: "text-[#e8e6ff]",
+      },
+      {
+        name: "Data Analyst",
+        description: "Processes numbers & builds models",
+        icon: "analytics",
+        bgColor: "bg-[#059669]",
+        textColor: "text-[#ecfdf5]",
+      },
+      {
+        name: "Strategy Writer",
+        description: "Synthesizes into actionable report",
+        icon: "description",
+        bgColor: "bg-[#D97706]",
+        textColor: "text-[#fffbeb]",
+      },
+    ],
+    formFields: [
+      {
+        label: "Company or Market",
+        type: "text",
+        placeholder: "e.g. Electric vehicle market in Southeast Asia",
+        hint: "Enter a company name, industry, or market segment to analyze.",
+      },
+      {
+        label: "Analysis Focus",
+        type: "textarea",
+        placeholder:
+          "e.g. Identify top 5 competitors, estimate TAM/SAM/SOM, highlight growth drivers and risks...",
+      },
+      {
+        label: "Depth",
+        type: "range",
+        min: 1,
+        max: 5,
+        defaultValue: 3,
+        unit: "Research depth",
+        rangeLabels: ["Quick scan", "Deep dive"],
+      },
+    ],
+    toolConnections: [
+      {
+        name: "Google Search",
+        logo: `https://img.logo.dev/google.com?token=${LOGO_TOKEN}`,
+        connected: true,
+        statusText: "Connected",
+      },
+      {
+        name: "Yahoo Finance",
+        logo: `https://img.logo.dev/yahoo.com?token=${LOGO_TOKEN}`,
+        connected: true,
+        statusText: "Connected",
+      },
+    ],
+    composioPowered: false,
+    warningText:
+      "For the best results, add a Tavily API key in Settings to enable live web research. The pipeline works without it using free search.",
+    // Drafting
+    draftingAgent: "Data Analyst",
+    draftingDescription:
+      "Data Analyst is pulling financial data, market reports, and competitor filings to build a comprehensive analysis.",
+    draftPhases: [
+      { label: "Research", status: "done" },
+      { label: "Analysis", status: "active" },
+      { label: "Report", status: "pending" },
+    ],
+    draftRows: [
+      {
+        initials: "EV",
+        name: "EV Market Overview",
+        company: "Industry",
+        preview:
+          '"The global EV market reached $388B in 2024, with Southeast Asia emerging as the fastest-growing..."',
+        status: "ready",
+        avatarBg: "bg-[#dbeafe]",
+        avatarText: "text-[#1e40af]",
+      },
+      {
+        initials: "CM",
+        name: "Competitor Matrix",
+        company: "Analysis",
+        preview:
+          '"BYD leads with 34% regional share, followed by VinFast (18%) and Hyundai (12%). Key differentiator..."',
+        status: "ready",
+        avatarBg: "bg-[#dcfce7]",
+        avatarText: "text-[#166534]",
+      },
+      {
+        initials: "FM",
+        name: "Financial Model",
+        company: "Projections",
+        preview:
+          '"TAM estimated at $42B by 2028 (CAGR 28%). SAM for premium segment: $8.4B. Key assumption..."',
+        status: "drafting",
+        avatarBg: "bg-[#fef3c7]",
+        avatarText: "text-[#92400e]",
+      },
+      {
+        initials: "RS",
+        name: "Risk Summary",
+        company: "Strategy",
+        preview:
+          '"Primary risks: (1) Regulatory fragmentation across ASEAN, (2) Charging infrastructure gap..."',
+        status: "manual",
+        avatarBg: "bg-gray-200",
+        avatarText: "text-gray-600",
+      },
+    ],
+    // Batch
+    batchTitle: "Market Analysis: EV Sector Southeast Asia",
+    batchTag: "Generating 4 Report Sections",
+    batchRecipients: [
+      {
+        name: "Executive Summary",
+        title: "C-Suite Brief @ Strategy Team",
+        strategy: "High-level Overview",
+        status: "delivered",
+        companyLogo: `https://img.logo.dev/mckinsey.com?token=${LOGO_TOKEN}`,
+      },
+      {
+        name: "Competitor Deep-Dive",
+        title: "Detailed Analysis @ Research Team",
+        strategy: "Full Breakdown",
+        status: "delivered",
+        companyLogo: `https://img.logo.dev/bloomberg.com?token=${LOGO_TOKEN}`,
+      },
+      {
+        name: "Financial Projections",
+        title: "TAM/SAM/SOM Model @ Finance Team",
+        strategy: "Data-Driven",
+        status: "sending",
+        companyLogo: `https://img.logo.dev/pitchbook.com?token=${LOGO_TOKEN}`,
+      },
+      {
+        name: "Risk Assessment",
+        title: "Risk Matrix @ Compliance Team",
+        strategy: "Scenario Analysis",
+        status: "queued",
+        companyLogo: `https://img.logo.dev/deloitte.com?token=${LOGO_TOKEN}`,
+      },
+    ],
+  },
 };
 
 export function getTemplate(slug: string): TemplateConfig | null {
