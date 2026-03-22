@@ -314,19 +314,38 @@ export default function TemplateRunPage() {
     <div style={{ height: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column" }}>
       <InjectKeyframes />
       {/* Header */}
-      <div style={{ padding: "12px 24px", borderBottom: `1px solid ${P.border}`, background: P.bg2, display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-        <button onClick={() => router.push("/templates")} style={{ fontSize: 12, color: P.textSec, background: "none", border: `1px solid ${P.border}`, borderRadius: 7, padding: "5px 11px", cursor: "pointer", fontFamily: F }}>
-          &#8592; All Templates
+      <div style={{ padding: "12px 24px", borderBottom: "1px solid #e5e7eb", background: "#ffffff", display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+        <button onClick={() => router.push("/templates")} style={{ color: "#9ca3af", background: "none", border: "none", fontSize: 18, cursor: "pointer", fontFamily: F, padding: 0, lineHeight: 1 }}>
+          &#8592;
         </button>
-        <div style={{ fontSize: 15 }}>{templateIcon}</div>
-        <div style={{ fontSize: 13, fontWeight: 700 }}>{templateName}</div>
-        <span style={{ fontSize: 11, color: P.textSec }}>{cat.label}</span>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#1b1b1b" }}>Configure {templateName} Pipeline</div>
+        <span style={{ fontSize: 11, color: P.textSec, marginLeft: 4 }}>{cat.label}</span>
+      </div>
+
+      {/* PIPELINE OVERVIEW */}
+      <div style={{ background: "#ffffff", borderBottom: "1px solid #e5e7eb", padding: "24px 32px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", color: "#6b7280", textTransform: "uppercase" as const }}>Pipeline Overview</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#1e8e3e", background: "rgba(30,142,62,0.08)", padding: "4px 12px", borderRadius: 20 }}>{nodeCount} Nodes Active</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto" }}>
+          {config.agents.map((a, i) => (
+            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 0 }}>
+              <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: 16, textAlign: "center" as const, minWidth: 100 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, background: `${a.color}14`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 8px" }}>{a.icon}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#1b1b1b" }}>{a.name}</div>
+                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>{a.role || "Agent"}</div>
+              </div>
+              {i < config.agents.length - 1 && <span style={{ color: "#9ca3af", fontSize: 20, margin: "0 8px" }}>&rarr;</span>}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 2-panel layout */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* LEFT panel — template info */}
-        <div style={{ width: 380, borderRight: `1px solid ${P.border}`, background: P.bg2, padding: "28px 24px", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ width: 380, borderRight: `1px solid ${P.border}`, background: "#ffffff", padding: "28px 24px", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Name + rating */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -358,12 +377,12 @@ export default function TemplateRunPage() {
             onClick={() => setPhase("input")}
             style={{
               width: "100%", padding: "14px 20px", borderRadius: 12,
-              background: P.lime, color: "#0a0a0d", fontSize: 15, fontWeight: 800,
+              background: "#1e8e3e", color: "#ffffff", fontSize: 15, fontWeight: 800,
               border: "none", cursor: "pointer", fontFamily: F,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               transition: "transform 0.15s, box-shadow 0.15s",
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 8px 24px ${P.lime}44`; }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(30,142,62,0.25)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
           >
             Use Template &#8594;
@@ -442,7 +461,7 @@ export default function TemplateRunPage() {
         </div>
 
         {/* RIGHT panel — Node graph */}
-        <div style={{ flex: 1, background: P.bg, position: "relative" }}>
+        <div style={{ flex: 1, background: "#f9fafb", position: "relative" }}>
           {nodeGraph ? (
             <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: P.textTer, fontSize: 13 }}>Loading graph...</div>}>
               <PipelineGraph graph={nodeGraph} />
@@ -471,7 +490,7 @@ export default function TemplateRunPage() {
   if (phase === "input") return (
     <div style={{ height: "100vh", background: P.bg, color: P.text, fontFamily: F, display: "flex", flexDirection: "column" }}>
       <InjectKeyframes />
-      <div style={{ padding: "12px 24px", borderBottom: `1px solid ${P.border}`, background: P.bg2, display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+      <div style={{ padding: "12px 24px", borderBottom: `1px solid ${P.border}`, background: "#ffffff", display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
         <button onClick={() => setPhase("preview")} style={{ fontSize: 12, color: P.textSec, background: "none", border: `1px solid ${P.border}`, borderRadius: 7, padding: "5px 11px", cursor: "pointer", fontFamily: F }}>
           &#8592; Back
         </button>
@@ -495,7 +514,7 @@ export default function TemplateRunPage() {
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px", overflowY: "auto" }}>
           <div style={{ width: "100%", maxWidth: 580 }}>
-            <div style={{ background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 18, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+            <div style={{ background: P.bg2, border: `1px solid ${P.border2}`, borderRadius: 18, overflow: "hidden", boxShadow: "0 8px 30px rgba(0,0,0,0.06)" }}>
               <div style={{ padding: "24px 28px 20px" }}>
                 <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{config.inputLabel}</div>
                 <div style={{ fontSize: 12.5, color: P.textSec, marginBottom: 20, lineHeight: 1.6 }}>{config.tagline}</div>
@@ -636,8 +655,8 @@ export default function TemplateRunPage() {
                 <button onClick={handleRun} disabled={!taskInput.trim() || isStarting}
                   style={{
                     display: "flex", alignItems: "center", gap: 9, padding: "11px 24px", borderRadius: 11,
-                    background: taskInput.trim() && !isStarting ? P.lime : P.bg5,
-                    color: taskInput.trim() && !isStarting ? "#0a0a0d" : P.textTer,
+                    background: taskInput.trim() && !isStarting ? "#1e8e3e" : P.bg5,
+                    color: taskInput.trim() && !isStarting ? "#ffffff" : P.textTer,
                     fontSize: 13, fontWeight: 700, border: "none",
                     cursor: taskInput.trim() && !isStarting ? "pointer" : "not-allowed",
                     fontFamily: F, opacity: isStarting ? 0.7 : 1,

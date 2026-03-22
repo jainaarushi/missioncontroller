@@ -8,12 +8,13 @@ import { CreateTaskModal } from "@/components/tasks/create-task-modal";
 import { BulkActionsBar } from "@/components/tasks/bulk-actions-bar";
 import { Confetti } from "@/components/shared/confetti";
 import { UsagePanel } from "@/components/shared/usage-panel";
+import { HireConfirmation } from "@/components/tasks/hire-confirmation";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P, F, FS, FM } from "@/lib/palette";
 import { isTemplateAgent, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
-import { Search, Code2, Palette, BarChart3, PenTool, TrendingUp, ShieldCheck, BrainCircuit, ChevronLeft, ChevronRight, Plus, ArrowRight, ArrowUpRight, AtSign, LineChart, Wrench } from "lucide-react";
+import { Search, Code2, Palette, BarChart3, PenTool, TrendingUp, ShieldCheck, BrainCircuit, ChevronLeft, ChevronRight, Plus, ArrowRight, ArrowUpRight, AtSign, LineChart, Wrench, Rocket, Globe, FileEdit, Share2 } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 import type { PipelineStep } from "@/lib/ai/pipelines";
 import { CATEGORY_META, TEMPLATE_PIPELINES, TEMPLATE_RATINGS, TEMPLATE_RUNS } from "@/lib/template-agents";
@@ -61,6 +62,7 @@ export default function TodayPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [authPrompt, setAuthPrompt] = useState<"login" | "key" | null>(null);
   const [authCountdown, setAuthCountdown] = useState(10);
+  const [hireConfirm, setHireConfirm] = useState<{ name: string; icon: string; color: string } | null>(null);
   const specialistScrollRef = useRef<HTMLDivElement>(null);
   const templateScrollRef = useRef<HTMLDivElement>(null);
 
@@ -269,6 +271,10 @@ export default function TodayPage() {
     }
 
     await mutate();
+
+    if (firstAgent) {
+      setHireConfirm({ name: firstAgent.name, icon: firstAgent.icon, color: firstAgent.color });
+    }
   }
 
   function scrollSpecialists(dir: "left" | "right") {
@@ -328,14 +334,23 @@ export default function TodayPage() {
         {/* Specialist Agents */}
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4 px-1">
-            <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Specialist Agents</h2>
-            <div className="flex gap-2">
-              <button onClick={() => scrollSpecialists("left")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
-                <ChevronLeft size={20} />
-              </button>
-              <button onClick={() => scrollSpecialists("right")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
-                <ChevronRight size={20} />
-              </button>
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-7 rounded-full" style={{ backgroundColor: "#1978e5" }} />
+              <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Specialist Agents</h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <a href="/agents" className="hidden md:flex items-center gap-1.5 text-sm font-bold transition-colors hover:opacity-80" style={{ color: "#1978e5" }}>
+                <span>View All Specialists</span>
+                <ArrowRight size={16} />
+              </a>
+              <div className="flex gap-2">
+                <button onClick={() => scrollSpecialists("left")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={() => scrollSpecialists("right")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           </div>
           <div ref={specialistScrollRef} className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
@@ -381,13 +396,19 @@ export default function TodayPage() {
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-xl font-bold tracking-tight" style={{ color: "#1b1b1b" }}>Featured Templates</h2>
-            <div className="flex gap-2">
-              <button onClick={() => scrollTemplates("left")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
-                <ChevronLeft size={20} />
-              </button>
-              <button onClick={() => scrollTemplates("right")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
-                <ChevronRight size={20} />
-              </button>
+            <div className="flex items-center gap-4">
+              <a href="/agents" className="hidden md:flex items-center gap-1.5 text-sm font-bold transition-colors hover:opacity-80" style={{ color: "#1978e5" }}>
+                <span>View All Templates</span>
+                <ArrowRight size={16} />
+              </a>
+              <div className="flex gap-2">
+                <button onClick={() => scrollTemplates("left")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={() => scrollTemplates("right")} className="p-1.5 rounded-full border bg-white transition-colors hover:text-blue-600" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           </div>
           <div ref={templateScrollRef} className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
@@ -413,6 +434,207 @@ export default function TodayPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Specialist Orchestration Diagram */}
+        <section
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: 24,
+            padding: "60px 40px",
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            marginBottom: 32,
+          }}
+        >
+          {/* Decorative background blurs */}
+          <div style={{ position: "absolute", top: -40, left: -40, width: 280, height: 280, borderRadius: "50%", background: "rgba(30,142,62,0.12)", filter: "blur(80px)", opacity: 0.15, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -60, right: -30, width: 320, height: 320, borderRadius: "50%", background: "rgba(34,197,94,0.15)", filter: "blur(80px)", opacity: 0.15, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "40%", left: "50%", width: 200, height: 200, borderRadius: "50%", background: "rgba(30,142,62,0.08)", filter: "blur(80px)", opacity: 0.15, pointerEvents: "none", transform: "translateX(-50%)" }} />
+
+          {/* Diagram container */}
+          <div style={{ position: "relative", width: "100%", maxWidth: 640, height: 300, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {/* SVG connecting lines */}
+            <svg
+              viewBox="0 0 640 300"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
+            >
+              {/* Top-left: Researcher */}
+              <line x1="320" y1="150" x2="120" y2="60" stroke="rgba(30,142,62,0.3)" strokeWidth="2" strokeDasharray="8 8" />
+              {/* Top-right: Copywriter */}
+              <line x1="320" y1="150" x2="520" y2="60" stroke="rgba(30,142,62,0.3)" strokeWidth="2" strokeDasharray="8 8" />
+              {/* Bottom-left: LinkedIn Pro */}
+              <line x1="320" y1="150" x2="140" y2="240" stroke="rgba(30,142,62,0.3)" strokeWidth="2" strokeDasharray="8 8" />
+              {/* Bottom-right: Visual Agent */}
+              <line x1="320" y1="150" x2="500" y2="240" stroke="rgba(30,142,62,0.3)" strokeWidth="2" strokeDasharray="8 8" />
+            </svg>
+
+            {/* Central node */}
+            <div style={{
+              position: "relative",
+              zIndex: 20,
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              background: "#1e8e3e",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 40px rgba(30,142,62,0.3), 0 8px 24px rgba(30,142,62,0.2)",
+              color: "#fff",
+            }}>
+              <Rocket size={28} />
+              <span style={{ fontSize: 9, fontWeight: 800, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Your Project</span>
+            </div>
+
+            {/* Researcher - top-left */}
+            <div
+              className="orchestration-float"
+              style={{
+                position: "absolute",
+                top: 10,
+                left: "10%",
+              }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: "rgba(239,246,255,0.8)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid #bfdbfe",
+                borderRadius: 16,
+                padding: "12px 16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 4px 12px rgba(59,130,246,0.3)" }}>
+                  <Globe size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#1e3a5f" }}>Researcher</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(59,130,246,0.7)", marginTop: 1 }}>Finding insights</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Copywriter - top-right */}
+            <div
+              className="orchestration-float-delayed"
+              style={{
+                position: "absolute",
+                top: 10,
+                right: "10%",
+              }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: "rgba(245,243,255,0.8)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid #ddd6fe",
+                borderRadius: 16,
+                padding: "12px 16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#8b5cf6", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 4px 12px rgba(139,92,246,0.3)" }}>
+                  <FileEdit size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#3b1f7e" }}>Copywriter</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(139,92,246,0.7)", marginTop: 1 }}>Drafting content</div>
+                </div>
+              </div>
+            </div>
+
+            {/* LinkedIn Pro - bottom-left */}
+            <div
+              className="orchestration-float-extra-delayed"
+              style={{
+                position: "absolute",
+                bottom: 10,
+                left: "12%",
+              }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: "rgba(238,242,255,0.8)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid #c7d2fe",
+                borderRadius: 16,
+                padding: "12px 16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 4px 12px rgba(79,70,229,0.3)" }}>
+                  <Share2 size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#312e81" }}>LinkedIn Pro</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(79,70,229,0.7)", marginTop: 1 }}>Managing outreach</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Visual Agent - bottom-right */}
+            <div
+              className="orchestration-float"
+              style={{
+                position: "absolute",
+                bottom: 20,
+                right: "14%",
+              }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: "rgba(255,241,242,0.8)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid #fecdd3",
+                borderRadius: 16,
+                padding: "12px 16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#f43f5e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 4px 12px rgba(244,63,94,0.3)" }}>
+                  <Palette size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#881337" }}>Visual Agent</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(244,63,94,0.7)", marginTop: 1 }}>Polishing assets</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tagline */}
+          <div style={{ textAlign: "center", marginTop: 48 }}>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: "#1b1b1b" }}>One Platform. Infinite Specialists.</h3>
+            <p style={{ fontSize: 16, color: "#44474e", marginTop: 8, fontStyle: "italic", opacity: 0.8 }}>Your tasks, orchestrated with precision.</p>
+          </div>
+
+          {/* Float animation styles */}
+          <style>{`
+            @keyframes orchestrationFloat {
+              0% { transform: translateY(0px); }
+              50% { transform: translateY(-10px); }
+              100% { transform: translateY(0px); }
+            }
+            .orchestration-float {
+              animation: orchestrationFloat 4s ease-in-out infinite;
+            }
+            .orchestration-float-delayed {
+              animation: orchestrationFloat 4s ease-in-out infinite;
+              animation-delay: 1.5s;
+            }
+            .orchestration-float-extra-delayed {
+              animation: orchestrationFloat 4s ease-in-out infinite;
+              animation-delay: 2.5s;
+            }
+          `}</style>
         </section>
 
         {/* Metrics Row */}
@@ -740,6 +962,16 @@ export default function TodayPage() {
       )}
 
       {/* FAB */}
+      <HireConfirmation
+        open={!!hireConfirm}
+        agentName={hireConfirm?.name || ""}
+        agentIcon={hireConfirm?.icon || ""}
+        agentColor={hireConfirm?.color || ""}
+        onChat={() => setHireConfirm(null)}
+        onDashboard={() => setHireConfirm(null)}
+        onClose={() => setHireConfirm(null)}
+      />
+
       <button
         onClick={() => { setCreateAgentId(null); setShowCreateModal(true); }}
         className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"

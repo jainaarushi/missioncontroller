@@ -13,6 +13,10 @@ const NAV_ITEMS = [
   { href: "/today", icon: "\u25A6", label: "Dashboard" },
   { href: "/agents", icon: "\u263A", label: "Agents", badgeKey: "review" as const },
   { href: "/templates", icon: "\uD83D\uDCC1", label: "Templates" },
+  { href: "/tasks", icon: "\uD83D\uDCCB", label: "Task Board" },
+  { href: "/chat", icon: "\uD83D\uDCAC", label: "Chat Hub" },
+  { href: "/drafting", icon: "\u270F\uFE0F", label: "Drafting" },
+  { href: "/batch", icon: "\uD83D\uDCE8", label: "Batch Status" },
   { href: "/analytics", icon: "\uD83D\uDCCA", label: "Analytics" },
   { href: "/settings", icon: "\u2699\uFE0F", label: "Settings" },
 ];

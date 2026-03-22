@@ -32,13 +32,12 @@ function TemplateCard({ agent, rating, pipeline, onUse }: {
       style={{
         background: P.bg2,
         border: `1px solid ${hov ? P.border2 : "rgba(0,0,0,0.06)"}`,
-        borderRadius: 16,
+        borderRadius: 12,
         overflow: "hidden",
         cursor: "pointer",
         display: "flex",
         flexDirection: "column",
-        transform: hov ? "translateY(-2px)" : "none",
-        boxShadow: hov ? P.shadowHover : "none",
+        boxShadow: hov ? "0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)" : "none",
         transition: "all 0.2s",
       }}
     >
@@ -63,14 +62,15 @@ function TemplateCard({ agent, rating, pipeline, onUse }: {
             borderRadius: 6,
             fontFamily: F,
           }}>
-            {rating.toFixed(1)}
+            <span style={{ color: P.textSec }}>&#9733;</span> {rating.toFixed(1)}
           </span>
         </div>
 
         {/* Title */}
         <div style={{
           fontSize: 20, fontWeight: 700, fontFamily: F,
-          marginTop: 16, color: P.text, lineHeight: 1.3,
+          marginTop: 16, color: hov ? "#1e8e3e" : P.text, lineHeight: 1.3,
+          transition: "color 0.2s",
         }}>
           {agent.name}
         </div>
@@ -100,14 +100,16 @@ function TemplateCard({ agent, rating, pipeline, onUse }: {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             {pipeline.map((step, i) => (
-              <span key={step.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span key={step.label} style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
                 <span style={{
                   fontSize: 11, fontWeight: 600, fontFamily: F,
-                  padding: "6px 12px", borderRadius: 100,
+                  padding: "6px 12px", borderRadius: 4,
                   background: P.bg3,
                   borderLeft: `4px solid ${STEP_BORDER_COLORS[i % STEP_BORDER_COLORS.length]}`,
                   color: P.text,
                   whiteSpace: "nowrap",
+                  flex: 1,
+                  textAlign: "center" as const,
                 }}>
                   {step.icon} {step.label}
                 </span>
@@ -137,10 +139,12 @@ function TemplateCard({ agent, rating, pipeline, onUse }: {
             border: "none",
             cursor: "pointer",
             fontFamily: F,
-            transition: "background 0.15s",
+            transition: "background 0.15s, transform 0.1s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = "#156d2e")}
           onMouseLeave={(e) => (e.currentTarget.style.background = P.lime)}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           Use Template
         </button>
@@ -234,10 +238,16 @@ export default function TemplatesPage() {
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.borderColor = "rgba(0,0,0,0.3)";
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = "rgba(0,0,0,0.3)";
+                  e.currentTarget.style.color = "#1e8e3e";
+                }
               }}
               onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)";
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)";
+                  e.currentTarget.style.color = P.textSec;
+                }
               }}
             >
               {label}

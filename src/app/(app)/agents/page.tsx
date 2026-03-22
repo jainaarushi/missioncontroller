@@ -11,32 +11,33 @@ import { getAgentAvatar } from "@/lib/agent-avatars";
 
 const SPECIALIST_CATEGORIES = AGENT_CATEGORIES.filter(c => SPECIALIST_CATEGORY_IDS.includes(c.id));
 
-const CATEGORY_ICONS: Record<string, string> = {
-  rocket: "\u{1F680}",
-  search: "\u{1F50D}",
-  chart: "\u{1F4C8}",
-  megaphone: "\u{1F4E3}",
-  gear: "\u{2699}\uFE0F",
-  heart: "\u{1F496}",
-  sparkle: "\u{2728}",
-  briefcase: "\u{1F4BC}",
-  wallet: "\u{1F4B0}",
-  shield: "\u{1F6E1}\uFE0F",
-  home: "\u{1F3E0}",
-  stethoscope: "\u{1FA7A}",
-  graduation: "\u{1F393}",
-  tag: "\u{1F3F7}\uFE0F",
-  zap: "\u{26A1}",
-  wrench: "\u{1F527}",
-  palette: "\u{1F3A8}",
-  flask: "\u{1F9EA}",
-  target: "\u{1F3AF}",
-  clipboard: "\u{1F4CB}",
-  lifebuoy: "\u{1F6DF}",
-  gamepad: "\u{1F3AE}",
-  cube: "\u{1F4E6}",
-  book: "\u{1F4DA}",
-  star: "\u{2B50}",
+// Material Symbols icon mapping for category sidebar
+const CATEGORY_MATERIAL_ICONS: Record<string, string> = {
+  rocket: "rocket_launch",
+  search: "search",
+  chart: "trending_up",
+  megaphone: "campaign",
+  gear: "engineering",
+  heart: "fitness_center",
+  sparkle: "celebration",
+  briefcase: "work",
+  wallet: "payments",
+  shield: "shield",
+  home: "home",
+  stethoscope: "health_and_safety",
+  graduation: "school",
+  tag: "sell",
+  zap: "bolt",
+  wrench: "build",
+  palette: "palette",
+  flask: "science",
+  target: "target",
+  clipboard: "task_alt",
+  lifebuoy: "support",
+  gamepad: "sports_esports",
+  cube: "deployed_code",
+  book: "menu_book",
+  star: "star",
 };
 
 // Soft gradient backgrounds for agent card headers
@@ -158,7 +159,7 @@ export default function AgentsPage() {
           }}>
             <div>
               <h1 style={{
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: 800,
                 letterSpacing: "-0.025em",
                 color: P.text,
@@ -170,7 +171,7 @@ export default function AgentsPage() {
               </h1>
               <p style={{
                 fontSize: 14,
-                color: P.textTer,
+                color: "#414753",
                 margin: "6px 0 0",
                 fontFamily: F,
               }}>
@@ -183,31 +184,25 @@ export default function AgentsPage() {
                 padding: "10px 22px",
                 borderRadius: 12,
                 border: "none",
-                background: "#1e8e3e",
+                background: "#006c05",
                 color: "#fff",
                 fontSize: 14,
-                fontWeight: 700,
+                fontWeight: 500,
                 cursor: "pointer",
                 fontFamily: F,
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
                 transition: "all 0.2s ease",
-                boxShadow: "0 2px 8px rgba(30,142,62,0.25)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#177332";
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.boxShadow = "0 4px 14px rgba(30,142,62,0.3)";
+                e.currentTarget.style.opacity = "0.9";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#1e8e3e";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 2px 8px rgba(30,142,62,0.25)";
+                e.currentTarget.style.opacity = "1";
               }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1, fontWeight: 400 }}>+</span>
-              Create Agent
+              Create Custom Agent
             </button>
           </div>
 
@@ -218,17 +213,11 @@ export default function AgentsPage() {
           }}>
             {/* Search Bar */}
             <div style={{ flex: 1, position: "relative" }}>
-              <svg
-                style={{
-                  position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
-                  width: 18, height: 18, color: searchFocused ? P.textSec : P.textGhost,
-                  transition: "color 0.2s",
-                  pointerEvents: "none",
-                }}
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <span className="material-symbols-outlined" style={{
+                position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+                fontSize: 18, color: "#94a3b8",
+                pointerEvents: "none",
+              }}>search</span>
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -239,8 +228,8 @@ export default function AgentsPage() {
                   width: "100%",
                   height: 44,
                   padding: "0 16px 0 42px",
-                  borderRadius: 12,
-                  border: `1px solid ${searchFocused ? P.borderHover : "rgba(0,0,0,0.08)"}`,
+                  borderRadius: 8,
+                  border: `1px solid ${searchFocused ? P.borderHover : "#c1c6d5"}`,
                   fontSize: 14,
                   color: P.text,
                   outline: "none",
@@ -255,23 +244,21 @@ export default function AgentsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "0 16px",
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 8,
+              border: "1px solid #c1c6d5",
               backgroundColor: "#fff",
-              fontSize: 12,
-              fontWeight: 600,
-              color: P.textSec,
+              fontSize: 14,
+              fontWeight: 500,
+              color: "#1b1b1b",
               cursor: "pointer",
               fontFamily: F,
               letterSpacing: "0.03em",
               whiteSpace: "nowrap",
               userSelect: "none",
             }}>
-              <span style={{ color: P.textTer, fontWeight: 500, textTransform: "uppercase", fontSize: 10, letterSpacing: "0.08em" }}>Sort:</span>
+              <span style={{ color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", fontSize: 11, letterSpacing: "0.1em" }}>Sort:</span>
               <span>Top Rated</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ marginLeft: 2 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
             </div>
           </div>
 
@@ -290,7 +277,7 @@ export default function AgentsPage() {
           <div style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 20,
+            gap: 24,
             animation: "fadeUp 0.4s ease 0.1s both",
           }}>
             {displayAgents.map((agent, i) => (
@@ -333,7 +320,7 @@ export default function AgentsPage() {
               Categories
             </h2>
             <p style={{
-              fontSize: 12, color: "#1e8e3e", fontWeight: 500, margin: "4px 0 0",
+              fontSize: 12, color: "#94a3b8", fontWeight: 500, margin: "4px 0 0",
               fontFamily: F,
             }}>
               Filter by expertise
@@ -349,30 +336,36 @@ export default function AgentsPage() {
                 padding: "10px 12px",
                 borderRadius: 10,
                 border: "none",
-                background: !activeCategory ? "rgba(30,142,62,0.06)" : "transparent",
+                background: !activeCategory ? "rgba(22,163,74,0.06)" : "transparent",
                 cursor: "pointer",
                 fontFamily: F,
                 fontSize: 13,
                 fontWeight: !activeCategory ? 600 : 500,
-                color: !activeCategory ? "#1e8e3e" : P.textSec,
+                color: !activeCategory ? "#16a34a" : "#64748b",
                 transition: "all 0.15s ease",
                 width: "100%",
                 textAlign: "left",
               }}
               onMouseEnter={(e) => {
-                if (activeCategory) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                if (activeCategory) {
+                  e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }
               }}
               onMouseLeave={(e) => {
-                if (activeCategory) e.currentTarget.style.background = "transparent";
+                if (activeCategory) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }
               }}
             >
-              <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>*</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>grid_view</span>
               <span style={{ flex: 1 }}>All Agents</span>
               <span style={{
                 fontSize: 11, fontWeight: 600,
-                padding: "2px 8px", borderRadius: 6,
-                backgroundColor: !activeCategory ? "rgba(30,142,62,0.1)" : "rgba(0,0,0,0.04)",
-                color: !activeCategory ? "#1e8e3e" : P.textTer,
+                padding: "2px 8px", borderRadius: !activeCategory ? 9999 : undefined,
+                backgroundColor: !activeCategory ? "rgba(22,163,74,0.1)" : "transparent",
+                color: !activeCategory ? "#16a34a" : "#71717a",
               }}>
                 {totalAgentCount}
               </span>
@@ -390,30 +383,36 @@ export default function AgentsPage() {
                     padding: "10px 12px",
                     borderRadius: 10,
                     border: "none",
-                    background: isActive ? "rgba(30,142,62,0.06)" : "transparent",
+                    background: isActive ? "rgba(22,163,74,0.06)" : "transparent",
                     cursor: "pointer",
                     fontFamily: F,
                     fontSize: 13,
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? "#1e8e3e" : P.textSec,
+                    color: isActive ? "#16a34a" : "#64748b",
                     transition: "all 0.15s ease",
                     width: "100%",
                     textAlign: "left",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                    if (!isActive) {
+                      e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                      e.currentTarget.style.transform = "translateX(4px)";
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.background = "transparent";
+                    if (!isActive) {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.transform = "translateX(0)";
+                    }
                   }}
                 >
-                  <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>{CATEGORY_ICONS[cat.icon] || ""}</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{CATEGORY_MATERIAL_ICONS[cat.icon] || "category"}</span>
                   <span style={{ flex: 1 }}>{cat.name}</span>
                   <span style={{
                     fontSize: 11, fontWeight: 600,
-                    padding: "2px 8px", borderRadius: 6,
-                    backgroundColor: isActive ? "rgba(30,142,62,0.1)" : "rgba(0,0,0,0.04)",
-                    color: isActive ? "#1e8e3e" : P.textTer,
+                    padding: "2px 8px", borderRadius: isActive ? 9999 : undefined,
+                    backgroundColor: isActive ? "rgba(22,163,74,0.1)" : "transparent",
+                    color: isActive ? "#16a34a" : "#71717a",
                   }}>
                     {count}
                   </span>
@@ -421,7 +420,7 @@ export default function AgentsPage() {
               );
             })}
 
-            {/* Custom agents category */}
+            {/* Custom agents */}
             <button
               onClick={() => setActiveCategory(activeCategory === "custom" ? null : "custom")}
               style={{
@@ -429,12 +428,12 @@ export default function AgentsPage() {
                 padding: "10px 12px",
                 borderRadius: 10,
                 border: "none",
-                background: activeCategory === "custom" ? "rgba(30,142,62,0.06)" : "transparent",
+                background: activeCategory === "custom" ? "rgba(22,163,74,0.06)" : "transparent",
                 cursor: "pointer",
                 fontFamily: F,
                 fontSize: 13,
                 fontWeight: activeCategory === "custom" ? 600 : 500,
-                color: activeCategory === "custom" ? "#1e8e3e" : P.textSec,
+                color: activeCategory === "custom" ? "#16a34a" : "#64748b",
                 transition: "all 0.15s ease",
                 width: "100%",
                 textAlign: "left",
@@ -446,17 +445,32 @@ export default function AgentsPage() {
                 if (activeCategory !== "custom") e.currentTarget.style.background = "transparent";
               }}
             >
-              <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>+</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add_circle</span>
               <span style={{ flex: 1 }}>Custom Agents</span>
               <span style={{
                 fontSize: 11, fontWeight: 600,
                 padding: "2px 8px", borderRadius: 6,
-                backgroundColor: activeCategory === "custom" ? "rgba(30,142,62,0.1)" : "rgba(0,0,0,0.04)",
-                color: activeCategory === "custom" ? "#1e8e3e" : P.textTer,
+                backgroundColor: activeCategory === "custom" ? "rgba(22,163,74,0.1)" : "rgba(0,0,0,0.04)",
+                color: activeCategory === "custom" ? "#16a34a" : "#71717a",
               }}>
                 {(categorizedAgents["custom"] || []).length}
               </span>
             </button>
+          </div>
+
+          {/* Pro Tip Card */}
+          <div style={{
+            marginTop: 24,
+            background: "#ece0d6",
+            borderRadius: 12,
+            padding: 16,
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#4d453e", marginBottom: 6, fontFamily: F, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Pro Tip
+            </div>
+            <p style={{ fontSize: 11, color: "#4d453e", margin: 0, lineHeight: 1.5, fontFamily: F }}>
+              Combine a Designer agent with a Developer agent for full-stack automation.
+            </p>
           </div>
         </div>
       </div>
@@ -519,11 +533,10 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
         backgroundColor: "#fff",
         animation: `popIn 0.4s ease ${index * 0.03}s both`,
         transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-        transform: isHovered ? "translateY(-4px)" : "translateY(0)",
         boxShadow: isHovered
-          ? "0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08)"
+          ? "0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)"
           : "0 1px 3px rgba(0,0,0,0.06)",
-        border: "1px solid rgba(0,0,0,0.06)",
+        border: "1px solid #e2e8f0",
         display: "flex",
         flexDirection: "column",
       }}
@@ -560,21 +573,15 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
 
       {/* Gradient Header Area */}
       <div style={{
-        height: 140,
+        height: 160,
         background: getCardGradient(agent, index),
         display: "flex",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "center",
-        paddingBottom: 0,
         position: "relative",
       }}>
-        {/* Avatar - centered, overlapping bottom edge */}
-        <div style={{
-          position: "absolute",
-          bottom: -32,
-          left: "50%",
-          transform: "translateX(-50%)",
-        }}>
+        {/* Avatar - centered within header */}
+        <div>
           {(() => {
             const av = getAgentAvatar(agent.slug);
             return av ? (
@@ -601,10 +608,10 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
 
       {/* Card Body */}
       <div style={{
-        padding: "44px 20px 20px",
+        padding: "20px 20px 20px",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: 10,
         flex: 1,
       }}>
@@ -613,7 +620,7 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
           fontSize: 18,
           fontWeight: 700,
           color: P.text,
-          textAlign: "center",
+          textAlign: "left",
           lineHeight: 1.3,
           fontFamily: F,
         }}>
@@ -624,7 +631,7 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
         <div style={{
           fontSize: 13,
           color: P.textTer,
-          textAlign: "center",
+          textAlign: "left",
           lineHeight: 1.5,
           display: "-webkit-box",
           WebkitLineClamp: 2,
@@ -644,10 +651,10 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
               fontSize: 10,
               fontWeight: 600,
               letterSpacing: "0.06em",
-              color: P.textTer,
-              backgroundColor: "rgba(0,0,0,0.04)",
+              color: "#475569",
+              backgroundColor: "#f1f5f9",
               padding: "4px 8px",
-              borderRadius: 6,
+              borderRadius: 4,
               fontFamily: F,
               textTransform: "uppercase",
             }}>
@@ -661,22 +668,27 @@ function AgentCard({ agent, index, hoveredId, setHoveredId, onDelete, router }: 
           width: "100%",
           marginTop: "auto",
           paddingTop: 12,
-          opacity: isHovered ? 1 : 0,
-          transform: isHovered ? "translateY(0)" : "translateY(6px)",
+          opacity: 1,
           transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
         }}>
-          <div style={{
-            width: "100%",
-            textAlign: "center",
-            padding: "10px 0",
-            borderRadius: 12,
-            backgroundColor: "#1e8e3e",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 700,
-            fontFamily: F,
-            boxShadow: "0 2px 8px rgba(30,142,62,0.25)",
-          }}>
+          <div
+            onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.95)"; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+            style={{
+              width: "100%",
+              textAlign: "center",
+              padding: "10px 0",
+              borderRadius: 8,
+              backgroundColor: "#006c05",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: F,
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              transition: "transform 0.1s ease",
+            }}
+          >
             Hire me
           </div>
         </div>
