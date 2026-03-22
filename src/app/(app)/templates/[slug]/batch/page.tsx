@@ -1,10 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { getTemplate } from "@/lib/template-data";
 import type { BatchRecipient } from "@/lib/template-data";
 
-function StatusBadge({ status }: { status: BatchRecipient["status"] }) {
+type RecipientStatus = BatchRecipient["status"] | "cancelled" | "retrying";
+
+interface RecipientState extends Omit<BatchRecipient, "status"> {
+  status: RecipientStatus;
+  hidden?: boolean;
+}
+
+function StatusBadge({ status }: { status: RecipientStatus }) {
   switch (status) {
     case "delivered":
       return (
@@ -27,11 +36,27 @@ function StatusBadge({ status }: { status: BatchRecipient["status"] }) {
           Sending...
         </div>
       );
+    case "retrying":
+      return (
+        <div className="flex items-center gap-2 text-orange-600 font-bold text-xs uppercase">
+          <span className="material-symbols-outlined text-sm animate-spin">
+            sync
+          </span>
+          Retrying...
+        </div>
+      );
     case "failed":
       return (
         <div className="flex items-center gap-2 text-[#ba1a1a] font-bold text-xs uppercase">
           <span className="material-symbols-outlined text-sm">error</span>
           Failed
+        </div>
+      );
+    case "cancelled":
+      return (
+        <div className="flex items-center gap-2 text-slate-400 font-bold text-xs uppercase">
+          <span className="material-symbols-outlined text-sm">block</span>
+          Cancelled
         </div>
       );
     case "queued":
@@ -48,32 +73,16 @@ function StatusBadge({ status }: { status: BatchRecipient["status"] }) {
   }
 }
 
-function ActionButton({ status }: { status: BatchRecipient["status"] }) {
-  if (status === "failed") {
-    return (
-      <button className="text-[#006c05] hover:underline text-xs font-bold uppercase tracking-tight">
-        Retry Now
-      </button>
-    );
-  }
-  if (status === "queued") {
-    return (
-      <button className="text-slate-400 hover:text-[#006c05] transition-colors">
-        <span className="material-symbols-outlined">edit</span>
-      </button>
-    );
-  }
-  return (
-    <button className="text-slate-400 hover:text-[#006c05] transition-colors">
-      <span className="material-symbols-outlined">visibility</span>
-    </button>
-  );
-}
-
 export default function BatchPage() {
   const params = useParams();
   const slug = params.slug as string;
   const template = getTemplate(slug);
+
+  const [recipients, setRecipients] = useState<RecipientState[]>(() =>
+    template?.batchRecipients.map((r) => ({ ...r })) || []
+  );
+  const [paused, setPaused] = useState(false);
+  const [throttle, setThrottle] = useState(65);
 
   if (!template) {
     return (
@@ -83,12 +92,64 @@ export default function BatchPage() {
     );
   }
 
-  const delivered = template.batchRecipients.filter(
-    (r) => r.status === "delivered"
-  ).length;
-  const total = template.batchRecipients.length;
-  const pending = total - delivered;
-  const progressPct = Math.round((delivered / total) * 100);
+  const visibleRecipients = recipients.filter((r) => !r.hidden);
+  const delivered = visibleRecipients.filter((r) => r.status === "delivered").length;
+  const total = visibleRecipients.length;
+  const pending = visibleRecipients.filter((r) => r.status === "queued" || r.status === "sending" || r.status === "retrying").length;
+  const progressPct = total > 0 ? Math.round((delivered / total) * 100) : 0;
+
+  const speedLabel = throttle < 33 ? "Cautious" : throttle < 66 ? "Balanced" : "Aggressive";
+
+  const handleRetry = (name: string) => {
+    setRecipients((prev) =>
+      prev.map((r) =>
+        r.name === name ? { ...r, status: "retrying" as RecipientStatus } : r
+      )
+    );
+    setTimeout(() => {
+      setRecipients((prev) =>
+        prev.map((r) =>
+          r.name === name ? { ...r, status: "delivered" as RecipientStatus } : r
+        )
+      );
+    }, 2500);
+  };
+
+  const handlePause = () => {
+    setPaused(!paused);
+  };
+
+  const handleCancelRemaining = () => {
+    setRecipients((prev) =>
+      prev.map((r) =>
+        r.status === "queued" || r.status === "sending"
+          ? { ...r, status: "cancelled" as RecipientStatus }
+          : r
+      )
+    );
+  };
+
+  const handleClearFinished = () => {
+    setRecipients((prev) =>
+      prev.map((r) =>
+        r.status === "delivered" ? { ...r, hidden: true } : r
+      )
+    );
+  };
+
+  const handleExportLogs = () => {
+    const csv = [
+      "Name,Title,Strategy,Status",
+      ...visibleRecipients.map((r) => `"${r.name}","${r.title}","${r.strategy}","${r.status}"`),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `batch-${slug}-export.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -96,7 +157,7 @@ export default function BatchPage() {
       <div className="mb-8 flex justify-between items-end">
         <div>
           <nav className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <span>Pipelines</span>
+            <Link href={`/templates/${slug}`} className="hover:text-[#006c05] transition-colors">Pipelines</Link>
             <span className="material-symbols-outlined text-[10px]">
               chevron_right
             </span>
@@ -107,16 +168,32 @@ export default function BatchPage() {
           </h2>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <span className="material-symbols-outlined text-lg">pause</span>
-            Pause Queue
+          <button
+            onClick={handlePause}
+            className={`px-4 py-2 text-sm font-semibold bg-white border rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+              paused ? "border-[#006c05] text-[#006c05]" : "border-slate-200 text-slate-600"
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">{paused ? "play_arrow" : "pause"}</span>
+            {paused ? "Resume Queue" : "Pause Queue"}
           </button>
-          <button className="px-4 py-2 text-sm font-semibold text-[#ba1a1a] bg-[#ffdad6]/20 border border-[#ba1a1a]/20 rounded-lg flex items-center gap-2 hover:bg-[#ffdad6]/40 transition-colors">
+          <button
+            onClick={handleCancelRemaining}
+            className="px-4 py-2 text-sm font-semibold text-[#ba1a1a] bg-[#ffdad6]/20 border border-[#ba1a1a]/20 rounded-lg flex items-center gap-2 hover:bg-[#ffdad6]/40 transition-colors"
+          >
             <span className="material-symbols-outlined text-lg">cancel</span>
             Cancel Remaining
           </button>
         </div>
       </div>
+
+      {/* Paused Banner */}
+      {paused && (
+        <div className="mb-6 bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center gap-3">
+          <span className="material-symbols-outlined text-orange-500">pause_circle</span>
+          <p className="text-sm font-medium text-orange-700">Queue is paused. No new messages will be sent until resumed.</p>
+        </div>
+      )}
 
       {/* Bento Grid */}
       <div className="grid grid-cols-12 gap-6">
@@ -155,7 +232,9 @@ export default function BatchPage() {
                 className="h-full bg-[#006c05] transition-all duration-500"
                 style={{ width: `${progressPct}%` }}
               />
-              <div className="h-full bg-[#3028e9] w-[8%] opacity-30 animate-pulse" />
+              {pending > 0 && !paused && (
+                <div className="h-full bg-[#3028e9] w-[8%] opacity-30 animate-pulse" />
+              )}
             </div>
           </div>
           <div className="mt-8 flex gap-8 relative z-10">
@@ -204,18 +283,21 @@ export default function BatchPage() {
             <div>
               <div className="flex justify-between mb-4">
                 <label className="text-sm font-medium text-slate-600">
-                  Current Speed: Balanced
+                  Current Speed: {speedLabel}
                 </label>
-                <span className="text-xs text-[#006c05] font-bold">
-                  Recommended
-                </span>
+                {speedLabel === "Balanced" && (
+                  <span className="text-xs text-[#006c05] font-bold">
+                    Recommended
+                  </span>
+                )}
               </div>
               <input
                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#006c05]"
                 max={100}
                 min={1}
                 type="range"
-                defaultValue={65}
+                value={throttle}
+                onChange={(e) => setThrottle(Number(e.target.value))}
               />
               <div className="flex justify-between mt-2 text-[10px] text-slate-400 font-bold uppercase">
                 <span>Cautious</span>
@@ -225,8 +307,11 @@ export default function BatchPage() {
             </div>
             <div className="p-4 bg-[#eeeeee] rounded-lg">
               <p className="text-xs text-slate-600 leading-relaxed italic">
-                &ldquo;Balanced speed mimics human interaction patterns to
-                prevent LinkedIn rate limiting.&rdquo;
+                &ldquo;{speedLabel === "Cautious"
+                  ? "Cautious speed sends messages slowly to avoid detection."
+                  : speedLabel === "Balanced"
+                  ? "Balanced speed mimics human interaction patterns to prevent LinkedIn rate limiting."
+                  : "Aggressive speed maximizes throughput but may trigger rate limits."}&rdquo;
               </p>
             </div>
           </div>
@@ -254,10 +339,16 @@ export default function BatchPage() {
           <div className="p-6 border-b border-slate-100 flex justify-between items-center">
             <h4 className="font-bold text-lg">Recipient Queue</h4>
             <div className="flex gap-2">
-              <button className="px-3 py-1 text-xs font-semibold bg-[#eeeeee] rounded-md hover:bg-[#e2e2e2] transition-colors">
+              <button
+                onClick={handleExportLogs}
+                className="px-3 py-1 text-xs font-semibold bg-[#eeeeee] rounded-md hover:bg-[#e2e2e2] transition-colors"
+              >
                 Export Logs
               </button>
-              <button className="px-3 py-1 text-xs font-semibold bg-[#eeeeee] rounded-md hover:bg-[#e2e2e2] transition-colors">
+              <button
+                onClick={handleClearFinished}
+                className="px-3 py-1 text-xs font-semibold bg-[#eeeeee] rounded-md hover:bg-[#e2e2e2] transition-colors"
+              >
                 Clear Finished
               </button>
             </div>
@@ -273,12 +364,14 @@ export default function BatchPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {template.batchRecipients.map((recipient) => (
+                {visibleRecipients.map((recipient) => (
                   <tr
                     key={recipient.name}
                     className={`hover:bg-slate-50 transition-colors ${
                       recipient.status === "failed"
                         ? "bg-[#ffdad6]/5"
+                        : recipient.status === "cancelled"
+                        ? "opacity-50"
                         : ""
                     }`}
                   >
@@ -288,7 +381,7 @@ export default function BatchPage() {
                           className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-white border border-gray-200 flex-shrink-0 ${
                             recipient.status === "failed"
                               ? "opacity-50"
-                              : recipient.status === "queued"
+                              : recipient.status === "queued" || recipient.status === "cancelled"
                               ? "grayscale opacity-40"
                               : ""
                           }`}
@@ -302,7 +395,7 @@ export default function BatchPage() {
                         <div>
                           <p
                             className={`text-sm font-bold ${
-                              recipient.status === "queued"
+                              recipient.status === "queued" || recipient.status === "cancelled"
                                 ? "text-slate-400"
                                 : ""
                             }`}
@@ -311,7 +404,7 @@ export default function BatchPage() {
                           </p>
                           <p
                             className={`text-xs ${
-                              recipient.status === "queued"
+                              recipient.status === "queued" || recipient.status === "cancelled"
                                 ? "text-slate-400"
                                 : "text-slate-500"
                             }`}
@@ -324,7 +417,7 @@ export default function BatchPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`text-xs font-medium bg-slate-100 px-2 py-1 rounded ${
-                          recipient.status === "queued" ? "text-slate-400" : ""
+                          recipient.status === "queued" || recipient.status === "cancelled" ? "text-slate-400" : ""
                         }`}
                       >
                         {recipient.strategy}
@@ -334,20 +427,49 @@ export default function BatchPage() {
                       <StatusBadge status={recipient.status} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <ActionButton status={recipient.status} />
+                      {recipient.status === "failed" ? (
+                        <button
+                          onClick={() => handleRetry(recipient.name)}
+                          className="text-[#006c05] hover:underline text-xs font-bold uppercase tracking-tight"
+                        >
+                          Retry Now
+                        </button>
+                      ) : recipient.status === "retrying" ? (
+                        <span className="text-xs text-orange-500 font-bold">Retrying...</span>
+                      ) : recipient.status === "cancelled" ? (
+                        <span className="text-xs text-slate-400">Cancelled</span>
+                      ) : recipient.status === "queued" ? (
+                        <button className="text-slate-400 hover:text-[#006c05] transition-colors">
+                          <span className="material-symbols-outlined">edit</span>
+                        </button>
+                      ) : (
+                        <button className="text-slate-400 hover:text-[#006c05] transition-colors">
+                          <span className="material-symbols-outlined">visibility</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
+                {visibleRecipients.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
+                      All finished recipients have been cleared.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
           <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
-            <button className="text-sm font-semibold text-[#3028e9] hover:text-[#c1c1ff] transition-colors flex items-center justify-center mx-auto gap-2">
-              View all {total} recipients in queue
+            <Link
+              href={`/templates/${slug}/drafting`}
+              className="text-sm font-semibold text-[#3028e9] hover:text-[#4d4bff] transition-colors flex items-center justify-center mx-auto gap-2"
+            >
+              Back to drafting view
               <span className="material-symbols-outlined text-lg">
-                expand_more
+                arrow_back
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>
