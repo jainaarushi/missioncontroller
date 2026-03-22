@@ -1,17 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getTemplate } from "@/lib/template-data";
+import { api } from "@/lib/api";
+
+interface ComposioAppStatus {
+  app: string;
+  connected: boolean;
+}
 
 export default function TemplateConfigPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const template = getTemplate(slug);
 
   const rangeField = template?.formFields.find((f) => f.type === "range");
   const [rangeValue, setRangeValue] = useState(rangeField?.defaultValue ?? 25);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [composioStatus, setComposioStatus] = useState<Record<string, boolean>>({});
+  const [connecting, setConnecting] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<{ apps: ComposioAppStatus[] }>("/api/user/composio/status")
+      .then((data) => {
+        const map: Record<string, boolean> = {};
+        data.apps?.forEach((a) => { map[a.app] = a.connected; });
+        setComposioStatus(map);
+      })
+      .catch(() => {});
+  }, []);
 
   if (!template) {
     return (
@@ -20,6 +40,33 @@ export default function TemplateConfigPage() {
       </div>
     );
   }
+
+  const updateForm = (label: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [label]: value }));
+  };
+
+  const connectTool = async (toolName: string) => {
+    const appKey = toolName.toLowerCase().replace(/\s+/g, "");
+    setConnecting(toolName);
+    try {
+      const data = await api.post<{ url?: string }>("/api/user/composio/connect", { app: appKey });
+      if (data.url) {
+        window.open(data.url, "_blank", "width=600,height=700");
+      }
+    } catch {
+      router.push("/settings");
+    } finally {
+      setConnecting(null);
+    }
+  };
+
+  // Merge static tool connection status with live Composio status
+  const getToolConnected = (toolName: string): boolean => {
+    const appKey = toolName.toLowerCase().replace(/\s+/g, "");
+    if (composioStatus[appKey] !== undefined) return composioStatus[appKey];
+    const staticTool = template.toolConnections.find((t) => t.name === toolName);
+    return staticTool?.connected || false;
+  };
 
   return (
     <div className="min-h-[calc(100vh-64px)]">
@@ -49,23 +96,15 @@ export default function TemplateConfigPage() {
               <div key={node.name} className="contents">
                 {i > 0 && (
                   <div className="col-span-1 flex justify-center">
-                    <span className="material-symbols-outlined text-[#c1c6d5]">
-                      trending_flat
-                    </span>
+                    <span className="material-symbols-outlined text-[#c1c6d5]">trending_flat</span>
                   </div>
                 )}
                 <div className="col-span-1 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center">
-                  <div
-                    className={`w-12 h-12 ${node.bgColor} ${node.textColor} rounded-lg flex items-center justify-center mb-3`}
-                  >
-                    <span className="material-symbols-outlined">
-                      {node.icon}
-                    </span>
+                  <div className={`w-12 h-12 ${node.bgColor} ${node.textColor} rounded-lg flex items-center justify-center mb-3`}>
+                    <span className="material-symbols-outlined">{node.icon}</span>
                   </div>
                   <h3 className="font-bold text-sm">{node.name}</h3>
-                  <p className="text-xs text-[#414753] mt-1">
-                    {node.description}
-                  </p>
+                  <p className="text-xs text-[#414753] mt-1">{node.description}</p>
                 </div>
               </div>
             ))}
@@ -78,9 +117,7 @@ export default function TemplateConfigPage() {
           <section className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm space-y-6">
               <div className="flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-[#006c05]">
-                  tune
-                </span>
+                <span className="material-symbols-outlined text-[#006c05]">tune</span>
                 <h2 className="text-lg font-bold">Required Inputs</h2>
               </div>
               <div className="space-y-4">
@@ -88,47 +125,38 @@ export default function TemplateConfigPage() {
                   if (field.type === "text") {
                     return (
                       <div key={field.label} className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-[#1b1b1b]">
-                          {field.label}
-                        </label>
+                        <label className="text-sm font-semibold text-[#1b1b1b]">{field.label}</label>
                         <input
                           className="w-full px-4 py-2 rounded-lg border border-[#c1c6d5] focus:ring-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none text-sm"
                           placeholder={field.placeholder}
                           type="text"
+                          value={formValues[field.label] || ""}
+                          onChange={(e) => updateForm(field.label, e.target.value)}
                         />
-                        {field.hint && (
-                          <p className="text-xs text-[#414753]">{field.hint}</p>
-                        )}
+                        {field.hint && <p className="text-xs text-[#414753]">{field.hint}</p>}
                       </div>
                     );
                   }
                   if (field.type === "textarea") {
                     return (
                       <div key={field.label} className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-[#1b1b1b]">
-                          {field.label}
-                        </label>
+                        <label className="text-sm font-semibold text-[#1b1b1b]">{field.label}</label>
                         <textarea
                           className="w-full px-4 py-2 rounded-lg border border-[#c1c6d5] focus:ring-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none text-sm"
                           placeholder={field.placeholder}
                           rows={4}
+                          value={formValues[field.label] || ""}
+                          onChange={(e) => updateForm(field.label, e.target.value)}
                         />
                       </div>
                     );
                   }
                   if (field.type === "range") {
                     return (
-                      <div
-                        key={field.label}
-                        className="flex flex-col gap-4 pt-2"
-                      >
+                      <div key={field.label} className="flex flex-col gap-4 pt-2">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-semibold text-[#1b1b1b]">
-                            {field.label}
-                          </label>
-                          <span className="text-[#006c05] font-bold text-sm">
-                            {rangeValue} {field.unit}
-                          </span>
+                          <label className="text-sm font-semibold text-[#1b1b1b]">{field.label}</label>
+                          <span className="text-[#006c05] font-bold text-sm">{rangeValue} {field.unit}</span>
                         </div>
                         <input
                           className="w-full h-2 bg-[#e8e8e8] rounded-lg appearance-none cursor-pointer accent-[#006c05]"
@@ -136,9 +164,7 @@ export default function TemplateConfigPage() {
                           min={field.min}
                           type="range"
                           value={rangeValue}
-                          onChange={(e) =>
-                            setRangeValue(Number(e.target.value))
-                          }
+                          onChange={(e) => setRangeValue(Number(e.target.value))}
                         />
                         {field.rangeLabels && (
                           <div className="flex justify-between text-[10px] text-[#414753] uppercase font-bold">
@@ -159,55 +185,47 @@ export default function TemplateConfigPage() {
           <section className="space-y-6">
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm space-y-6">
               <div className="flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-[#3028e9]">
-                  hub
-                </span>
+                <span className="material-symbols-outlined text-[#3028e9]">hub</span>
                 <h2 className="text-lg font-bold">Tool Connections</h2>
               </div>
               <div className="space-y-4">
-                {template.toolConnections.map((tool) => (
-                  <div
-                    key={tool.name}
-                    className="p-4 rounded-lg bg-[#f3f3f3] border border-gray-100 space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md flex items-center justify-center overflow-hidden bg-white border border-gray-200">
-                          <img
-                            alt={tool.name}
-                            className="w-7 h-7 object-contain"
-                            src={tool.logo}
-                          />
+                {template.toolConnections.map((tool) => {
+                  const isConnected = getToolConnected(tool.name);
+                  return (
+                    <div key={tool.name} className="p-4 rounded-lg bg-[#f3f3f3] border border-gray-100 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-md flex items-center justify-center overflow-hidden bg-white border border-gray-200">
+                            <img alt={tool.name} className="w-7 h-7 object-contain" src={tool.logo} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">{tool.name}</p>
+                            <p className={`text-[10px] font-semibold flex items-center gap-1 ${isConnected ? "text-[#006c05]" : "text-[#ba1a1a]"}`}>
+                              <span className="material-symbols-outlined text-[12px]">
+                                {isConnected ? "check_circle" : "error"}
+                              </span>
+                              {isConnected ? "Connected" : "Disconnected"}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold">{tool.name}</p>
-                          <p
-                            className={`text-[10px] font-semibold flex items-center gap-1 ${
-                              tool.connected
-                                ? "text-[#006c05]"
-                                : "text-[#ba1a1a]"
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-[12px]">
-                              {tool.connected ? "check_circle" : "error"}
-                            </span>
-                            {tool.statusText}
-                          </p>
-                        </div>
+                        {isConnected && (
+                          <Link href="/settings">
+                            <span className="material-symbols-outlined text-[#414753] cursor-pointer hover:text-[#1b1b1b]">settings</span>
+                          </Link>
+                        )}
                       </div>
-                      {tool.connected && (
-                        <span className="material-symbols-outlined text-[#414753] cursor-pointer hover:text-[#1b1b1b]">
-                          settings
-                        </span>
+                      {!isConnected && (
+                        <button
+                          onClick={() => connectTool(tool.name)}
+                          disabled={connecting === tool.name}
+                          className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                          {connecting === tool.name ? "Connecting..." : "Connect Account"}
+                        </button>
                       )}
                     </div>
-                    {!tool.connected && (
-                      <button className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-                        Connect Account
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {template.composioPowered && (
                 <div className="pt-4 border-t border-gray-100">
@@ -215,11 +233,9 @@ export default function TemplateConfigPage() {
                     <img
                       alt="Composio"
                       className="w-5 h-5 rounded shadow-sm"
-                      src={`https://img.logo.dev/composio.dev?token=pk_L7siVlltSTuo-xbA1lvUKA`}
+                      src="https://img.logo.dev/composio.dev?token=pk_L7siVlltSTuo-xbA1lvUKA"
                     />
-                    <p className="text-[11px] font-medium">
-                      Powered by Composio Secure Auth
-                    </p>
+                    <p className="text-[11px] font-medium">Powered by Composio Secure Auth</p>
                   </div>
                 </div>
               )}
@@ -231,9 +247,7 @@ export default function TemplateConfigPage() {
         <div className="pt-8 flex flex-col items-center gap-4">
           {template.warningText && (
             <div className="flex items-start gap-3 bg-[#ffdad6]/30 p-4 rounded-xl border border-[#ba1a1a]/10 max-w-2xl">
-              <span className="material-symbols-outlined text-[#ba1a1a]">
-                warning
-              </span>
+              <span className="material-symbols-outlined text-[#ba1a1a]">warning</span>
               <p className="text-xs text-[#93000a] leading-relaxed">
                 <strong>Required Action:</strong> {template.warningText}
               </p>

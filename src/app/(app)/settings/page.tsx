@@ -1,9 +1,13 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api";
+
 const LOGO_TOKEN = "pk_L7siVlltSTuo-xbA1lvUKA";
 
 const AI_PROVIDERS = [
   {
+    key: "openai",
     name: "OpenAI",
     model: "GPT-4o Mini",
     placeholder: "sk-...",
@@ -11,6 +15,7 @@ const AI_PROVIDERS = [
     bgFallback: "bg-black",
   },
   {
+    key: "gemini",
     name: "Google Gemini",
     model: "Free Tier",
     placeholder: "AIzaSy...",
@@ -21,6 +26,7 @@ const AI_PROVIDERS = [
 
 const TOOL_KEYS = [
   {
+    key: "tavily",
     name: "Tavily",
     icon: "travel_explore",
     iconColor: "text-blue-500",
@@ -28,6 +34,7 @@ const TOOL_KEYS = [
     placeholder: "tvly-...",
   },
   {
+    key: "firecrawl",
     name: "Firecrawl",
     icon: "webhook",
     iconColor: "text-orange-500",
@@ -35,6 +42,7 @@ const TOOL_KEYS = [
     placeholder: "fc-...",
   },
   {
+    key: "serp",
     name: "SerpAPI",
     icon: "search_insights",
     iconColor: "text-purple-500",
@@ -51,30 +59,137 @@ const INTEGRATION_ICONS = [
 ];
 
 const CONNECTED_APPS = [
-  {
-    name: "LinkedIn",
-    runs: "0 / 50 runs",
-    logo: `https://img.logo.dev/linkedin.com?token=${LOGO_TOKEN}`,
-    connected: false,
-  },
-  {
-    name: "Gmail",
-    runs: "12 / 50 runs",
-    logo: `https://img.logo.dev/gmail.com?token=${LOGO_TOKEN}`,
-    connected: true,
-  },
-  {
-    name: "GitHub",
-    runs: "0 / 50 runs",
-    logo: `https://img.logo.dev/github.com?token=${LOGO_TOKEN}`,
-    connected: false,
-  },
+  { key: "linkedin", name: "LinkedIn", logo: `https://img.logo.dev/linkedin.com?token=${LOGO_TOKEN}` },
+  { key: "gmail", name: "Gmail", logo: `https://img.logo.dev/gmail.com?token=${LOGO_TOKEN}` },
+  { key: "github", name: "GitHub", logo: `https://img.logo.dev/github.com?token=${LOGO_TOKEN}` },
 ];
 
+interface KeyInfo {
+  hasKey: boolean;
+  maskedKey: string;
+}
+
+interface KeyStatus {
+  openai: KeyInfo | null;
+  gemini: KeyInfo | null;
+  anthropic: KeyInfo | null;
+  wispr: KeyInfo | null;
+  tavily: KeyInfo | null;
+  firecrawl: KeyInfo | null;
+  serp: KeyInfo | null;
+  provider: string;
+}
+
+interface ComposioAppStatus {
+  app: string;
+  connected: boolean;
+  runs_used?: number;
+  runs_limit?: number;
+}
+
 export default function SettingsPage() {
+  const [keyStatus, setKeyStatus] = useState<KeyStatus | null>(null);
+  const [composioStatus, setComposioStatus] = useState<Record<string, ComposioAppStatus>>({});
+  const [providerInputs, setProviderInputs] = useState<Record<string, string>>({});
+  const [toolInputs, setToolInputs] = useState<Record<string, string>>({});
+  const [anthropicInput, setAnthropicInput] = useState("");
+  const [wisprInput, setWisprInput] = useState("");
+  const [saving, setSaving] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  const loadKeyStatus = useCallback(async () => {
+    try {
+      const data = await api.get<KeyStatus>("/api/user/api-key");
+      setKeyStatus(data);
+    } catch {
+      // Demo mode or error — leave as null
+    }
+  }, []);
+
+  const loadComposioStatus = useCallback(async () => {
+    try {
+      const data = await api.get<{ apps: ComposioAppStatus[] }>("/api/user/composio/status");
+      const map: Record<string, ComposioAppStatus> = {};
+      data.apps?.forEach((a) => { map[a.app] = a; });
+      setComposioStatus(map);
+    } catch {
+      // Composio not configured — ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    loadKeyStatus();
+    loadComposioStatus();
+  }, [loadKeyStatus, loadComposioStatus]);
+
+  const showMessage = (text: string, type: "success" | "error") => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  const saveKey = async (provider: string, keyValue: string) => {
+    if (!keyValue.trim()) return;
+    setSaving(provider);
+    try {
+      await api.post("/api/user/api-key", { api_key: keyValue.trim(), provider });
+      showMessage(`${provider} key saved successfully`, "success");
+      // Clear input
+      if (provider === "anthropic") setAnthropicInput("");
+      else if (provider === "wispr") setWisprInput("");
+      else if (["openai", "gemini"].includes(provider)) setProviderInputs((p) => ({ ...p, [provider]: "" }));
+      else setToolInputs((p) => ({ ...p, [provider]: "" }));
+      loadKeyStatus();
+    } catch (e) {
+      showMessage(e instanceof Error ? e.message : "Failed to save key", "error");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const removeKey = async (provider: string) => {
+    setSaving(`del-${provider}`);
+    try {
+      await api.del(`/api/user/api-key?provider=${provider}`);
+      showMessage(`${provider} key removed`, "success");
+      loadKeyStatus();
+    } catch (e) {
+      showMessage(e instanceof Error ? e.message : "Failed to remove key", "error");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const connectApp = async (appName: string) => {
+    try {
+      const data = await api.post<{ url: string }>("/api/user/composio/connect", { app: appName });
+      if (data.url) window.open(data.url, "_blank", "width=600,height=700");
+    } catch {
+      showMessage("Failed to start connection", "error");
+    }
+  };
+
+  const disconnectApp = async (appName: string) => {
+    try {
+      await api.post("/api/user/composio/disconnect", { app: appName });
+      showMessage(`${appName} disconnected`, "success");
+      loadComposioStatus();
+    } catch {
+      showMessage("Failed to disconnect", "error");
+    }
+  };
+
+  const hasAnyKey = keyStatus && (keyStatus.openai || keyStatus.gemini || keyStatus.anthropic);
+
   return (
     <div className="p-4 md:p-8 bg-[#f9f9f9] min-h-[calc(100vh-64px)]">
       <div className="max-w-6xl mx-auto space-y-8">
+        {/* Toast */}
+        {message && (
+          <div className={`fixed top-20 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+            {message.text}
+          </div>
+        )}
+
         {/* Header & Status */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#e8e8e8] pb-6">
           <div>
@@ -94,9 +209,9 @@ export default function SettingsPage() {
             </div>
             <div className="w-px h-4 bg-[#c1c6d5]" />
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#ba1a1a]" />
+              <span className={`w-2 h-2 rounded-full ${hasAnyKey ? "bg-[#006c05]" : "bg-[#ba1a1a]"}`} />
               <span className="text-xs font-semibold uppercase tracking-wider text-[#414753]">
-                AI: No Key
+                AI: {hasAnyKey ? "Configured" : "No Key"}
               </span>
             </div>
           </div>
@@ -109,94 +224,112 @@ export default function SettingsPage() {
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#006c05]">
-                    psychology
-                  </span>
+                  <span className="material-symbols-outlined text-[#006c05]">psychology</span>
                   AI Providers
                 </h2>
                 <span className="text-[10px] px-2 py-1 bg-[#4d4bff] text-white rounded font-bold uppercase flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px]">
-                    lock
-                  </span>
+                  <span className="material-symbols-outlined text-[12px]">lock</span>
                   AES-256 Encrypted
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {AI_PROVIDERS.map((provider) => (
-                  <div
-                    key={provider.name}
-                    className="bg-white p-5 rounded-xl border border-[#eeeeee] shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100">
-                          <img
-                            alt={provider.name}
-                            className="w-8 h-8 object-contain"
-                            src={provider.logo}
-                          />
+                {AI_PROVIDERS.map((provider) => {
+                  const info = keyStatus?.[provider.key as keyof KeyStatus] as KeyInfo | null;
+                  return (
+                    <div key={provider.key} className="bg-white p-5 rounded-xl border border-[#eeeeee] shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                            <img alt={provider.name} className="w-8 h-8 object-contain" src={provider.logo} />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm">{provider.name}</h3>
+                            <p className="text-[10px] text-[#414753]">{provider.model}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-bold text-sm">{provider.name}</h3>
-                          <p className="text-[10px] text-[#414753]">
-                            {provider.model}
-                          </p>
+                        {info?.hasKey ? (
+                          <span className="text-[10px] font-bold text-[#006c05] bg-green-50 px-2 py-0.5 rounded-full">
+                            {info.maskedKey}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#717785]">Not set</span>
+                        )}
+                      </div>
+                      <div className="space-y-3">
+                        <input
+                          className="w-full text-xs bg-[#f3f3f3] border border-[#c1c6d5] rounded-lg px-3 py-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
+                          placeholder={provider.placeholder}
+                          type="password"
+                          value={providerInputs[provider.key] || ""}
+                          onChange={(e) => setProviderInputs((p) => ({ ...p, [provider.key]: e.target.value }))}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            className="flex-1 bg-[#1b1b1b] text-white text-xs py-2 rounded-lg font-bold hover:bg-[#303030] transition-colors disabled:opacity-50"
+                            disabled={saving === provider.key || !providerInputs[provider.key]?.trim()}
+                            onClick={() => saveKey(provider.key, providerInputs[provider.key] || "")}
+                          >
+                            {saving === provider.key ? "Saving..." : "Save Provider"}
+                          </button>
+                          {info?.hasKey && (
+                            <button
+                              className="text-xs px-3 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                              disabled={saving === `del-${provider.key}`}
+                              onClick={() => removeKey(provider.key)}
+                            >
+                              Remove
+                            </button>
+                          )}
                         </div>
                       </div>
-                      <a
-                        className="text-[#3028e9] text-[11px] font-semibold hover:underline"
-                        href="#"
-                      >
-                        Get Key
-                      </a>
                     </div>
-                    <div className="space-y-3">
-                      <input
-                        className="w-full text-xs bg-[#f3f3f3] border border-[#c1c6d5] rounded-lg px-3 py-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
-                        placeholder={provider.placeholder}
-                        type="password"
-                      />
-                      <button className="w-full bg-[#1b1b1b] text-white text-xs py-2 rounded-lg font-bold hover:bg-[#303030] transition-colors">
-                        Save Provider
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {/* Anthropic Claude - Full Width */}
                 <div className="bg-white p-5 rounded-xl border border-[#eeeeee] shadow-sm hover:shadow-md transition-shadow md:col-span-2">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100">
-                        <img
-                          alt="Anthropic"
-                          className="w-8 h-8 object-contain"
-                          src={`https://img.logo.dev/anthropic.com?token=${LOGO_TOKEN}`}
-                        />
+                        <img alt="Anthropic" className="w-8 h-8 object-contain" src={`https://img.logo.dev/anthropic.com?token=${LOGO_TOKEN}`} />
                       </div>
                       <div>
                         <h3 className="font-bold text-sm">Anthropic Claude</h3>
-                        <p className="text-[10px] text-[#414753]">
-                          Claude 3.5 Sonnet
-                        </p>
+                        <p className="text-[10px] text-[#414753]">Claude 3.5 Sonnet</p>
                       </div>
                     </div>
-                    <a
-                      className="text-[#3028e9] text-[11px] font-semibold hover:underline"
-                      href="#"
-                    >
-                      Get Key
-                    </a>
+                    {(keyStatus?.anthropic as KeyInfo | null)?.hasKey ? (
+                      <span className="text-[10px] font-bold text-[#006c05] bg-green-50 px-2 py-0.5 rounded-full">
+                        {(keyStatus?.anthropic as KeyInfo)?.maskedKey}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-[#717785]">Not set</span>
+                    )}
                   </div>
                   <div className="flex gap-3">
                     <input
                       className="flex-1 text-xs bg-[#f3f3f3] border border-[#c1c6d5] rounded-lg px-3 py-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
                       placeholder="sk-ant-..."
                       type="password"
+                      value={anthropicInput}
+                      onChange={(e) => setAnthropicInput(e.target.value)}
                     />
-                    <button className="bg-[#1b1b1b] text-white px-6 text-xs py-2 rounded-lg font-bold hover:bg-[#303030] transition-colors">
-                      Save
+                    <button
+                      className="bg-[#1b1b1b] text-white px-6 text-xs py-2 rounded-lg font-bold hover:bg-[#303030] transition-colors disabled:opacity-50"
+                      disabled={saving === "anthropic" || !anthropicInput.trim()}
+                      onClick={() => saveKey("anthropic", anthropicInput)}
+                    >
+                      {saving === "anthropic" ? "Saving..." : "Save"}
                     </button>
+                    {(keyStatus?.anthropic as KeyInfo | null)?.hasKey && (
+                      <button
+                        className="text-xs px-3 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                        disabled={saving === "del-anthropic"}
+                        onClick={() => removeKey("anthropic")}
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -205,38 +338,49 @@ export default function SettingsPage() {
             {/* Tool API Keys */}
             <section className="space-y-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#006c05]">
-                  construction
-                </span>
+                <span className="material-symbols-outlined text-[#006c05]">construction</span>
                 Tool API Keys
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {TOOL_KEYS.map((tool) => (
-                  <div
-                    key={tool.name}
-                    className="bg-white p-4 rounded-xl border border-[#e8e8e8]"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`material-symbols-outlined ${tool.iconColor}`}
-                      >
-                        {tool.icon}
-                      </span>
-                      <span className="font-bold text-sm">{tool.name}</span>
+                {TOOL_KEYS.map((tool) => {
+                  const info = keyStatus?.[tool.key as keyof KeyStatus] as KeyInfo | null;
+                  return (
+                    <div key={tool.key} className="bg-white p-4 rounded-xl border border-[#e8e8e8]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`material-symbols-outlined ${tool.iconColor}`}>{tool.icon}</span>
+                        <span className="font-bold text-sm">{tool.name}</span>
+                        {info?.hasKey && (
+                          <span className="text-[9px] font-bold text-[#006c05] bg-green-50 px-1.5 py-0.5 rounded ml-auto">Active</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[#414753] mb-3">{tool.description}</p>
+                      <input
+                        className="w-full text-[10px] bg-[#f3f3f3] border border-[#c1c6d5] rounded-md px-3 py-1.5 mb-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
+                        placeholder={tool.placeholder}
+                        type="password"
+                        value={toolInputs[tool.key] || ""}
+                        onChange={(e) => setToolInputs((p) => ({ ...p, [tool.key]: e.target.value }))}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="flex-1 text-[10px] py-1.5 font-bold border border-[#1b1b1b] rounded-md hover:bg-[#1b1b1b] hover:text-white transition-colors disabled:opacity-50"
+                          disabled={saving === tool.key || !toolInputs[tool.key]?.trim()}
+                          onClick={() => saveKey(tool.key, toolInputs[tool.key] || "")}
+                        >
+                          {saving === tool.key ? "Saving..." : "Save"}
+                        </button>
+                        {info?.hasKey && (
+                          <button
+                            className="text-[10px] py-1.5 px-2 font-bold border border-red-200 text-red-500 rounded-md hover:bg-red-50 transition-colors"
+                            onClick={() => removeKey(tool.key)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-[10px] text-[#414753] mb-3">
-                      {tool.description}
-                    </p>
-                    <input
-                      className="w-full text-[10px] bg-[#f3f3f3] border border-[#c1c6d5] rounded-md px-3 py-1.5 mb-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
-                      placeholder={tool.placeholder}
-                      type="password"
-                    />
-                    <button className="w-full text-[10px] py-1.5 font-bold border border-[#1b1b1b] rounded-md hover:bg-[#1b1b1b] hover:text-white transition-colors">
-                      Save
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
@@ -244,17 +388,12 @@ export default function SettingsPage() {
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#006c05]">
-                    hub
-                  </span>
+                  <span className="material-symbols-outlined text-[#006c05]">hub</span>
                   Marketplace Integrations
                 </h2>
-                <a
-                  className="text-[#3028e9] text-xs font-bold hover:underline"
-                  href="#"
-                >
+                <span className="text-[#3028e9] text-xs font-bold">
                   Show all 32 integrations
-                </a>
+                </span>
               </div>
               <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
                 {INTEGRATION_ICONS.map((icon) => (
@@ -280,91 +419,93 @@ export default function SettingsPage() {
                 My AI Avatars
               </h2>
               <div className="aspect-video bg-white border-2 border-dashed border-[#717785] rounded-xl flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-[#f9f9f9] transition-colors">
-                <span className="material-symbols-outlined text-4xl text-[#c1c6d5] mb-3 opacity-50">
-                  auto_fix_high
-                </span>
-                <p className="text-sm font-black text-[#1b1b1b] uppercase tracking-widest opacity-40">
-                  Coming Soon
-                </p>
-                <p className="text-[10px] text-[#414753] mt-1 font-medium">
-                  Custom Ghibli-style avatars are in training.
-                </p>
+                <span className="material-symbols-outlined text-4xl text-[#c1c6d5] mb-3 opacity-50">auto_fix_high</span>
+                <p className="text-sm font-black text-[#1b1b1b] uppercase tracking-widest opacity-40">Coming Soon</p>
+                <p className="text-[10px] text-[#414753] mt-1 font-medium">Custom Ghibli-style avatars are in training.</p>
               </div>
               <div className="bg-[#e1dfff] text-[#3028e9] p-3 rounded-lg text-[10px] flex gap-2">
                 <span className="material-symbols-outlined text-sm">info</span>
-                <span>
-                  Requires <strong>Gemini API key</strong> for image generation
-                  processing.
-                </span>
+                <span>Requires <strong>Gemini API key</strong> for image generation processing.</span>
               </div>
             </section>
 
             {/* Voice Input */}
             <section className="bg-white border border-[#e8e8e8] p-6 rounded-2xl space-y-4 shadow-sm">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#006c05]">
-                  mic
-                </span>
+                <span className="material-symbols-outlined text-[#006c05]">mic</span>
                 <h2 className="text-lg font-bold">Voice Input</h2>
+                {(keyStatus?.wispr as KeyInfo | null)?.hasKey && (
+                  <span className="text-[9px] font-bold text-[#006c05] bg-green-50 px-1.5 py-0.5 rounded ml-auto">Active</span>
+                )}
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <img
-                  alt="Wispr Flow"
-                  className="w-6 h-6 rounded"
-                  src={`https://img.logo.dev/wisprflow.ai?token=${LOGO_TOKEN}`}
-                />
+                <img alt="Wispr Flow" className="w-6 h-6 rounded" src={`https://img.logo.dev/wisprflow.ai?token=${LOGO_TOKEN}`} />
                 <span className="font-bold text-sm">Wispr Flow</span>
               </div>
               <input
                 className="w-full text-xs bg-[#f3f3f3] border border-[#c1c6d5] rounded-lg px-3 py-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
                 placeholder="Flow API Key"
                 type="password"
+                value={wisprInput}
+                onChange={(e) => setWisprInput(e.target.value)}
               />
-              <a
-                className="block text-center text-xs text-[#3028e9] font-bold py-2 bg-[#e1dfff] rounded-lg hover:bg-[#c1c1ff] transition-colors"
-                href="https://platform.wisprflow.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get Wispr Key
-              </a>
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 text-center text-xs text-white font-bold py-2 bg-[#1b1b1b] rounded-lg hover:bg-[#303030] transition-colors disabled:opacity-50"
+                  disabled={saving === "wispr" || !wisprInput.trim()}
+                  onClick={() => saveKey("wispr", wisprInput)}
+                >
+                  {saving === "wispr" ? "Saving..." : "Save Wispr Key"}
+                </button>
+                <a
+                  className="text-center text-xs text-[#3028e9] font-bold py-2 px-3 bg-[#e1dfff] rounded-lg hover:bg-[#c1c1ff] transition-colors"
+                  href="https://platform.wisprflow.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get Key
+                </a>
+              </div>
             </section>
 
             {/* Connected Apps */}
             <section className="bg-white border border-[#e8e8e8] p-6 rounded-2xl space-y-4">
               <h2 className="text-lg font-bold">Connected Apps</h2>
               <div className="space-y-4">
-                {CONNECTED_APPS.map((app) => (
-                  <div
-                    key={app.name}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center bg-white border border-gray-100">
-                        <img
-                          alt={app.name}
-                          className="w-7 h-7 object-contain"
-                          src={app.logo}
-                        />
+                {CONNECTED_APPS.map((app) => {
+                  const status = composioStatus[app.key];
+                  const connected = status?.connected || false;
+                  return (
+                    <div key={app.key} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                          <img alt={app.name} className="w-7 h-7 object-contain" src={app.logo} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold">{app.name}</p>
+                          <p className="text-[10px] text-[#414753]">
+                            {connected ? `${status?.runs_used || 0} / ${status?.runs_limit || 50} runs` : "Not connected"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold">{app.name}</p>
-                        <p className="text-[10px] text-[#414753]">
-                          {app.runs}
-                        </p>
-                      </div>
+                      {connected ? (
+                        <button
+                          className="text-[10px] font-bold px-3 py-1 bg-[#006c05] text-white rounded-full hover:bg-[#008808] transition-colors"
+                          onClick={() => disconnectApp(app.key)}
+                        >
+                          Active
+                        </button>
+                      ) : (
+                        <button
+                          className="text-[10px] font-bold px-3 py-1 border border-[#717785] rounded-full hover:bg-[#eeeeee] transition-colors"
+                          onClick={() => connectApp(app.key)}
+                        >
+                          Connect
+                        </button>
+                      )}
                     </div>
-                    {app.connected ? (
-                      <button className="text-[10px] font-bold px-3 py-1 bg-[#006c05] text-white rounded-full">
-                        Active
-                      </button>
-                    ) : (
-                      <button className="text-[10px] font-bold px-3 py-1 border border-[#717785] rounded-full hover:bg-[#eeeeee] transition-colors">
-                        Connect
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
@@ -375,9 +516,12 @@ export default function SettingsPage() {
               </div>
               <h3 className="font-bold text-[#1b1b1b]">Account Access</h3>
               <p className="text-xs text-[#414753] text-center mt-1 mb-4">
-                You are currently logged in as developer@agentos.io
+                Sign out of your current session.
               </p>
-              <button className="w-full bg-[#ba1a1a] text-white py-2 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all">
+              <button
+                className="w-full bg-[#ba1a1a] text-white py-2 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all"
+                onClick={() => { window.location.href = "/"; }}
+              >
                 Sign Out
               </button>
             </section>

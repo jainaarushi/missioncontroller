@@ -1,6 +1,38 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+
+interface Agent {
+  id: string;
+  name: string;
+  slug: string;
+  tasks_completed: number;
+  avg_duration_seconds: number;
+}
+
+interface Stats {
+  working: number;
+  review: number;
+  spent: number;
+}
+
 export default function AnalyticsPage() {
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [stats, setStats] = useState<Stats>({ working: 0, review: 0, spent: 0 });
+
+  useEffect(() => {
+    api.get<Agent[]>("/api/agents").then(setAgents).catch(() => {});
+    api.get<Stats>("/api/stats").then(setStats).catch(() => {});
+  }, []);
+
+  const totalTasks = agents.reduce((s, a) => s + a.tasks_completed, 0);
+  const activeAgents = agents.length;
+  const avgCompletion = agents.length > 0
+    ? (agents.reduce((s, a) => s + a.avg_duration_seconds, 0) / agents.length / 60).toFixed(1) + "m"
+    : "N/A";
+  const topAgents = [...agents].sort((a, b) => b.tasks_completed - a.tasks_completed).slice(0, 6);
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -11,10 +43,10 @@ export default function AnalyticsPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {[
-          { label: "Total Tasks", value: "1,482", icon: "task_alt", change: "+12%", color: "text-[#006c05]" },
-          { label: "Active Agents", value: "24", icon: "group", change: "+18%", color: "text-[#006c05]" },
-          { label: "Avg. Completion", value: "4.2m", icon: "timer", change: "-8%", color: "text-[#006c05]" },
-          { label: "Success Rate", value: "97.3%", icon: "verified", change: "+2.1%", color: "text-[#006c05]" },
+          { label: "Total Tasks", value: totalTasks.toLocaleString(), icon: "task_alt", change: `${stats.working} running`, color: "text-[#006c05]" },
+          { label: "Active Agents", value: String(activeAgents), icon: "group", change: `${stats.review} in review`, color: "text-[#006c05]" },
+          { label: "Avg. Completion", value: avgCompletion, icon: "timer", change: "per task", color: "text-[#006c05]" },
+          { label: "Total Spent", value: `$${stats.spent.toFixed(2)}`, icon: "payments", change: "API costs", color: "text-[#006c05]" },
         ].map((metric) => (
           <div key={metric.label} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -59,28 +91,24 @@ export default function AnalyticsPage() {
             <tr>
               <th className="px-6 py-4">Agent</th>
               <th className="px-6 py-4">Tasks Completed</th>
-              <th className="px-6 py-4">Success Rate</th>
               <th className="px-6 py-4">Avg. Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {[
-              { name: "Research Strategist", tasks: 342, rate: "99.1%", time: "3.8m" },
-              { name: "Content Strategist", tasks: 289, rate: "97.6%", time: "5.2m" },
-              { name: "Data Analyst", tasks: 256, rate: "98.4%", time: "4.1m" },
-              { name: "Full-Stack Developer", tasks: 198, rate: "95.9%", time: "6.7m" },
-            ].map((row) => (
-              <tr key={row.name} className="hover:bg-[#f9f9f9] transition-colors">
-                <td className="px-6 py-4 font-medium text-sm">{row.name}</td>
-                <td className="px-6 py-4 text-sm text-[#414753]">{row.tasks}</td>
-                <td className="px-6 py-4">
-                  <span className="text-xs font-bold text-[#006c05] bg-green-50 px-2 py-1 rounded-full">
-                    {row.rate}
-                  </span>
+            {topAgents.map((agent) => (
+              <tr key={agent.slug} className="hover:bg-[#f9f9f9] transition-colors">
+                <td className="px-6 py-4 font-medium text-sm">{agent.name}</td>
+                <td className="px-6 py-4 text-sm text-[#414753]">{agent.tasks_completed}</td>
+                <td className="px-6 py-4 text-sm text-[#414753]">
+                  {agent.avg_duration_seconds > 0 ? `${(agent.avg_duration_seconds / 60).toFixed(1)}m` : "N/A"}
                 </td>
-                <td className="px-6 py-4 text-sm text-[#414753]">{row.time}</td>
               </tr>
             ))}
+            {topAgents.length === 0 && (
+              <tr>
+                <td colSpan={3} className="px-6 py-8 text-center text-sm text-[#717785]">No agent data yet</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
