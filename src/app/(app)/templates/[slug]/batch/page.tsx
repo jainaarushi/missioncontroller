@@ -197,9 +197,12 @@ export default function BatchPage() {
             setAuthError("LinkedIn is not connected. Connect it in Settings first.");
             break;
           }
+          const errMsg = err.data?.availableActions
+            ? `${err.message} (Available: ${(err.data.availableActions as string[]).join(", ")})`
+            : err.message;
           setRecipients((prev) =>
             prev.map((r, idx) =>
-              idx === i ? { ...r, status: "failed" as RecipientStatus, error: err.message } : r
+              idx === i ? { ...r, status: "failed" as RecipientStatus, error: errMsg } : r
             )
           );
         } else {

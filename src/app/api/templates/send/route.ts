@@ -112,14 +112,31 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Verify user has the app connected
-  const connections = getConnectionStatus(user.id);
-  const appKey = app as keyof typeof connections;
-  if (!(appKey in connections) || !connections[appKey]) {
-    return NextResponse.json(
-      { error: `${app} is not connected. Connect it in Settings first.` },
-      { status: 400 }
+  // Check Composio directly for connected accounts instead of in-memory store
+  // (the in-memory store resets on every deploy/restart)
+  try {
+    const apiKey = getComposioApiKey();
+    const connResp = await fetch(
+      `https://backend.composio.dev/api/v1/connectedAccounts?user_uuid=${user.id}&status=ACTIVE`,
+      { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
     );
+    if (connResp.ok) {
+      const connData = await connResp.json();
+      const items = connData.items || [];
+      const hasApp = items.some(
+        (item: { appName?: string }) =>
+          item.appName?.toLowerCase() === app.toLowerCase()
+      );
+      if (!hasApp) {
+        return NextResponse.json(
+          { error: `${app} is not connected. Connect it in Settings first.` },
+          { status: 400 }
+        );
+      }
+    }
+  } catch {
+    // If check fails, proceed anyway — let Composio return its own error
+    console.warn("[templates/send] Could not verify connection status, proceeding anyway");
   }
 
   // Allowlist of actions we support
@@ -150,6 +167,29 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("Template send error:", err);
     const message = err instanceof Error ? err.message : "Failed to send message";
+
+    // If action failed, try to list available actions for debugging
+    try {
+      const apiKey = getComposioApiKey();
+      const actionsResp = await fetch(
+        `https://backend.composio.dev/api/v2/actions?appNames=${app.toUpperCase()}&limit=20`,
+        { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(5_000) }
+      );
+      if (actionsResp.ok) {
+        const actionsData = await actionsResp.json();
+        const available = (actionsData.items || []).map(
+          (a: { name?: string; displayName?: string }) => a.name || a.displayName
+        );
+        console.log(`[templates/send] Available ${app} actions:`, available.join(", "));
+        return NextResponse.json(
+          { error: message, availableActions: available },
+          { status: 500 }
+        );
+      }
+    } catch {
+      // ignore
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
