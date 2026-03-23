@@ -11,6 +11,11 @@ interface ComposioStatusResponse {
   connections: Record<string, boolean>;
 }
 
+interface LiCookieStatus {
+  hasCookie: boolean;
+  maskedCookie: string | null;
+}
+
 export default function TemplateConfigPage() {
   const params = useParams();
   const router = useRouter();
@@ -19,6 +24,7 @@ export default function TemplateConfigPage() {
 
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [composioConnections, setComposioConnections] = useState<Record<string, boolean>>({});
+  const [liCookieStatus, setLiCookieStatus] = useState<LiCookieStatus | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [composioMessage, setComposioMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
@@ -30,9 +36,16 @@ export default function TemplateConfigPage() {
       .catch(() => {});
   }, []);
 
+  const loadLiCookieStatus = useCallback(() => {
+    api.get<LiCookieStatus>("/api/user/linkedin-cookie")
+      .then((data) => setLiCookieStatus(data))
+      .catch(() => setLiCookieStatus({ hasCookie: false, maskedCookie: null }));
+  }, []);
+
   useEffect(() => {
     loadComposioStatus();
-  }, [loadComposioStatus]);
+    loadLiCookieStatus();
+  }, [loadComposioStatus, loadLiCookieStatus]);
 
   // Detect return from Composio OAuth
   useEffect(() => {
@@ -95,8 +108,12 @@ export default function TemplateConfigPage() {
     }
   };
 
-  // Check if a tool is connected via live Composio status, fallback to static
+  // Check if a tool is connected via live status
   const getToolConnected = (toolName: string): boolean => {
+    // LinkedIn Cookie — check via dedicated cookie status
+    if (toolName === "LinkedIn Cookie") {
+      return liCookieStatus?.hasCookie || false;
+    }
     const appKey = TOOL_TO_APP[toolName] || toolName.toLowerCase().replace(/\s+/g, "");
     if (composioConnections[appKey] !== undefined) return composioConnections[appKey];
     const staticTool = template.toolConnections.find((t) => t.name === toolName);
@@ -282,12 +299,16 @@ export default function TemplateConfigPage() {
                             <img alt={tool.name} className="w-7 h-7 object-contain" src={tool.logo} />
                           </div>
                           <div>
-                            <p className="text-sm font-bold">{tool.name}</p>
+                            <p className="text-sm font-bold">{tool.name === "LinkedIn Cookie" ? "LinkedIn" : tool.name}</p>
                             <p className={`text-[10px] font-semibold flex items-center gap-1 ${isConnected ? "text-[#006c05]" : "text-[#ba1a1a]"}`}>
                               <span className="material-symbols-outlined text-[12px]">
                                 {isConnected ? "check_circle" : "error"}
                               </span>
-                              {isConnected ? "Connected" : "Disconnected"}
+                              {isConnected
+                                ? tool.name === "LinkedIn Cookie" && liCookieStatus?.maskedCookie
+                                  ? liCookieStatus.maskedCookie
+                                  : "Connected"
+                                : "Not configured"}
                             </p>
                           </div>
                         </div>
@@ -299,25 +320,27 @@ export default function TemplateConfigPage() {
                       </div>
                       {!isConnected && (
                         <div className="space-y-2">
-                          <button
-                            onClick={() => connectTool(tool.name)}
-                            disabled={connecting === tool.name}
-                            className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-                          >
-                            {connecting === tool.name ? "Connecting..." : "Connect Account"}
-                          </button>
-                          {tool.name === "LinkedIn" && (
-                            <p className="text-[10px] text-[#717785] leading-relaxed">
-                              LinkedIn OAuth requires email &amp; password login. If you use Google to sign in,{" "}
-                              <a
-                                href="https://www.linkedin.com/psettings/change-password"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[#006c05] font-semibold hover:underline"
+                          {tool.name === "LinkedIn Cookie" ? (
+                            <>
+                              <Link
+                                href="/settings"
+                                className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
                               >
-                                set a LinkedIn password first
-                              </a>.
-                            </p>
+                                Add Cookie in Settings
+                              </Link>
+                              <p className="text-[10px] text-[#717785] leading-relaxed">
+                                Paste your LinkedIn <code className="bg-gray-100 px-1 rounded">li_at</code> cookie in Settings to enable direct sending.
+                                Find it in browser DevTools → Application → Cookies → linkedin.com.
+                              </p>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => connectTool(tool.name)}
+                              disabled={connecting === tool.name}
+                              className="w-full py-2 bg-[#1b1b1b] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                            >
+                              {connecting === tool.name ? "Connecting..." : "Connect Account"}
+                            </button>
                           )}
                         </div>
                       )}

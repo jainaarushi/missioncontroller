@@ -109,10 +109,10 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
     ],
     toolConnections: [
       {
-        name: "LinkedIn",
+        name: "LinkedIn Cookie",
         logo: `https://img.logo.dev/linkedin.com?token=${LOGO_TOKEN}`,
         connected: false,
-        statusText: "Disconnected",
+        statusText: "Not configured",
       },
       {
         name: "Google Search",
@@ -121,9 +121,9 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
         statusText: "Connected",
       },
     ],
-    composioPowered: true,
+    composioPowered: false,
     warningText:
-      "You must connect your LinkedIn account via Composio before this pipeline can be launched. This ensures the Outreach Agent can perform actions on your behalf.",
+      "Add your LinkedIn cookie in Settings to enable direct sending. You can still generate and export drafts without it.",
     // Drafting
     draftingAgent: "Research Strategist",
     draftingDescription:
