@@ -55,7 +55,8 @@ async function executeComposioAction(
     body.connectedAccountId = connectedAccountId;
   }
 
-  console.log(`[Composio execute] POST ${url}`, JSON.stringify(body).slice(0, 500));
+  // Log action name only — no sensitive IDs
+  console.log(`[Composio execute] ${actionName}`);
 
   const res = await fetch(url, {
     method: "POST",
@@ -82,9 +83,15 @@ async function executeComposioAction(
 
 /**
  * GET /api/templates/send?app=linkedin
- * Debug: list available Composio actions + connected accounts
+ * List available Composio actions + current user's connections only
  */
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser();
+
+  if (user.isDemo) {
+    return NextResponse.json({ error: "Sign in first" }, { status: 401 });
+  }
+
   const app = request.nextUrl.searchParams.get("app") || "LINKEDIN";
   const apiKey = getComposioApiKey();
   if (!apiKey) {
@@ -92,14 +99,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // List actions — use v1 endpoint which supports appName filter better
+    // List actions + only THIS user's connected accounts
     const [actionsResp, connResp] = await Promise.all([
       fetch(
         `${COMPOSIO_API_V1}/actions?appNames=${app.toUpperCase()}&limit=50`,
         { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
       ),
       fetch(
-        `${COMPOSIO_API_V1}/connectedAccounts?showActiveOnly=true`,
+        `${COMPOSIO_API_V1}/connectedAccounts?user_uuid=${user.id}&showActiveOnly=true`,
         { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
       ),
     ]);
@@ -116,12 +123,11 @@ export async function GET(request: NextRequest) {
       })
     );
 
+    // Only return app names and status — no internal IDs
     const connections = (connData.items || []).map(
-      (c: { id?: string; appName?: string; status?: string; entityId?: string }) => ({
-        id: c.id,
+      (c: { appName?: string; status?: string }) => ({
         appName: c.appName,
         status: c.status,
-        entityId: c.entityId,
       })
     );
 
@@ -215,7 +221,7 @@ export async function POST(request: NextRequest) {
 
     // Look up the connected account ID for this user + app
     const connectedAccountId = await getConnectedAccountId(apiKey, user.id, app);
-    console.log(`[templates/send] action=${action} entityId=${user.id} connectedAccountId=${connectedAccountId}`);
+    console.log(`[templates/send] action=${action} user=${user.id.slice(0, 8)}... hasConnection=${!!connectedAccountId}`);
 
     if (!connectedAccountId) {
       return NextResponse.json(

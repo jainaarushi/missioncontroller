@@ -176,7 +176,7 @@ async function executeAction(
 ): Promise<Record<string, unknown>> {
   const url = `${COMPOSIO_API_BASE}/actions/${actionName}/execute`;
 
-  console.log(`[Composio] Executing ${actionName} for entity ${entityId}`);
+  console.log(`[Composio] Executing ${actionName}`);
 
   const res = await fetch(url, {
     method: "POST",
