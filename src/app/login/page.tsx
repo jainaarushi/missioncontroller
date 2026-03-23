@@ -57,13 +57,17 @@ export default function LoginPage() {
       router.push("/today");
       return;
     }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/today`,
-      },
-    });
-    if (error) setError(error.message);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/today`,
+        },
+      });
+      if (error) setError(error.message);
+    } catch {
+      setError("Could not connect to auth service. Try guest mode below.");
+    }
   }
 
   const switchMode = (newMode: "signin" | "signup" | "forgot") => {
@@ -233,6 +237,16 @@ export default function LoginPage() {
             </>
           )}
         </p>
+
+        {/* Demo / Guest Access */}
+        <div className="text-center">
+          <a
+            href="/today"
+            className="text-xs text-[#717785] hover:text-[#006c05] transition-colors"
+          >
+            Continue as guest
+          </a>
+        </div>
       </div>
     </div>
   );
