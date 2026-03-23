@@ -17,8 +17,6 @@ export default function TemplateConfigPage() {
   const slug = params.slug as string;
   const template = getTemplate(slug);
 
-  const rangeField = template?.formFields.find((f) => f.type === "range");
-  const [rangeValue, setRangeValue] = useState(rangeField?.defaultValue ?? 25);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [composioConnections, setComposioConnections] = useState<Record<string, boolean>>({});
   const [connecting, setConnecting] = useState<string | null>(null);
@@ -181,16 +179,58 @@ export default function TemplateConfigPage() {
                     );
                   }
                   if (field.type === "textarea") {
+                    const isProfileField = field.label === "Target LinkedIn Profiles";
                     return (
                       <div key={field.label} className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-[#1b1b1b]">{field.label}</label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold text-[#1b1b1b]">{field.label}</label>
+                          {isProfileField && (
+                            <label className="px-3 py-1.5 bg-[#f3f3f3] border border-gray-200 rounded-lg text-xs font-semibold text-[#414753] hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-sm">upload_file</span>
+                              Upload CSV
+                              <input
+                                type="file"
+                                accept=".csv,.txt"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = (evt) => {
+                                    const text = evt.target?.result as string;
+                                    if (!text) return;
+                                    // Extract LinkedIn URLs from CSV content
+                                    const urls = text
+                                      .split(/[\n,]/)
+                                      .map((s) => s.trim().replace(/^["']|["']$/g, ""))
+                                      .filter((s) => s.includes("linkedin.com/in/"));
+                                    if (urls.length > 0) {
+                                      const existing = formValues[field.label] || "";
+                                      const merged = existing
+                                        ? existing.trim() + "\n" + urls.join("\n")
+                                        : urls.join("\n");
+                                      updateForm(field.label, merged);
+                                    }
+                                  };
+                                  reader.readAsText(file);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
                         <textarea
                           className="w-full px-4 py-2 rounded-lg border border-[#c1c6d5] focus:ring-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none text-sm"
                           placeholder={field.placeholder}
-                          rows={4}
+                          rows={isProfileField ? 6 : 4}
                           value={formValues[field.label] || ""}
                           onChange={(e) => updateForm(field.label, e.target.value)}
                         />
+                        {isProfileField && formValues[field.label] && (
+                          <p className="text-xs text-[#006c05] font-semibold">
+                            {formValues[field.label].split("\n").filter((l) => l.trim().includes("linkedin.com/in/")).length} profile(s) detected
+                          </p>
+                        )}
                       </div>
                     );
                   }
@@ -199,15 +239,15 @@ export default function TemplateConfigPage() {
                       <div key={field.label} className="flex flex-col gap-4 pt-2">
                         <div className="flex justify-between items-center">
                           <label className="text-sm font-semibold text-[#1b1b1b]">{field.label}</label>
-                          <span className="text-[#006c05] font-bold text-sm">{rangeValue} {field.unit}</span>
+                          <span className="text-[#006c05] font-bold text-sm">{formValues[field.label] || field.defaultValue} {field.unit}</span>
                         </div>
                         <input
                           className="w-full h-2 bg-[#e8e8e8] rounded-lg appearance-none cursor-pointer accent-[#006c05]"
                           max={field.max}
                           min={field.min}
                           type="range"
-                          value={rangeValue}
-                          onChange={(e) => setRangeValue(Number(e.target.value))}
+                          value={formValues[field.label] || field.defaultValue}
+                          onChange={(e) => updateForm(field.label, e.target.value)}
                         />
                         {field.rangeLabels && (
                           <div className="flex justify-between text-[10px] text-[#414753] uppercase font-bold">
@@ -316,7 +356,7 @@ export default function TemplateConfigPage() {
               // Save config for the drafting page to pick up
               sessionStorage.setItem(
                 `template-config:${slug}`,
-                JSON.stringify({ formValues, rangeValue })
+                JSON.stringify({ formValues })
               );
               router.push(`/templates/${slug}/drafting`);
             }}

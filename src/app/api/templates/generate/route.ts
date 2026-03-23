@@ -10,6 +10,39 @@ import {
 import { generateText } from "ai";
 import { rateLimit } from "@/lib/rate-limit";
 
+/** Extract LinkedIn usernames from a block of text (one URL per line, or mixed with CSV noise). */
+function parseLinkedInProfiles(raw: string): { url: string; username: string }[] {
+  const lines = raw.split(/[\n,]/).map((s) => s.trim().replace(/^["']|["']$/g, ""));
+  const profiles: { url: string; username: string }[] = [];
+  const seen = new Set<string>();
+
+  for (const line of lines) {
+    const match = line.match(/linkedin\.com\/in\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const username = match[1].toLowerCase();
+      if (!seen.has(username)) {
+        seen.add(username);
+        profiles.push({
+          url: line.startsWith("http") ? line.split("?")[0] : `https://www.linkedin.com/in/${username}`,
+          username,
+        });
+      }
+    }
+  }
+  return profiles;
+}
+
+/** Turn a LinkedIn username slug into a display name guess. */
+function usernameToName(username: string): string {
+  return username
+    .replace(/-/g, " ")
+    .replace(/\d+$/, "")
+    .trim()
+    .split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
 
@@ -35,6 +68,8 @@ export async function POST(request: NextRequest) {
     slug?: string;
     formValues?: Record<string, string>;
     batchSize?: number;
+    regenerateIndex?: number;
+    profiles?: { url: string; username: string }[];
   };
   try {
     body = await request.json();
@@ -45,7 +80,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { slug, formValues, batchSize } = body;
+  const { slug, formValues } = body;
   if (!slug || !formValues) {
     return NextResponse.json(
       { error: "slug and formValues are required" },
@@ -61,41 +96,65 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const count = Math.min(batchSize || 5, 20);
-
   // Build prompt based on template type
   let systemPrompt: string;
   let userPrompt: string;
 
   if (slug === "linkedin-outreach") {
+    // Parse real profile URLs from the input
+    const profileInput = formValues["Target LinkedIn Profiles"] || "";
+    let profiles = parseLinkedInProfiles(profileInput);
+
+    // If regenerating a single row, the caller passes the specific profile
+    if (body.profiles && body.profiles.length > 0) {
+      profiles = body.profiles;
+    }
+
+    if (profiles.length === 0) {
+      return NextResponse.json(
+        { error: "No valid LinkedIn profile URLs found. Paste URLs like https://linkedin.com/in/username" },
+        { status: 400 }
+      );
+    }
+
+    // Cap at 20 profiles per request
+    profiles = profiles.slice(0, 20);
+
+    const objective = formValues["Outreach Objective"] || "";
+
     systemPrompt = `You are an expert LinkedIn outreach specialist. You generate highly personalized, professional connection messages that get responses. Each message must feel genuinely researched and human — never generic or spammy.
 
 You always return valid JSON and nothing else.`;
 
-    const targetUrl = formValues["Target Profile URL"] || "";
-    const objective = formValues["Outreach Objective"] || "";
+    const profileList = profiles
+      .map((p, i) => `${i + 1}. Name: "${usernameToName(p.username)}" | Profile: ${p.url}`)
+      .join("\n");
 
-    userPrompt = `Generate ${count} personalized LinkedIn outreach drafts.
+    userPrompt = `Generate a personalized LinkedIn outreach message for EACH of these specific people:
 
-Target/Context: ${targetUrl}
+${profileList}
+
 Outreach Objective: ${objective}
 
-For each draft, create a realistic prospect with:
-- A plausible full name
-- A company name
-- Their initials (first letter of first + last name)
-- A personalized outreach message (2-3 sentences, professional but warm, referencing something specific about them or their company)
+For each person, create a warm, professional outreach message (2-3 sentences) that:
+- Addresses them by their actual name (derived from their LinkedIn profile URL above)
+- References something plausible about their background or role
+- Ties into the outreach objective naturally
+- Feels personal, not templated
 
-Return a JSON array with exactly ${count} objects, each having:
+Return a JSON array with exactly ${profiles.length} objects (one per profile, in the same order), each having:
 {
   "initials": "XX",
-  "name": "Full Name",
-  "company": "Company Name",
-  "preview": "The personalized message draft"
+  "name": "Their Full Name",
+  "company": "Likely company or role",
+  "preview": "The personalized outreach message",
+  "profileUrl": "their linkedin URL"
 }
 
 Return ONLY the JSON array, no other text.`;
   } else if (slug === "market-analysis") {
+    const count = Math.min(body.batchSize || 5, 20);
+
     systemPrompt = `You are a market research analyst. You generate structured analysis sections with data-driven insights. Each section should be substantive and actionable.
 
 You always return valid JSON and nothing else.`;
@@ -124,6 +183,8 @@ Return a JSON array with exactly ${count} objects, each having:
 
 Return ONLY the JSON array, no other text.`;
   } else {
+    const count = Math.min(body.batchSize || 5, 20);
+
     systemPrompt = `You are an AI assistant that generates structured draft content. You always return valid JSON and nothing else.`;
 
     const inputs = Object.entries(formValues)
@@ -198,15 +259,16 @@ Return ONLY the JSON array, no other text.`;
       { bg: "bg-gray-200", text: "text-gray-600" },
     ];
 
-    const rows = drafts.slice(0, count).map(
+    const rows = drafts.map(
       (
-        d: { initials?: string; name?: string; company?: string; preview?: string },
+        d: { initials?: string; name?: string; company?: string; preview?: string; profileUrl?: string },
         i: number
       ) => ({
         initials: (d.initials || "??").slice(0, 2).toUpperCase(),
         name: d.name || `Draft ${i + 1}`,
         company: d.company || "",
         preview: d.preview || "",
+        profileUrl: d.profileUrl || "",
         status: "ready",
         avatarBg: colors[i % colors.length].bg,
         avatarText: colors[i % colors.length].text,

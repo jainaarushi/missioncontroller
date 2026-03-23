@@ -95,25 +95,16 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
     ],
     formFields: [
       {
-        label: "Target Profile URL",
-        type: "text",
-        placeholder: "https://linkedin.com/in/username",
-        hint: "Paste a direct profile or a LinkedIn search result URL.",
+        label: "Target LinkedIn Profiles",
+        type: "textarea",
+        placeholder:
+          "https://linkedin.com/in/johndoe\nhttps://linkedin.com/in/janesmith\n\nPaste one profile URL per line, or upload a CSV below.",
       },
       {
         label: "Outreach Objective",
         type: "textarea",
         placeholder:
           "e.g. Schedule a demo for our new AI tool, or network with CTOs in Fintech...",
-      },
-      {
-        label: "Batch Size",
-        type: "range",
-        min: 1,
-        max: 100,
-        defaultValue: 25,
-        unit: "Profiles / day",
-        rangeLabels: ["Conservative", "Aggressive"],
       },
     ],
     toolConnections: [
@@ -144,41 +135,11 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
     ],
     draftRows: [
       {
-        initials: "SK",
-        name: "Sarah Kendrick",
-        company: "Lumina Systems",
+        initials: "??",
+        name: "Add profile URLs",
+        company: "—",
         preview:
-          '"Hi Sarah, I noticed your recent talk on edge computing at DevCon. It really aligned with our..."',
-        status: "ready",
-        avatarBg: "bg-[#ece0d6]",
-        avatarText: "text-[#635b53]",
-      },
-      {
-        initials: "MJ",
-        name: "Marcus Jensen",
-        company: "Flowstate Labs",
-        preview:
-          '"Great post about the Series B funding, Marcus! Flowstate seems to be scaling incredibly fast..."',
-        status: "drafting",
-        avatarBg: "bg-[#e1dfff]",
-        avatarText: "text-[#3028e9]",
-      },
-      {
-        initials: "AL",
-        name: "Anita Lowe",
-        company: "Cognito AI",
-        preview:
-          '"Hello Anita, saw your interview on the future of LLMs. Your point about context windows..."',
-        status: "ready",
-        avatarBg: "bg-[#76ff65]",
-        avatarText: "text-[#006c05]",
-      },
-      {
-        initials: "DT",
-        name: "David Tan",
-        company: "Peak Performance",
-        preview:
-          "\"Hi David, hope you're having a great week! I've been following Peak Performance's growth...\"",
+          "Paste LinkedIn profile URLs in the config page to generate personalized drafts for real people.",
         status: "manual",
         avatarBg: "bg-gray-200",
         avatarText: "text-gray-600",

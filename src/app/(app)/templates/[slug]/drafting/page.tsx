@@ -13,6 +13,7 @@ interface DraftState extends Omit<DraftRow, "status"> {
   status: DraftStatus;
   editing?: boolean;
   editText?: string;
+  profileUrl?: string;
 }
 
 interface GenerateResponse {
@@ -69,13 +70,11 @@ export default function DraftingPage() {
 
     // Read config saved by the configure page
     let formValues: Record<string, string> = {};
-    let rangeValue = 5;
     try {
       const raw = sessionStorage.getItem(`template-config:${slug}`);
       if (raw) {
         const parsed = JSON.parse(raw);
         formValues = parsed.formValues || {};
-        rangeValue = parsed.rangeValue || 5;
       }
     } catch {
       // No config — use defaults
@@ -83,7 +82,7 @@ export default function DraftingPage() {
 
     setGenerating(true);
     setGenError(null);
-    setGenPhase("Researching targets...");
+    setGenPhase("Researching target profiles...");
 
     // Simulate research phase
     await new Promise((r) => setTimeout(r, 1500));
@@ -93,7 +92,6 @@ export default function DraftingPage() {
       const data = await api.post<GenerateResponse>("/api/templates/generate", {
         slug,
         formValues,
-        batchSize: Math.min(rangeValue, 20),
       });
 
       setGenPhase("Finalizing drafts...");
@@ -140,52 +138,55 @@ export default function DraftingPage() {
     ? drafts.filter((d) => d.status === filterStatus)
     : drafts;
 
-  const handleApprove = (initials: string) => {
+  const handleApprove = (idx: number) => {
     setDrafts((prev) =>
-      prev.map((d) =>
-        d.initials === initials ? { ...d, status: "approved" as DraftStatus } : d
+      prev.map((d, i) =>
+        i === idx ? { ...d, status: "approved" as DraftStatus } : d
       )
     );
   };
 
-  const handleEdit = (initials: string) => {
+  const handleEdit = (idx: number) => {
     setDrafts((prev) =>
-      prev.map((d) =>
-        d.initials === initials ? { ...d, editing: true, editText: d.preview } : d
+      prev.map((d, i) =>
+        i === idx ? { ...d, editing: true, editText: d.preview } : d
       )
     );
   };
 
-  const handleEditSave = (initials: string) => {
+  const handleEditSave = (idx: number) => {
     setDrafts((prev) =>
-      prev.map((d) =>
-        d.initials === initials
+      prev.map((d, i) =>
+        i === idx
           ? { ...d, preview: d.editText || d.preview, editing: false, editText: undefined }
           : d
       )
     );
   };
 
-  const handleEditCancel = (initials: string) => {
+  const handleEditCancel = (idx: number) => {
     setDrafts((prev) =>
-      prev.map((d) =>
-        d.initials === initials ? { ...d, editing: false, editText: undefined } : d
+      prev.map((d, i) =>
+        i === idx ? { ...d, editing: false, editText: undefined } : d
       )
     );
   };
 
-  const handleEditChange = (initials: string, value: string) => {
+  const handleEditChange = (idx: number, value: string) => {
     setDrafts((prev) =>
-      prev.map((d) =>
-        d.initials === initials ? { ...d, editText: value } : d
+      prev.map((d, i) =>
+        i === idx ? { ...d, editText: value } : d
       )
     );
   };
 
-  const handleRegenerate = async (initials: string) => {
+  const handleRegenerate = async (idx: number) => {
+    const target = drafts[idx];
+    if (!target) return;
+
     setDrafts((prev) =>
-      prev.map((d) =>
-        d.initials === initials ? { ...d, status: "drafting" as DraftStatus } : d
+      prev.map((d, i) =>
+        i === idx ? { ...d, status: "drafting" as DraftStatus } : d
       )
     );
 
@@ -197,17 +198,24 @@ export default function DraftingPage() {
     } catch { /* ignore */ }
 
     try {
+      // For LinkedIn outreach, pass the specific profile to regenerate
+      const extra: Record<string, unknown> = {};
+      if (target.profileUrl) {
+        extra.profiles = [{ url: target.profileUrl, username: target.name.toLowerCase().replace(/\s+/g, "-") }];
+      }
+
       const data = await api.post<GenerateResponse>("/api/templates/generate", {
         slug,
         formValues,
         batchSize: 1,
+        ...extra,
       });
       if (data.drafts.length > 0) {
         const newDraft = data.drafts[0];
         setDrafts((prev) =>
-          prev.map((d) =>
-            d.initials === initials
-              ? { ...d, preview: newDraft.preview, status: "ready" as DraftStatus }
+          prev.map((d, i) =>
+            i === idx
+              ? { ...d, preview: newDraft.preview, company: newDraft.company || d.company, status: "ready" as DraftStatus }
               : d
           )
         );
@@ -220,8 +228,8 @@ export default function DraftingPage() {
     // Fallback: just mark as ready again
     setTimeout(() => {
       setDrafts((prev) =>
-        prev.map((d) =>
-          d.initials === initials ? { ...d, status: "ready" as DraftStatus } : d
+        prev.map((d, i) =>
+          i === idx ? { ...d, status: "ready" as DraftStatus } : d
         )
       );
     }, 1500);
@@ -417,24 +425,38 @@ export default function DraftingPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filteredDrafts.map((row) => {
+                  {filteredDrafts.map((row, idx) => {
                     const isDrafting = row.status === "drafting";
                     const isApproved = row.status === "approved";
+                    // Find the real index in the full drafts array for handlers
+                    const realIdx = drafts.indexOf(row);
                     return (
                       <tr
-                        key={row.initials}
+                        key={`${row.name}-${idx}`}
                         className={`hover:bg-white transition-colors group ${
                           isApproved ? "bg-[#006c05]/[0.02]" : ""
                         }`}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`h-8 w-8 rounded-full ${row.avatarBg} ${row.avatarText} font-bold flex items-center justify-center text-xs`}
+                              className={`h-8 w-8 rounded-full ${row.avatarBg} ${row.avatarText} font-bold flex items-center justify-center text-xs flex-shrink-0`}
                             >
                               {row.initials}
                             </div>
-                            <span className="font-medium">{row.name}</span>
+                            <div className="min-w-0">
+                              <span className="font-medium block">{row.name}</span>
+                              {row.profileUrl && (
+                                <a
+                                  href={row.profileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] text-[#006c05] hover:underline truncate block"
+                                >
+                                  {row.profileUrl.replace("https://www.", "").replace("https://", "")}
+                                </a>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
@@ -447,17 +469,17 @@ export default function DraftingPage() {
                                 className="w-full px-3 py-2 rounded-lg border border-[#006c05] focus:ring-2 focus:ring-[#006c05] outline-none text-sm"
                                 rows={3}
                                 value={row.editText || ""}
-                                onChange={(e) => handleEditChange(row.initials, e.target.value)}
+                                onChange={(e) => handleEditChange(realIdx, e.target.value)}
                               />
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => handleEditSave(row.initials)}
+                                  onClick={() => handleEditSave(realIdx)}
                                   className="px-3 py-1 bg-[#006c05] text-white text-xs font-bold rounded-lg"
                                 >
                                   Save
                                 </button>
                                 <button
-                                  onClick={() => handleEditCancel(row.initials)}
+                                  onClick={() => handleEditCancel(realIdx)}
                                   className="px-3 py-1 border border-gray-200 text-xs font-bold rounded-lg"
                                 >
                                   Cancel
@@ -489,7 +511,7 @@ export default function DraftingPage() {
                           ) : (
                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
-                                onClick={() => handleApprove(row.initials)}
+                                onClick={() => handleApprove(realIdx)}
                                 className={`p-2 rounded-lg ${
                                   isApproved
                                     ? "text-[#006c05]/40 cursor-default"
@@ -503,14 +525,14 @@ export default function DraftingPage() {
                                 </span>
                               </button>
                               <button
-                                onClick={() => handleEdit(row.initials)}
+                                onClick={() => handleEdit(realIdx)}
                                 className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
                                 title="Edit"
                               >
                                 <span className="material-symbols-outlined">edit</span>
                               </button>
                               <button
-                                onClick={() => handleRegenerate(row.initials)}
+                                onClick={() => handleRegenerate(realIdx)}
                                 className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
                                 title="Regenerate"
                               >
@@ -538,7 +560,7 @@ export default function DraftingPage() {
               </span>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setDrafts((prev) => prev.map((d) => d.status === "ready" || d.status === "manual" ? { ...d, status: "approved" as DraftStatus } : d))}
+                  onClick={() => setDrafts((prev) => prev.map((d) => (d.status === "ready" || d.status === "manual") ? { ...d, status: "approved" as DraftStatus } : d))}
                   className="px-3 py-1 bg-[#006c05] text-white font-bold rounded hover:brightness-110 transition-all"
                 >
                   Approve All Ready
