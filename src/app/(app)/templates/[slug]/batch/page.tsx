@@ -614,7 +614,14 @@ export default function BatchPage() {
                     <td className="px-6 py-4">
                       <StatusBadge status={recipient.status} />
                       {recipient.error && (
-                        <p className="text-[10px] text-[#ba1a1a] mt-1 truncate max-w-[200px]">
+                        <p
+                          className="text-[10px] text-[#ba1a1a] mt-1 max-w-[400px] break-all cursor-pointer"
+                          title={recipient.error}
+                          onClick={() => {
+                            navigator.clipboard.writeText(recipient.error || "");
+                            alert(recipient.error);
+                          }}
+                        >
                           {recipient.error}
                         </p>
                       )}

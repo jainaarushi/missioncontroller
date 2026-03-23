@@ -46,6 +46,36 @@ async function executeComposioAction(
 }
 
 /**
+ * GET /api/templates/send?app=linkedin
+ * Debug: list available Composio actions for an app
+ */
+export async function GET(request: NextRequest) {
+  const app = request.nextUrl.searchParams.get("app") || "LINKEDIN";
+  const apiKey = getComposioApiKey();
+  if (!apiKey) {
+    return NextResponse.json({ error: "No Composio API key" }, { status: 500 });
+  }
+
+  try {
+    const resp = await fetch(
+      `${COMPOSIO_API_BASE}/actions?appNames=${app.toUpperCase()}&limit=50`,
+      { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
+    );
+    const data = await resp.json();
+    const actions = (data.items || []).map(
+      (a: { name?: string; displayName?: string; description?: string }) => ({
+        name: a.name,
+        displayName: a.displayName,
+        description: a.description?.slice(0, 100),
+      })
+    );
+    return NextResponse.json({ app, actions });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
+/**
  * POST /api/templates/send
  * Sends a single draft message via Composio (LinkedIn, Gmail, etc.)
  *
