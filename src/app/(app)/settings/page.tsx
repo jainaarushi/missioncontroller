@@ -213,6 +213,47 @@ export default function SettingsPage() {
     }
   };
 
+  // LinkedIn cookie state
+  const [liCookieInput, setLiCookieInput] = useState("");
+  const [liCookieStatus, setLiCookieStatus] = useState<{ hasCookie: boolean; maskedCookie: string | null } | null>(null);
+
+  const loadLiCookieStatus = useCallback(async () => {
+    try {
+      const data = await api.get<{ hasCookie: boolean; maskedCookie: string | null }>("/api/user/linkedin-cookie");
+      setLiCookieStatus(data);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadLiCookieStatus(); }, [loadLiCookieStatus]);
+
+  const saveLiCookie = async () => {
+    if (!liCookieInput.trim()) return;
+    setSaving("linkedin-cookie");
+    try {
+      const data = await api.post<{ success: boolean; maskedCookie: string }>("/api/user/linkedin-cookie", { cookie: liCookieInput.trim() });
+      setLiCookieStatus({ hasCookie: true, maskedCookie: data.maskedCookie });
+      setLiCookieInput("");
+      showMessage("LinkedIn cookie saved and validated", "success");
+    } catch (e) {
+      showMessage(e instanceof Error ? e.message : "Failed to save cookie", "error");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const removeLiCookie = async () => {
+    setSaving("del-linkedin-cookie");
+    try {
+      await api.del("/api/user/linkedin-cookie");
+      setLiCookieStatus({ hasCookie: false, maskedCookie: null });
+      showMessage("LinkedIn cookie removed", "success");
+    } catch {
+      showMessage("Failed to remove cookie", "error");
+    } finally {
+      setSaving(null);
+    }
+  };
+
   const hasAnyKey = keyStatus && (keyStatus.openai || keyStatus.gemini || keyStatus.anthropic);
 
   return (
@@ -501,6 +542,54 @@ export default function SettingsPage() {
                 >
                   Get Key
                 </a>
+              </div>
+            </section>
+
+            {/* LinkedIn Cookie */}
+            <section className="bg-white border border-[#e8e8e8] p-6 rounded-2xl space-y-4 shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                  <img alt="LinkedIn" className="w-7 h-7 object-contain" src={`https://img.logo.dev/linkedin.com?token=${LOGO_TOKEN}`} />
+                </div>
+                <h2 className="text-lg font-bold">LinkedIn Outreach</h2>
+                {liCookieStatus?.hasCookie && (
+                  <span className="text-[9px] font-bold text-[#006c05] bg-green-50 px-1.5 py-0.5 rounded ml-auto">Active</span>
+                )}
+              </div>
+              <p className="text-[10px] text-[#414753] leading-relaxed">
+                Paste your LinkedIn <code className="bg-gray-100 px-1 rounded">li_at</code> session cookie to enable direct outreach.
+                Find it in browser DevTools → Application → Cookies → linkedin.com → <code className="bg-gray-100 px-1 rounded">li_at</code>.
+              </p>
+              {liCookieStatus?.hasCookie && liCookieStatus.maskedCookie && (
+                <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg">
+                  <span className="material-symbols-outlined text-sm text-[#006c05]">check_circle</span>
+                  <span className="text-xs font-semibold text-[#006c05]">{liCookieStatus.maskedCookie}</span>
+                </div>
+              )}
+              <input
+                className="w-full text-xs bg-[#f3f3f3] border border-[#c1c6d5] rounded-lg px-3 py-2 focus:ring-[#006c05] focus:border-[#006c05] outline-none"
+                placeholder="AQEDAx..."
+                type="password"
+                value={liCookieInput}
+                onChange={(e) => setLiCookieInput(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 text-center text-xs text-white font-bold py-2 bg-[#1b1b1b] rounded-lg hover:bg-[#303030] transition-colors disabled:opacity-50"
+                  disabled={saving === "linkedin-cookie" || !liCookieInput.trim()}
+                  onClick={saveLiCookie}
+                >
+                  {saving === "linkedin-cookie" ? "Validating..." : "Save Cookie"}
+                </button>
+                {liCookieStatus?.hasCookie && (
+                  <button
+                    className="text-xs px-3 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                    disabled={saving === "del-linkedin-cookie"}
+                    onClick={removeLiCookie}
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             </section>
 
