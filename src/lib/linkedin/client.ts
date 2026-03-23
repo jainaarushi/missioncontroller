@@ -51,16 +51,29 @@ export async function getProfile(
   const headers = buildHeaders(cookie);
   const url = `${VOYAGER_BASE}/identity/profiles/${username}/profileView`;
 
-  const res = await fetch(url, {
-    headers,
-    signal: AbortSignal.timeout(15_000),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    const msg = err instanceof Error ? err.message : "Network error";
+    throw new Error(`LinkedIn API unreachable: ${msg}. This may happen if LinkedIn blocks server IPs.`);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
+    const body = await res.text().catch(() => "");
     if (res.status === 401 || res.status === 403) {
       throw new Error("LinkedIn cookie expired or invalid. Please update it in Settings.");
     }
-    throw new Error(`LinkedIn profile lookup failed (${res.status})`);
+    throw new Error(`LinkedIn profile lookup failed (${res.status}): ${body.slice(0, 200)}`);
   }
 
   const data = await res.json();
@@ -107,12 +120,24 @@ export async function sendConnectionRequest(
     body.message = message.slice(0, 300);
   }
 
-  const res = await fetch(`${VOYAGER_BASE}/growth/normInvitations`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15_000),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${VOYAGER_BASE}/growth/normInvitations`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    const msg = err instanceof Error ? err.message : "Network error";
+    return { success: false, error: `LinkedIn API unreachable: ${msg}` };
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
@@ -157,12 +182,24 @@ export async function sendMessage(
     },
   };
 
-  const res = await fetch(`${VOYAGER_BASE}/messaging/conversations`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15_000),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${VOYAGER_BASE}/messaging/conversations`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    const msg = err instanceof Error ? err.message : "Network error";
+    return { success: false, error: `LinkedIn API unreachable: ${msg}` };
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
@@ -183,13 +220,17 @@ export async function sendMessage(
 /** Quick check if a LinkedIn cookie is still valid */
 export async function validateCookie(cookie: string): Promise<boolean> {
   const headers = buildHeaders(cookie);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
   try {
     const res = await fetch(`${VOYAGER_BASE}/me`, {
       headers,
-      signal: AbortSignal.timeout(10_000),
+      signal: controller.signal,
     });
     return res.ok;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }

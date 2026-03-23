@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch (err) {
+    console.error("LinkedIn send error:", err);
     const msg = err instanceof Error ? err.message : "LinkedIn request failed";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
