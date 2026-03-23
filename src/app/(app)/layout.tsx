@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { href: "/today", icon: "dashboard", label: "Dashboard" },
@@ -21,6 +22,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userInitial, setUserInitial] = useState("U");
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) {
+      setUserEmail("demo@agentstudio.world");
+      setUserInitial("D");
+      return;
+    }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setUserEmail(user.email);
+        setUserInitial(user.email[0].toUpperCase());
+      } else {
+        setUserEmail(null);
+        setUserInitial("D");
+      }
+    });
+  }, []);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim()) {
@@ -28,8 +49,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleLogout = () => {
-    window.location.href = "/";
+  const handleLogout = async () => {
+    const supabase = createClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    window.location.href = "/login";
   };
 
   return (
@@ -74,8 +99,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Link href="/settings" className="p-2 text-[#717785] hover:bg-gray-100 transition-colors cursor-pointer rounded-full">
             <span className="material-symbols-outlined">settings</span>
           </Link>
-          <div className="w-8 h-8 rounded-full bg-[#4d4bff] flex items-center justify-center text-white text-xs font-bold">
-            U
+          <div className="w-8 h-8 rounded-full bg-[#4d4bff] flex items-center justify-center text-white text-xs font-bold" title={userEmail || "User"}>
+            {userInitial}
           </div>
         </div>
       </header>
@@ -134,6 +159,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="pt-4 border-t border-gray-100 space-y-1">
+            {/* User info */}
+            {userEmail && (
+              <div className="flex items-center gap-3 px-3 py-2 mb-2">
+                <div className="w-7 h-7 rounded-full bg-[#4d4bff] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                  {userInitial}
+                </div>
+                <span className="text-xs text-[#414753] truncate">{userEmail}</span>
+              </div>
+            )}
             {BOTTOM_ITEMS.map((item) => (
               <a
                 key={item.label}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
+import { createClient as createBrowserClient } from "@/lib/supabase/client";
 
 const LOGO_TOKEN = "pk_L7siVlltSTuo-xbA1lvUKA";
 
@@ -571,7 +572,11 @@ export default function SettingsPage() {
               </p>
               <button
                 className="w-full bg-[#ba1a1a] text-white py-2 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all"
-                onClick={() => { window.location.href = "/"; }}
+                onClick={async () => {
+                  const supabase = createBrowserClient();
+                  if (supabase) await supabase.auth.signOut();
+                  window.location.href = "/login";
+                }}
               >
                 Sign Out
               </button>
