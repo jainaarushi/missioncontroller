@@ -128,9 +128,9 @@ export default function BatchPage() {
   // Determine the Composio action based on send mode
   const getAction = useCallback(() => {
     if (sendMode === "message") {
-      return { app: "linkedin", action: "LINKEDIN_SEND_MESSAGE" };
+      return { app: "linkedin", action: "LINKEDIN_CREATE_COMMENT_ON_POST" };
     }
-    return { app: "linkedin", action: "LINKEDIN_CREATE_POST" };
+    return { app: "linkedin", action: "LINKEDIN_CREATE_LINKED_IN_POST" };
   }, [sendMode]);
 
   // Calculate throttle delay in ms

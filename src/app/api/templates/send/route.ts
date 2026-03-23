@@ -203,10 +203,11 @@ export async function POST(request: NextRequest) {
 
   // Allowlist of actions we support
   const ALLOWED_ACTIONS = new Set([
-    "LINKEDIN_CREATE_POST",
-    "LINKEDIN_CREATE_LINKED_POST",
-    "LINKEDIN_SEND_CONNECTION_REQUEST",
-    "LINKEDIN_SEND_MESSAGE",
+    "LINKEDIN_CREATE_LINKED_IN_POST",
+    "LINKEDIN_CREATE_ARTICLE_OR_URL_SHARE",
+    "LINKEDIN_CREATE_COMMENT_ON_POST",
+    "LINKEDIN_GET_PERSON",
+    "LINKEDIN_GET_MY_INFO",
     "GMAIL_SEND_EMAIL",
   ]);
   if (!ALLOWED_ACTIONS.has(action)) {
