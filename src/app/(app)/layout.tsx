@@ -168,6 +168,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className="text-xs text-[#414753] truncate">{userEmail}</span>
               </div>
             )}
+            <Link
+              href="/login"
+              className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200 hover:translate-x-1"
+            >
+              <span className="material-symbols-outlined">login</span>
+              {userEmail && !userEmail.includes("demo") ? "Switch Account" : "Login"}
+            </Link>
             {BOTTOM_ITEMS.map((item) => (
               <a
                 key={item.label}
