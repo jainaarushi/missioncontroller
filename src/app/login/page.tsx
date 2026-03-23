@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseEnabled } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
@@ -16,7 +18,7 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!supabase) {
-      window.location.href = "/today";
+      router.push("/today");
       return;
     }
     setLoading(true);
@@ -35,14 +37,14 @@ export default function LoginPage() {
         if (error) {
           setError(error.message);
         } else if (data.session) {
-          window.location.href = "/today";
+          router.push("/today");
         } else {
           setMessage("Check your email for the confirmation link.");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) setError(error.message);
-        else window.location.href = "/today";
+        else router.push("/today");
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -52,7 +54,7 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     if (!supabase) {
-      window.location.href = "/today";
+      router.push("/today");
       return;
     }
     const { error } = await supabase.auth.signInWithOAuth({
@@ -83,12 +85,12 @@ export default function LoginPage() {
             <p className="text-sm text-[#414753]">
               Supabase is not configured. You&apos;re running in demo mode with full access.
             </p>
-            <button
-              onClick={() => { window.location.href = "/today"; }}
-              className="w-full py-3 bg-[#006c05] text-white font-bold rounded-xl hover:bg-[#008808] transition-colors"
+            <a
+              href="/today"
+              className="block w-full py-3 bg-[#006c05] text-white font-bold rounded-xl hover:bg-[#008808] transition-colors text-center"
             >
               Enter Demo
-            </button>
+            </a>
           </div>
         </div>
       </div>

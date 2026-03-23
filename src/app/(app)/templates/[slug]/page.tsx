@@ -311,12 +311,20 @@ export default function TemplateConfigPage() {
               </p>
             </div>
           )}
-          <Link href={`/templates/${slug}/drafting`} className="w-full max-w-md">
-            <button className="w-full py-4 bg-[#006c05] text-white font-black rounded-xl flex items-center justify-center gap-3 text-lg hover:bg-[#008808] transition-colors active:scale-[0.98]">
-              Launch Pipeline
-              <span className="material-symbols-outlined">rocket_launch</span>
-            </button>
-          </Link>
+          <button
+            onClick={() => {
+              // Save config for the drafting page to pick up
+              sessionStorage.setItem(
+                `template-config:${slug}`,
+                JSON.stringify({ formValues, rangeValue })
+              );
+              router.push(`/templates/${slug}/drafting`);
+            }}
+            className="w-full max-w-md py-4 bg-[#006c05] text-white font-black rounded-xl flex items-center justify-center gap-3 text-lg hover:bg-[#008808] transition-colors active:scale-[0.98]"
+          >
+            Launch Pipeline
+            <span className="material-symbols-outlined">rocket_launch</span>
+          </button>
         </div>
       </div>
     </div>
