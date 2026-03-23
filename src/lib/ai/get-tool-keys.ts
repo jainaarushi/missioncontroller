@@ -9,14 +9,32 @@ export interface UserToolKeys {
   serp?: string;
 }
 
+function tryDecrypt(value: string): string | null {
+  try {
+    return decryptApiKey(value);
+  } catch {
+    // Legacy unencrypted value — return as-is (only possible in dev)
+    return value;
+  }
+}
+
 export async function getUserToolKeys(userId: string): Promise<UserToolKeys> {
-  // ── Local / no-Supabase mode: read from in-memory store ──
+  // ── Local / no-Supabase mode: read from in-memory store (encrypted) ──
   if (!isSupabaseEnabled()) {
     const keys = getMockUserKeys(userId);
     const result: UserToolKeys = {};
-    if (keys.tavily_api_key) result.tavily = keys.tavily_api_key;
-    if (keys.firecrawl_api_key) result.firecrawl = keys.firecrawl_api_key;
-    if (keys.serp_api_key) result.serp = keys.serp_api_key;
+    if (keys.tavily_api_key) {
+      const d = tryDecrypt(keys.tavily_api_key);
+      if (d) result.tavily = d;
+    }
+    if (keys.firecrawl_api_key) {
+      const d = tryDecrypt(keys.firecrawl_api_key);
+      if (d) result.firecrawl = d;
+    }
+    if (keys.serp_api_key) {
+      const d = tryDecrypt(keys.serp_api_key);
+      if (d) result.serp = d;
+    }
     return result;
   }
 
@@ -34,19 +52,16 @@ export async function getUserToolKeys(userId: string): Promise<UserToolKeys> {
   const keys: UserToolKeys = {};
 
   if (data.tavily_api_key) {
-    try {
-      keys.tavily = decryptApiKey(data.tavily_api_key);
-    } catch { /* skip */ }
+    const d = tryDecrypt(data.tavily_api_key);
+    if (d) keys.tavily = d;
   }
   if (data.firecrawl_api_key) {
-    try {
-      keys.firecrawl = decryptApiKey(data.firecrawl_api_key);
-    } catch { /* skip */ }
+    const d = tryDecrypt(data.firecrawl_api_key);
+    if (d) keys.firecrawl = d;
   }
   if (data.serp_api_key) {
-    try {
-      keys.serp = decryptApiKey(data.serp_api_key);
-    } catch { /* skip */ }
+    const d = tryDecrypt(data.serp_api_key);
+    if (d) keys.serp = d;
   }
 
   return keys;

@@ -9,6 +9,15 @@ interface UserAIConfig {
   apiKey: string;
 }
 
+function tryDecrypt(value: string): string | null {
+  try {
+    return decryptApiKey(value);
+  } catch {
+    // Legacy unencrypted value — return as-is (only possible in dev)
+    return value;
+  }
+}
+
 export async function getUserAIConfig(userId: string): Promise<UserAIConfig | null> {
   // ── Local / no-Supabase mode: read from in-memory store ──
   if (!isSupabaseEnabled()) {
@@ -23,12 +32,16 @@ export async function getUserAIConfig(userId: string): Promise<UserAIConfig | nu
 
     // Selected provider first
     if (keyMap[provider]) {
-      return { provider, apiKey: keyMap[provider]! };
+      const decrypted = tryDecrypt(keyMap[provider]!);
+      if (decrypted) return { provider, apiKey: decrypted };
     }
 
     // Fallback: any key that exists
     for (const [p, key] of Object.entries(keyMap)) {
-      if (key) return { provider: p as AIProvider, apiKey: key };
+      if (key) {
+        const decrypted = tryDecrypt(key);
+        if (decrypted) return { provider: p as AIProvider, apiKey: decrypted };
+      }
     }
 
     return null;
@@ -47,7 +60,6 @@ export async function getUserAIConfig(userId: string): Promise<UserAIConfig | nu
 
   const provider = (data.ai_provider || "openai") as AIProvider;
 
-  // Try selected provider first
   const keyMap: Record<AIProvider, string | null> = {
     openai: data.openai_api_key,
     gemini: data.gemini_api_key,
@@ -56,17 +68,15 @@ export async function getUserAIConfig(userId: string): Promise<UserAIConfig | nu
 
   // Selected provider
   if (keyMap[provider]) {
-    try {
-      return { provider, apiKey: decryptApiKey(keyMap[provider]!) };
-    } catch { /* fall through */ }
+    const decrypted = tryDecrypt(keyMap[provider]!);
+    if (decrypted) return { provider, apiKey: decrypted };
   }
 
   // Fallback: try any key that exists
   for (const [p, key] of Object.entries(keyMap)) {
     if (key) {
-      try {
-        return { provider: p as AIProvider, apiKey: decryptApiKey(key) };
-      } catch { /* continue */ }
+      const decrypted = tryDecrypt(key);
+      if (decrypted) return { provider: p as AIProvider, apiKey: decrypted };
     }
   }
 

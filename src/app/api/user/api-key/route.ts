@@ -6,8 +6,34 @@ import { encryptApiKey, decryptApiKey, maskApiKey } from "@/lib/ai/encrypt";
 import { getMockUserKeys, setMockUserKey, setMockAIProvider } from "@/lib/mock-data";
 import { rateLimit } from "@/lib/rate-limit";
 
+const VALID_PROVIDERS = ["openai", "gemini", "anthropic", "wispr", "tavily", "firecrawl", "serp"] as const;
+type Provider = typeof VALID_PROVIDERS[number];
+
+const COLUMN_MAP: Record<Provider, string> = {
+  openai: "openai_api_key",
+  gemini: "gemini_api_key",
+  anthropic: "anthropic_api_key",
+  wispr: "wispr_api_key",
+  tavily: "tavily_api_key",
+  firecrawl: "firecrawl_api_key",
+  serp: "serp_api_key",
+};
+
+const LLM_PROVIDERS = new Set(["openai", "gemini", "anthropic"]);
+
+function isValidProvider(p: string): p is Provider {
+  return VALID_PROVIDERS.includes(p as Provider);
+}
+
+// ── GET: retrieve masked key status ──
 export async function GET() {
   const user = await getAuthUser();
+
+  // Rate limit reads to prevent enumeration
+  const rl = rateLimit(`apikey-get:${user.id}`, { maxRequests: 30, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+  }
 
   // ── Local / no-Supabase mode: read from in-memory store ──
   if (!isSupabaseEnabled()) {
@@ -15,7 +41,14 @@ export async function GET() {
 
     function mockKeyInfo(raw: string | null) {
       if (!raw) return null;
-      return { hasKey: true, maskedKey: maskApiKey(raw) };
+      // Keys in mock store are encrypted — decrypt to mask
+      try {
+        const decrypted = decryptApiKey(raw);
+        return { hasKey: true, maskedKey: maskApiKey(decrypted) };
+      } catch {
+        // Legacy plaintext key — mask directly then re-encrypt
+        return { hasKey: true, maskedKey: maskApiKey(raw) };
+      }
     }
 
     return NextResponse.json({
@@ -55,29 +88,42 @@ export async function GET() {
     firecrawl: getKeyInfo(data?.firecrawl_api_key),
     serp: getKeyInfo(data?.serp_api_key),
     provider: data?.ai_provider || "openai",
-    encryption: "AES-256-GCM",
   });
 }
 
+// ── POST: save an API key ──
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
 
+  // Demo users cannot save real API keys
+  if (user.isDemo) {
+    return NextResponse.json({ error: "Sign in to save API keys" }, { status: 401 });
+  }
+
   // Rate limit: 5 key saves per minute
-  const rl = rateLimit(`apikey:${user.id}`, { maxRequests: 5, windowMs: 60_000 });
+  const rl = rateLimit(`apikey-post:${user.id}`, { maxRequests: 5, windowMs: 60_000 });
   if (!rl.allowed) {
     return NextResponse.json({ error: "Too many attempts. Please wait." }, { status: 429 });
   }
 
-  const { api_key, provider } = await request.json();
-
-  if (!api_key || typeof api_key !== "string") {
-    return NextResponse.json({ error: "api_key is required" }, { status: 400 });
+  let body: { api_key?: unknown; provider?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  if (!provider || !["openai", "gemini", "anthropic", "wispr", "tavily", "firecrawl", "serp"].includes(provider)) {
+  const { api_key, provider } = body;
+
+  if (!api_key || typeof api_key !== "string" || api_key.length > 500) {
+    return NextResponse.json({ error: "api_key is required and must be under 500 characters" }, { status: 400 });
+  }
+
+  if (!provider || typeof provider !== "string" || !isValidProvider(provider)) {
     return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
   }
 
+  // Validate key format for known providers
   if (provider === "openai" && !api_key.startsWith("sk-")) {
     return NextResponse.json({ error: "Invalid OpenAI key. Must start with sk-" }, { status: 400 });
   }
@@ -94,20 +140,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid Firecrawl key. Must start with fc-" }, { status: 400 });
   }
 
-  // ── Local / no-Supabase mode: store in memory (plain text, ephemeral) ──
+  // Always encrypt before storage — even in local mode
+  const encrypted = encryptApiKey(api_key);
+
+  // ── Local / no-Supabase mode: store encrypted in memory ──
   if (!isSupabaseEnabled()) {
-    const columnMap: Record<string, string> = {
-      openai: "openai_api_key",
-      gemini: "gemini_api_key",
-      anthropic: "anthropic_api_key",
-      wispr: "wispr_api_key",
-      tavily: "tavily_api_key",
-      firecrawl: "firecrawl_api_key",
-      serp: "serp_api_key",
-    };
-    setMockUserKey(user.id, columnMap[provider], api_key);
-    const llmProviders = ["openai", "gemini", "anthropic"];
-    if (llmProviders.includes(provider)) setMockAIProvider(user.id, provider);
+    setMockUserKey(user.id, COLUMN_MAP[provider], encrypted);
+    if (LLM_PROVIDERS.has(provider)) setMockAIProvider(user.id, provider);
 
     return NextResponse.json({
       success: true,
@@ -117,24 +156,10 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = await createClient();
-  if (!supabase) return NextResponse.json({ error: "Supabase not available" }, { status: 500 });
+  if (!supabase) return NextResponse.json({ error: "Database not available" }, { status: 500 });
 
-  const columnMap: Record<string, string> = {
-    openai: "openai_api_key",
-    gemini: "gemini_api_key",
-    anthropic: "anthropic_api_key",
-    wispr: "wispr_api_key",
-    tavily: "tavily_api_key",
-    firecrawl: "firecrawl_api_key",
-    serp: "serp_api_key",
-  };
-
-  const encrypted = encryptApiKey(api_key);
-
-  const updateData: Record<string, string> = { [columnMap[provider]]: encrypted };
-  // Only change ai_provider for LLM providers
-  const llmProviders = ["openai", "gemini", "anthropic"];
-  if (llmProviders.includes(provider)) updateData.ai_provider = provider;
+  const updateData: Record<string, string> = { [COLUMN_MAP[provider]]: encrypted };
+  if (LLM_PROVIDERS.has(provider)) updateData.ai_provider = provider;
 
   const { error } = await supabase
     .from("users")
@@ -142,60 +167,57 @@ export async function POST(request: NextRequest) {
     .eq("id", user.id);
 
   if (error) {
-    console.error("API key operation error:", error.message);
-    return NextResponse.json({ error: "Operation failed. Please try again." }, { status: 500 });
+    console.error("API key save error:", error.message);
+    return NextResponse.json({ error: "Failed to save key. Please try again." }, { status: 500 });
   }
 
   return NextResponse.json({
     success: true,
     maskedKey: maskApiKey(api_key),
     provider,
-    encryption: "AES-256-GCM",
   });
 }
 
+// ── DELETE: remove an API key ──
 export async function DELETE(request: NextRequest) {
   const user = await getAuthUser();
 
+  // Demo users cannot delete keys
+  if (user.isDemo) {
+    return NextResponse.json({ error: "Sign in to manage API keys" }, { status: 401 });
+  }
+
+  // Rate limit: 10 deletes per minute
+  const rl = rateLimit(`apikey-del:${user.id}`, { maxRequests: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many attempts. Please wait." }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
-  const provider = searchParams.get("provider") || "openai";
+  const provider = searchParams.get("provider");
+
+  // Validate provider — reject unknown values
+  if (!provider || !isValidProvider(provider)) {
+    return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
+  }
 
   // ── Local / no-Supabase mode ──
   if (!isSupabaseEnabled()) {
-    const columnMap: Record<string, string> = {
-      openai: "openai_api_key",
-      gemini: "gemini_api_key",
-      anthropic: "anthropic_api_key",
-      wispr: "wispr_api_key",
-      tavily: "tavily_api_key",
-      firecrawl: "firecrawl_api_key",
-      serp: "serp_api_key",
-    };
-    setMockUserKey(user.id, columnMap[provider] || "openai_api_key", null);
+    setMockUserKey(user.id, COLUMN_MAP[provider], null);
     return NextResponse.json({ success: true });
   }
 
   const supabase = await createClient();
-  if (!supabase) return NextResponse.json({ error: "Supabase not available" }, { status: 500 });
-
-  const delColumnMap: Record<string, string> = {
-    openai: "openai_api_key",
-    gemini: "gemini_api_key",
-    anthropic: "anthropic_api_key",
-    wispr: "wispr_api_key",
-    tavily: "tavily_api_key",
-    firecrawl: "firecrawl_api_key",
-    serp: "serp_api_key",
-  };
+  if (!supabase) return NextResponse.json({ error: "Database not available" }, { status: 500 });
 
   const { error } = await supabase
     .from("users")
-    .update({ [delColumnMap[provider] || "openai_api_key"]: null })
+    .update({ [COLUMN_MAP[provider]]: null })
     .eq("id", user.id);
 
   if (error) {
-    console.error("API key operation error:", error.message);
-    return NextResponse.json({ error: "Operation failed. Please try again." }, { status: 500 });
+    console.error("API key delete error:", error.message);
+    return NextResponse.json({ error: "Failed to remove key. Please try again." }, { status: 500 });
   }
   return NextResponse.json({ success: true });
 }
