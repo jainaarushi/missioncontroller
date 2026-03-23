@@ -4,20 +4,58 @@ import { rateLimit } from "@/lib/rate-limit";
 import {
   isComposioEnabled,
   getComposioApiKey,
-  getConnectionStatus,
   checkComposioUsage,
   incrementComposioUsage,
 } from "@/lib/ai/composio/service";
 
 const COMPOSIO_API_BASE = "https://backend.composio.dev/api/v2";
+const COMPOSIO_API_V1 = "https://backend.composio.dev/api/v1";
+
+/** Find the connected account ID for a user + app combo */
+async function getConnectedAccountId(
+  apiKey: string,
+  entityId: string,
+  appName: string,
+): Promise<string | null> {
+  try {
+    const resp = await fetch(
+      `${COMPOSIO_API_V1}/connectedAccounts?user_uuid=${entityId}&showActiveOnly=true`,
+      { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
+    );
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const items = data.items || [];
+    const match = items.find(
+      (item: { appName?: string }) =>
+        item.appName?.toLowerCase() === appName.toLowerCase()
+    );
+    return match?.id || null;
+  } catch {
+    return null;
+  }
+}
 
 async function executeComposioAction(
   apiKey: string,
   actionName: string,
   entityId: string,
+  appName: string,
+  connectedAccountId: string | null,
   params: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   const url = `${COMPOSIO_API_BASE}/actions/${actionName}/execute`;
+
+  // Build body — include connectedAccountId if we have it, otherwise appName + entityId
+  const body: Record<string, unknown> = {
+    entityId,
+    appName: appName.toLowerCase(),
+    input: params,
+  };
+  if (connectedAccountId) {
+    body.connectedAccountId = connectedAccountId;
+  }
+
+  console.log(`[Composio execute] POST ${url}`, JSON.stringify(body).slice(0, 500));
 
   const res = await fetch(url, {
     method: "POST",
@@ -25,10 +63,7 @@ async function executeComposioAction(
       "Content-Type": "application/json",
       "x-api-key": apiKey,
     },
-    body: JSON.stringify({
-      entityId,
-      input: params,
-    }),
+    body: JSON.stringify(body),
     signal: AbortSignal.timeout(30_000),
   });
 
@@ -47,7 +82,7 @@ async function executeComposioAction(
 
 /**
  * GET /api/templates/send?app=linkedin
- * Debug: list available Composio actions for an app
+ * Debug: list available Composio actions + connected accounts
  */
 export async function GET(request: NextRequest) {
   const app = request.nextUrl.searchParams.get("app") || "LINKEDIN";
@@ -57,19 +92,40 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const resp = await fetch(
-      `${COMPOSIO_API_BASE}/actions?appNames=${app.toUpperCase()}&limit=50`,
-      { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
-    );
-    const data = await resp.json();
-    const actions = (data.items || []).map(
-      (a: { name?: string; displayName?: string; description?: string }) => ({
+    // List actions — use v1 endpoint which supports appName filter better
+    const [actionsResp, connResp] = await Promise.all([
+      fetch(
+        `${COMPOSIO_API_V1}/actions?appNames=${app.toUpperCase()}&limit=50`,
+        { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
+      ),
+      fetch(
+        `${COMPOSIO_API_V1}/connectedAccounts?showActiveOnly=true`,
+        { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
+      ),
+    ]);
+
+    const actionsData = actionsResp.ok ? await actionsResp.json() : {};
+    const connData = connResp.ok ? await connResp.json() : {};
+
+    const actions = (actionsData.items || []).map(
+      (a: { name?: string; displayName?: string; description?: string; appName?: string }) => ({
         name: a.name,
         displayName: a.displayName,
+        appName: a.appName,
         description: a.description?.slice(0, 100),
       })
     );
-    return NextResponse.json({ app, actions });
+
+    const connections = (connData.items || []).map(
+      (c: { id?: string; appName?: string; status?: string; entityId?: string }) => ({
+        id: c.id,
+        appName: c.appName,
+        status: c.status,
+        entityId: c.entityId,
+      })
+    );
+
+    return NextResponse.json({ app, actions, connections });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
@@ -78,9 +134,6 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/templates/send
  * Sends a single draft message via Composio (LinkedIn, Gmail, etc.)
- *
- * Body: { app: "linkedin", action: "LINKEDIN_CREATE_POST", params: { text: "..." } }
- * Or:   { app: "linkedin", action: "LINKEDIN_SEND_CONNECTION_REQUEST", params: { ... } }
  */
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
@@ -142,33 +195,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Check Composio directly for connected accounts instead of in-memory store
-  // (the in-memory store resets on every deploy/restart)
-  try {
-    const apiKey = getComposioApiKey();
-    const connResp = await fetch(
-      `https://backend.composio.dev/api/v1/connectedAccounts?user_uuid=${user.id}&status=ACTIVE`,
-      { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(10_000) }
-    );
-    if (connResp.ok) {
-      const connData = await connResp.json();
-      const items = connData.items || [];
-      const hasApp = items.some(
-        (item: { appName?: string }) =>
-          item.appName?.toLowerCase() === app.toLowerCase()
-      );
-      if (!hasApp) {
-        return NextResponse.json(
-          { error: `${app} is not connected. Connect it in Settings first.` },
-          { status: 400 }
-        );
-      }
-    }
-  } catch {
-    // If check fails, proceed anyway — let Composio return its own error
-    console.warn("[templates/send] Could not verify connection status, proceeding anyway");
-  }
-
   // Allowlist of actions we support
   const ALLOWED_ACTIONS = new Set([
     "LINKEDIN_CREATE_POST",
@@ -187,39 +213,24 @@ export async function POST(request: NextRequest) {
   try {
     const apiKey = getComposioApiKey();
 
-    // Log the outgoing request for debugging
-    console.log(`[templates/send] action=${action} entityId=${user.id} params=`, JSON.stringify(params).slice(0, 300));
+    // Look up the connected account ID for this user + app
+    const connectedAccountId = await getConnectedAccountId(apiKey, user.id, app);
+    console.log(`[templates/send] action=${action} entityId=${user.id} connectedAccountId=${connectedAccountId}`);
 
-    const result = await executeComposioAction(apiKey, action, user.id, params);
+    if (!connectedAccountId) {
+      return NextResponse.json(
+        { error: `${app} is not connected. Connect it in Settings first.` },
+        { status: 400 }
+      );
+    }
+
+    const result = await executeComposioAction(apiKey, action, user.id, app, connectedAccountId, params);
     incrementComposioUsage(user.id);
 
     return NextResponse.json({ success: true, result });
   } catch (err) {
     console.error("Template send error:", err);
     const message = err instanceof Error ? err.message : "Failed to send message";
-
-    // If action failed, try to list available actions for debugging
-    try {
-      const apiKey = getComposioApiKey();
-      const actionsResp = await fetch(
-        `https://backend.composio.dev/api/v2/actions?appNames=${app.toUpperCase()}&limit=20`,
-        { headers: { "x-api-key": apiKey }, signal: AbortSignal.timeout(5_000) }
-      );
-      if (actionsResp.ok) {
-        const actionsData = await actionsResp.json();
-        const available = (actionsData.items || []).map(
-          (a: { name?: string; displayName?: string }) => a.name || a.displayName
-        );
-        console.log(`[templates/send] Available ${app} actions:`, available.join(", "));
-        return NextResponse.json(
-          { error: message, availableActions: available },
-          { status: 500 }
-        );
-      }
-    } catch {
-      // ignore
-    }
-
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
