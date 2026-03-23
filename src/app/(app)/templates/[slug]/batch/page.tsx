@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getTemplate } from "@/lib/template-data";
-import { api } from "@/lib/api";
 
 interface Draft {
   initials: string;
@@ -14,8 +13,7 @@ interface Draft {
   profileUrl?: string;
   avatarBg: string;
   avatarText: string;
-  status: "pending" | "sending" | "sent" | "failed";
-  error?: string;
+  copied: boolean;
 }
 
 export default function BatchPage() {
@@ -24,15 +22,7 @@ export default function BatchPage() {
   const template = getTemplate(slug);
 
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [hasCookie, setHasCookie] = useState<boolean | null>(null);
-  const [sendingAll, setSendingAll] = useState(false);
-
-  // Check if LinkedIn cookie is set
-  useEffect(() => {
-    api.get<{ hasCookie: boolean }>("/api/user/linkedin-cookie")
-      .then((data) => setHasCookie(data.hasCookie))
-      .catch(() => setHasCookie(false));
-  }, []);
+  const [toast, setToast] = useState<string | null>(null);
 
   // Load approved drafts from sessionStorage
   useEffect(() => {
@@ -41,49 +31,66 @@ export default function BatchPage() {
       const raw = sessionStorage.getItem(`template-drafts:${slug}`);
       if (raw) {
         const parsed = JSON.parse(raw) as Draft[];
-        setDrafts(parsed.map((d) => ({ ...d, status: "pending" as const, error: undefined })));
+        setDrafts(parsed.map((d) => ({ ...d, copied: false })));
         return;
       }
     } catch { /* ignore */ }
     setDrafts([]);
   }, [slug, template]);
 
-  const sendOne = useCallback(async (idx: number) => {
-    const draft = drafts[idx];
-    if (!draft.profileUrl) return;
-
-    setDrafts((prev) =>
-      prev.map((d, i) => (i === idx ? { ...d, status: "sending" as const, error: undefined } : d))
+  if (!template) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
+        <p className="text-[#414753]">Template not found.</p>
+      </div>
     );
+  }
 
-    try {
-      await api.post("/api/linkedin/send", {
-        profileUrl: draft.profileUrl,
-        message: draft.preview,
-        action: "connect",
-      });
-      setDrafts((prev) =>
-        prev.map((d, i) => (i === idx ? { ...d, status: "sent" as const } : d))
-      );
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Send failed";
-      setDrafts((prev) =>
-        prev.map((d, i) => (i === idx ? { ...d, status: "failed" as const, error: msg } : d))
-      );
+  const copiedCount = drafts.filter((d) => d.copied).length;
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  const handleCopyAndOpen = async (idx: number) => {
+    const draft = drafts[idx];
+    await navigator.clipboard.writeText(draft.preview);
+    setDrafts((prev) =>
+      prev.map((d, i) => (i === idx ? { ...d, copied: true } : d))
+    );
+    if (draft.profileUrl) {
+      window.open(draft.profileUrl, "_blank");
     }
-  }, [drafts]);
+    showToast(`Copied message for ${draft.name} — paste it in LinkedIn`);
+  };
 
-  const sendAll = async () => {
-    setSendingAll(true);
+  const handleCopyOnly = async (idx: number) => {
+    const draft = drafts[idx];
+    await navigator.clipboard.writeText(draft.preview);
+    setDrafts((prev) =>
+      prev.map((d, i) => (i === idx ? { ...d, copied: true } : d))
+    );
+    showToast("Message copied to clipboard");
+  };
+
+  const handleSendAll = async () => {
     for (let i = 0; i < drafts.length; i++) {
-      if (drafts[i].status === "sent" || !drafts[i].profileUrl) continue;
-      await sendOne(i);
-      // Small delay between sends to avoid LinkedIn rate limits
+      if (drafts[i].copied) continue;
+      const draft = drafts[i];
+      await navigator.clipboard.writeText(draft.preview);
+      setDrafts((prev) =>
+        prev.map((d, j) => (j === i ? { ...d, copied: true } : d))
+      );
+      if (draft.profileUrl) {
+        window.open(draft.profileUrl, "_blank");
+      }
+      // Small delay between opens so browser doesn't block popups
       if (i < drafts.length - 1) {
-        await new Promise((r) => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 500));
       }
     }
-    setSendingAll(false);
+    showToast(`Opened ${drafts.length} profiles — paste each message in LinkedIn`);
   };
 
   const handleExport = () => {
@@ -103,19 +110,15 @@ export default function BatchPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (!template) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
-        <p className="text-[#414753]">Template not found.</p>
-      </div>
-    );
-  }
-
-  const sentCount = drafts.filter((d) => d.status === "sent").length;
-  const failedCount = drafts.filter((d) => d.status === "failed").length;
-
   return (
     <div className="p-8 max-w-5xl mx-auto">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold bg-green-50 text-green-700 border border-green-200">
+          {toast}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <nav className="flex items-center gap-2 text-xs text-slate-500 mb-2">
@@ -135,8 +138,7 @@ export default function BatchPage() {
               Ready to Send
             </h2>
             <p className="text-sm text-slate-500 mt-1">
-              {drafts.length} approved message{drafts.length !== 1 ? "s" : ""}.
-              {hasCookie ? " Send connection requests directly via LinkedIn." : " Add your LinkedIn cookie in Settings to send."}
+              {drafts.length} approved message{drafts.length !== 1 ? "s" : ""}. Click to copy &amp; open each profile in LinkedIn.
             </p>
           </div>
           <div className="flex gap-3">
@@ -147,43 +149,27 @@ export default function BatchPage() {
               <span className="material-symbols-outlined text-sm">download</span>
               Export CSV
             </button>
-            {hasCookie ? (
-              <button
-                onClick={sendAll}
-                disabled={sendingAll || sentCount === drafts.length}
-                className="px-4 py-2 text-sm font-semibold bg-[#006c05] text-white rounded-lg flex items-center gap-2 hover:brightness-110 transition-all disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-sm">
-                  {sendingAll ? "hourglass_empty" : sentCount === drafts.length ? "check" : "send"}
-                </span>
-                {sendingAll ? "Sending..." : sentCount === drafts.length ? "All Sent!" : "Send All"}
-              </button>
-            ) : (
-              <Link
-                href="/settings"
-                className="px-4 py-2 text-sm font-semibold bg-[#006c05] text-white rounded-lg flex items-center gap-2 hover:brightness-110 transition-all"
-              >
-                <span className="material-symbols-outlined text-sm">settings</span>
-                Add LinkedIn Cookie
-              </Link>
-            )}
+            <button
+              onClick={handleSendAll}
+              disabled={copiedCount === drafts.length}
+              className="px-4 py-2 text-sm font-semibold bg-[#006c05] text-white rounded-lg flex items-center gap-2 hover:brightness-110 transition-all disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-sm">
+                {copiedCount === drafts.length ? "check" : "open_in_new"}
+              </span>
+              {copiedCount === drafts.length ? "All Done!" : "Open All Profiles"}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* No cookie warning */}
-      {hasCookie === false && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <span className="material-symbols-outlined text-amber-600">warning</span>
-          <div>
-            <p className="text-sm font-semibold text-amber-800">LinkedIn cookie not configured</p>
-            <p className="text-xs text-amber-700 mt-1">
-              Go to <Link href="/settings" className="underline font-semibold">Settings</Link> and add your LinkedIn <code className="bg-amber-100 px-1 rounded">li_at</code> cookie to send connection requests directly.
-              You can still export as CSV and send manually.
-            </p>
-          </div>
+      {/* How it works */}
+      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+        <span className="material-symbols-outlined text-blue-600">info</span>
+        <div className="text-xs text-blue-800 leading-relaxed">
+          <strong>How it works:</strong> Click &quot;Copy &amp; Open&quot; for each person — the message is copied to your clipboard and their LinkedIn profile opens in a new tab. Then click &quot;Connect&quot; on LinkedIn and paste your personalized message.
         </div>
-      )}
+      </div>
 
       {/* Progress */}
       {drafts.length > 0 && (
@@ -191,12 +177,11 @@ export default function BatchPage() {
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-[#006c05] transition-all duration-300 rounded-full"
-              style={{ width: `${drafts.length > 0 ? Math.round((sentCount / drafts.length) * 100) : 0}%` }}
+              style={{ width: `${drafts.length > 0 ? Math.round((copiedCount / drafts.length) * 100) : 0}%` }}
             />
           </div>
           <span className="text-sm font-semibold text-slate-600">
-            {sentCount}/{drafts.length} sent
-            {failedCount > 0 && <span className="text-red-500 ml-1">({failedCount} failed)</span>}
+            {copiedCount}/{drafts.length} done
           </span>
         </div>
       )}
@@ -207,10 +192,8 @@ export default function BatchPage() {
           <div
             key={`${draft.name}-${idx}`}
             className={`bg-white rounded-xl border p-5 transition-all ${
-              draft.status === "sent"
+              draft.copied
                 ? "border-[#006c05]/30 bg-[#006c05]/[0.02]"
-                : draft.status === "failed"
-                ? "border-red-200 bg-red-50/30"
                 : "border-slate-200 hover:border-slate-300"
             }`}
           >
@@ -227,19 +210,10 @@ export default function BatchPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-bold text-sm">{draft.name}</span>
                   <span className="text-xs text-slate-400">{draft.company}</span>
-                  {draft.status === "sent" && (
-                    <span className="text-[10px] font-bold text-[#006c05] bg-[#006c05]/10 px-2 py-0.5 rounded-full">
-                      Sent
-                    </span>
-                  )}
-                  {draft.status === "sending" && (
-                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                      Sending...
-                    </span>
-                  )}
-                  {draft.status === "failed" && (
-                    <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                      Failed
+                  {draft.copied && (
+                    <span className="text-[10px] font-bold text-[#006c05] bg-[#006c05]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[10px]">check</span>
+                      Done
                     </span>
                   )}
                 </div>
@@ -256,52 +230,34 @@ export default function BatchPage() {
                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
                   {draft.preview}
                 </p>
-                {draft.error && (
-                  <p className="text-xs text-red-500 mt-2">{draft.error}</p>
-                )}
               </div>
 
-              {/* Send / Retry Button */}
-              {hasCookie && draft.profileUrl ? (
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 flex-shrink-0">
                 <button
-                  onClick={() => sendOne(idx)}
-                  disabled={draft.status === "sending" || draft.status === "sent"}
-                  className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${
-                    draft.status === "sent"
+                  onClick={() => handleCopyAndOpen(idx)}
+                  disabled={draft.copied}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${
+                    draft.copied
                       ? "bg-[#006c05]/10 text-[#006c05]"
-                      : draft.status === "failed"
-                      ? "bg-red-500 text-white hover:bg-red-600"
-                      : draft.status === "sending"
-                      ? "bg-gray-200 text-gray-500"
-                      : "bg-[#1b1b1b] text-white hover:bg-[#333]"
+                      : "bg-[#006c05] text-white hover:brightness-110"
                   }`}
                 >
                   <span className="material-symbols-outlined text-sm">
-                    {draft.status === "sent" ? "check" : draft.status === "sending" ? "hourglass_empty" : draft.status === "failed" ? "refresh" : "send"}
+                    {draft.copied ? "check" : "open_in_new"}
                   </span>
-                  {draft.status === "sent" ? "Sent" : draft.status === "sending" ? "Sending" : draft.status === "failed" ? "Retry" : "Send"}
+                  {draft.copied ? "Done" : "Copy & Open"}
                 </button>
-              ) : (
-                <button
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(draft.preview);
-                    setDrafts((prev) =>
-                      prev.map((d, i) => (i === idx ? { ...d, status: "sent" as const } : d))
-                    );
-                  }}
-                  disabled={draft.status === "sent"}
-                  className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${
-                    draft.status === "sent"
-                      ? "bg-[#006c05]/10 text-[#006c05]"
-                      : "bg-[#1b1b1b] text-white hover:bg-[#333]"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    {draft.status === "sent" ? "check" : "content_copy"}
-                  </span>
-                  {draft.status === "sent" ? "Copied" : "Copy"}
-                </button>
-              )}
+                {!draft.copied && (
+                  <button
+                    onClick={() => handleCopyOnly(idx)}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  >
+                    <span className="material-symbols-outlined text-sm">content_copy</span>
+                    Copy Only
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}

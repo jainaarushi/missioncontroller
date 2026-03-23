@@ -9,8 +9,6 @@ import {
 } from "@/lib/ai/client";
 import { generateText } from "ai";
 import { rateLimit } from "@/lib/rate-limit";
-import { getLinkedInCookie } from "@/app/api/user/linkedin-cookie/route";
-import { getProfile, type LinkedInProfile } from "@/lib/linkedin/client";
 
 /** Extract LinkedIn usernames from a block of text (one URL per line, or mixed with CSV noise). */
 function parseLinkedInProfiles(raw: string): { url: string; username: string }[] {
@@ -124,35 +122,12 @@ export async function POST(request: NextRequest) {
 
     const objective = formValues["Outreach Objective"] || "";
 
-    // Try to look up real profile data using LinkedIn cookie
-    const cookie = getLinkedInCookie(user.id);
-    const profileData: Map<string, LinkedInProfile> = new Map();
-
-    if (cookie) {
-      // Fetch real profile info for each URL (in parallel, with error handling per profile)
-      const lookups = profiles.map(async (p) => {
-        try {
-          const data = await getProfile(cookie, p.username);
-          profileData.set(p.username, data);
-        } catch {
-          // If lookup fails, we'll fall back to guessing from username
-        }
-      });
-      await Promise.all(lookups);
-    }
-
     systemPrompt = `You are an expert LinkedIn outreach specialist. You generate highly personalized, professional connection messages that get responses. Each message must feel genuinely researched and human — never generic or spammy.
 
 You always return valid JSON and nothing else.`;
 
     const profileList = profiles
-      .map((p, i) => {
-        const real = profileData.get(p.username);
-        if (real && real.firstName) {
-          return `${i + 1}. Name: "${real.firstName} ${real.lastName}" | Headline: "${real.headline}" | Profile: ${p.url}`;
-        }
-        return `${i + 1}. Name: "${usernameToName(p.username)}" | Profile: ${p.url}`;
-      })
+      .map((p, i) => `${i + 1}. Name: "${usernameToName(p.username)}" | Profile: ${p.url}`)
       .join("\n");
 
     userPrompt = `Generate a personalized LinkedIn outreach message for EACH of these specific people:
@@ -162,18 +137,18 @@ ${profileList}
 Outreach Objective: ${objective}
 
 For each person, create a warm, professional outreach message (2-3 sentences) that:
-- Addresses them by their actual name (provided above)
-- References their REAL headline/role as given above — do NOT make up or guess their company or title
-- Ties into the outreach objective naturally
+- Addresses them by their actual name (derived from their LinkedIn profile URL above)
+- Focuses on the outreach objective — do NOT guess or make up their company, title, or school
+- For the "company" field, just put "LinkedIn" since we only have their profile URL
 - Feels personal, not templated
 
 Return a JSON array with exactly ${profiles.length} objects (one per profile, in the same order), each having:
 {
   "initials": "XX",
-  "name": "Their Full Name (use the exact name given above)",
-  "company": "Their role/company (from the headline given above, or 'Unknown' if not provided)",
+  "name": "Their Full Name",
+  "company": "LinkedIn",
   "preview": "The personalized outreach message",
-  "profileUrl": "their linkedin URL"
+  "profileUrl": "their linkedin URL from above"
 }
 
 Return ONLY the JSON array, no other text.`;

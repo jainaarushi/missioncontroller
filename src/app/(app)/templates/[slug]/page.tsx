@@ -11,10 +11,6 @@ interface ComposioStatusResponse {
   connections: Record<string, boolean>;
 }
 
-interface LiCookieStatus {
-  hasCookie: boolean;
-  maskedCookie: string | null;
-}
 
 export default function TemplateConfigPage() {
   const params = useParams();
@@ -24,7 +20,6 @@ export default function TemplateConfigPage() {
 
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [composioConnections, setComposioConnections] = useState<Record<string, boolean>>({});
-  const [liCookieStatus, setLiCookieStatus] = useState<LiCookieStatus | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [composioMessage, setComposioMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
@@ -36,16 +31,9 @@ export default function TemplateConfigPage() {
       .catch(() => {});
   }, []);
 
-  const loadLiCookieStatus = useCallback(() => {
-    api.get<LiCookieStatus>("/api/user/linkedin-cookie")
-      .then((data) => setLiCookieStatus(data))
-      .catch(() => setLiCookieStatus({ hasCookie: false, maskedCookie: null }));
-  }, []);
-
   useEffect(() => {
     loadComposioStatus();
-    loadLiCookieStatus();
-  }, [loadComposioStatus, loadLiCookieStatus]);
+  }, [loadComposioStatus]);
 
   // Detect return from Composio OAuth
   useEffect(() => {
@@ -108,12 +96,10 @@ export default function TemplateConfigPage() {
     }
   };
 
-  // Check if a tool is connected via live status
+  // Check if a tool is connected via live Composio status, fallback to static
   const getToolConnected = (toolName: string): boolean => {
-    // LinkedIn Cookie — check via dedicated cookie status
-    if (toolName === "LinkedIn Cookie") {
-      return liCookieStatus?.hasCookie || false;
-    }
+    // LinkedIn doesn't need a connection — we use copy+open flow
+    if (toolName === "LinkedIn Cookie") return true;
     const appKey = TOOL_TO_APP[toolName] || toolName.toLowerCase().replace(/\s+/g, "");
     if (composioConnections[appKey] !== undefined) return composioConnections[appKey];
     const staticTool = template.toolConnections.find((t) => t.name === toolName);
@@ -305,8 +291,8 @@ export default function TemplateConfigPage() {
                                 {isConnected ? "check_circle" : "error"}
                               </span>
                               {isConnected
-                                ? tool.name === "LinkedIn Cookie" && liCookieStatus?.maskedCookie
-                                  ? liCookieStatus.maskedCookie
+                                ? tool.name === "LinkedIn Cookie"
+                                  ? "Copy & Open Flow"
                                   : "Connected"
                                 : "Not configured"}
                             </p>

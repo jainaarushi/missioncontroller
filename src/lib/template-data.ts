@@ -122,8 +122,7 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
       },
     ],
     composioPowered: false,
-    warningText:
-      "Add your LinkedIn cookie in Settings to enable direct sending. You can still generate and export drafts without it.",
+    warningText: "",
     // Drafting
     draftingAgent: "Research Strategist",
     draftingDescription:
