@@ -123,14 +123,15 @@ export default function BatchPage() {
     return () => clearInterval(iv);
   }, [sending]);
 
-  // Determine the Composio action based on template slug
+  const [sendMode, setSendMode] = useState<"post" | "message">("post");
+
+  // Determine the Composio action based on send mode
   const getAction = useCallback(() => {
-    if (slug === "linkedin-outreach") {
-      return { app: "linkedin", action: "LINKEDIN_SEND_CONNECTION_REQUEST" };
+    if (sendMode === "message") {
+      return { app: "linkedin", action: "LINKEDIN_SEND_MESSAGE" };
     }
-    // Default to LinkedIn post for other templates
     return { app: "linkedin", action: "LINKEDIN_CREATE_POST" };
-  }, [slug]);
+  }, [sendMode]);
 
   // Calculate throttle delay in ms
   const getDelay = useCallback(() => {
@@ -171,12 +172,14 @@ export default function BatchPage() {
       try {
         // Build params based on action type
         const sendParams: Record<string, unknown> =
-          action === "LINKEDIN_SEND_CONNECTION_REQUEST"
+          action === "LINKEDIN_SEND_MESSAGE"
             ? {
-                profile_url: recipient.profileUrl || "",
+                recipient_profile_url: recipient.profileUrl || "",
                 message: recipient.preview,
               }
-            : { text: recipient.preview };
+            : {
+                text: `${recipient.preview}${recipient.profileUrl ? `\n\n${recipient.profileUrl}` : ""}`,
+              };
 
         await api.post("/api/templates/send", {
           app,
@@ -263,9 +266,9 @@ export default function BatchPage() {
 
     try {
       const retryParams: Record<string, unknown> =
-        action === "LINKEDIN_SEND_CONNECTION_REQUEST"
-          ? { profile_url: recipient.profileUrl || "", message: recipient.preview }
-          : { text: recipient.preview };
+        action === "LINKEDIN_SEND_MESSAGE"
+          ? { recipient_profile_url: recipient.profileUrl || "", message: recipient.preview }
+          : { text: `${recipient.preview}${recipient.profileUrl ? `\n\n${recipient.profileUrl}` : ""}` };
 
       await api.post("/api/templates/send", {
         app,
@@ -455,12 +458,46 @@ export default function BatchPage() {
           </div>
         </div>
 
-        {/* Throttle Control */}
+        {/* Send Mode + Throttle Control */}
         <div className="col-span-12 lg:col-span-4 bg-white p-8 rounded-xl border border-slate-200 shadow-sm flex flex-col">
           <div className="flex items-center gap-2 mb-6">
             <span className="material-symbols-outlined text-[#3028e9]">tune</span>
-            <h4 className="font-bold text-lg tracking-tight">Adjust Throttle</h4>
+            <h4 className="font-bold text-lg tracking-tight">Send Settings</h4>
           </div>
+          {slug === "linkedin-outreach" && (
+            <div className="mb-6">
+              <label className="text-sm font-medium text-slate-600 block mb-3">Send as</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setSendMode("post")}
+                  disabled={sending}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
+                    sendMode === "post"
+                      ? "bg-[#006c05] text-white border-[#006c05]"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                  } ${sending ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  LinkedIn Post
+                </button>
+                <button
+                  onClick={() => setSendMode("message")}
+                  disabled={sending}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
+                    sendMode === "message"
+                      ? "bg-[#006c05] text-white border-[#006c05]"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                  } ${sending ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  Direct Message
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-2">
+                {sendMode === "post"
+                  ? "Creates LinkedIn posts with your outreach message."
+                  : "Sends direct messages to target profiles (requires 1st-degree connection)."}
+              </p>
+            </div>
+          )}
           <div className="flex-1 space-y-6">
             <div>
               <div className="flex justify-between mb-4">
