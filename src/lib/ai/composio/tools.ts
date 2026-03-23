@@ -70,6 +70,14 @@ const APP_ACTIONS: Record<string, {
         visibility: z.enum(["PUBLIC", "CONNECTIONS"]).optional().describe("Who can see the post (defaults to PUBLIC)"),
       }),
     },
+    {
+      actionName: "LINKEDIN_SEND_CONNECTION_REQUEST",
+      description: "Send a LinkedIn connection request to a specific profile with a personalized message.",
+      parameters: z.object({
+        profile_url: z.string().describe("The LinkedIn profile URL of the person to connect with"),
+        message: z.string().optional().describe("Personalized connection message (max 300 chars)"),
+      }),
+    },
   ],
   GMAIL: [
     {

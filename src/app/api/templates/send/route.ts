@@ -34,7 +34,7 @@ async function executeComposioAction(
 
   if (!res.ok) {
     const errText = await res.text().catch(() => "Unknown error");
-    throw new Error(`Composio action failed: ${res.status} ${errText.slice(0, 200)}`);
+    throw new Error(`Composio action failed (${res.status}): ${errText.slice(0, 500)}`);
   }
 
   const data = await res.json();
@@ -125,7 +125,9 @@ export async function POST(request: NextRequest) {
   // Allowlist of actions we support
   const ALLOWED_ACTIONS = new Set([
     "LINKEDIN_CREATE_POST",
+    "LINKEDIN_CREATE_LINKED_POST",
     "LINKEDIN_SEND_CONNECTION_REQUEST",
+    "LINKEDIN_SEND_MESSAGE",
     "GMAIL_SEND_EMAIL",
   ]);
   if (!ALLOWED_ACTIONS.has(action)) {
@@ -137,6 +139,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const apiKey = getComposioApiKey();
+
+    // Log the outgoing request for debugging
+    console.log(`[templates/send] action=${action} entityId=${user.id} params=`, JSON.stringify(params).slice(0, 300));
+
     const result = await executeComposioAction(apiKey, action, user.id, params);
     incrementComposioUsage(user.id);
 

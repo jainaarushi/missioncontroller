@@ -13,6 +13,7 @@ interface Recipient {
   name: string;
   company: string;
   preview: string;
+  profileUrl?: string;
   status: RecipientStatus;
   avatarBg: string;
   avatarText: string;
@@ -125,9 +126,9 @@ export default function BatchPage() {
   // Determine the Composio action based on template slug
   const getAction = useCallback(() => {
     if (slug === "linkedin-outreach") {
-      return { app: "linkedin", action: "LINKEDIN_CREATE_POST" };
+      return { app: "linkedin", action: "LINKEDIN_SEND_CONNECTION_REQUEST" };
     }
-    // Default to LinkedIn for now
+    // Default to LinkedIn post for other templates
     return { app: "linkedin", action: "LINKEDIN_CREATE_POST" };
   }, [slug]);
 
@@ -168,10 +169,19 @@ export default function BatchPage() {
       );
 
       try {
+        // Build params based on action type
+        const sendParams: Record<string, unknown> =
+          action === "LINKEDIN_SEND_CONNECTION_REQUEST"
+            ? {
+                profile_url: recipient.profileUrl || "",
+                message: recipient.preview,
+              }
+            : { text: recipient.preview };
+
         await api.post("/api/templates/send", {
           app,
           action,
-          params: { text: recipient.preview },
+          params: sendParams,
         });
 
         setRecipients((prev) =>
@@ -249,10 +259,15 @@ export default function BatchPage() {
     const { app, action } = getAction();
 
     try {
+      const retryParams: Record<string, unknown> =
+        action === "LINKEDIN_SEND_CONNECTION_REQUEST"
+          ? { profile_url: recipient.profileUrl || "", message: recipient.preview }
+          : { text: recipient.preview };
+
       await api.post("/api/templates/send", {
         app,
         action,
-        params: { text: recipient.preview },
+        params: retryParams,
       });
       setRecipients((prev) =>
         prev.map((r, i) => (i === idx ? { ...r, status: "delivered" as RecipientStatus } : r))
